@@ -1,0 +1,13 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Lalezar&display=swap");
+* {
+  box-sizing: border-box;
+  transition: all 0.4s;
+}
+
+img {
+  max-width: 100%;
+}
+
+header .logo {
+  height: 60px;
+}/*# sourceMappingURL=style.css.map */
