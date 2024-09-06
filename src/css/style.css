@@ -8,6 +8,66 @@ img {
   max-width: 100%;
 }
 
+body {
+  font-family: "Inter", sans-serif;
+  margin: 0;
+}
+
+button {
+  box-sizing: border-box;
+  min-width: 286px;
+  min-height: 43.26px;
+  background: #CB272D;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: -1px 4px 5px rgba(150, 150, 150, 0.35);
+  border-radius: 2px;
+  color: white;
+  font-weight: 700;
+  font-size: 24px;
+}
+
+header {
+  display: flex;
+  min-height: 107px;
+  position: fixed;
+  background-color: rgba(255, 255, 255, 0.92);
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  padding: 0px 125px;
+  font-family: "Lalezar", sans-serif;
+}
 header .logo {
   height: 60px;
+}
+header ul {
+  display: flex;
+  list-style: none;
+  gap: 18px;
+  color: black;
+}
+header ul a {
+  color: black;
+  text-decoration: none;
+}
+
+section.mainBanner {
+  padding-top: 115px;
+  background-image: url("../img/bannerImg59.jpeg");
+  background-position: center;
+  min-height: 100vh;
+  color: white;
+  display: flex;
+  align-items: start;
+  padding: 115px 124px;
+  flex-direction: column;
+  justify-content: center;
+}
+section.mainBanner h2 {
+  font-weight: 700;
+  font-size: 72px;
+  margin-bottom: 15px;
+  width: 730px;
+  letter-spacing: 0.7px;
+  line-height: 70px;
 }/*# sourceMappingURL=style.css.map */
