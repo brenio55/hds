@@ -1,10 +1,30 @@
 $mainBrandColorRed: #CB272D;
+$mainSectionMargin: 70px;
+$mainSectionPadding: 70px;
+$h2MainSize: 60px;
+$h2MainWeight: 800;
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Lalezar&display=swap');
 
 * {
     box-sizing: border-box;
     transition: all 0.4s;
+}
+
+.flex{
+    display: flex;
+
+    &.justifyCenter{
+        justify-content: center;
+    }
+
+    &.justifySpaceBetween{
+        justify-content: space-between;
+    }
+
+    &.justifySpaceAround{
+        justify-content: space-around;
+    }
 }
 
 img{
@@ -21,7 +41,8 @@ button{
 
     
     min-width: 286px;
-    min-height: 43.26px;
+    height: 43.26px;
+    text-align: center;
     
 
     background: #CB272D;
@@ -48,6 +69,8 @@ header{
     padding: 0px $paddingLR;
 
     font-family: 'Lalezar', sans-serif;
+
+    z-index: 1000;
 
     .logo{
         height: 60px;
@@ -86,5 +109,91 @@ section.mainBanner{
         width: 730px;
         letter-spacing: 0.7px;
         line-height: 70px;
+    }
+
+    div.flex{
+        flex-direction: column;
+        
+        button{
+            width: fit-content;
+        }
+    }
+}
+
+section.aboutUs{
+    margin-top: $mainSectionMargin;
+    width: 100%;
+    position: relative;
+
+    h2{
+        margin-bottom: $mainSectionMargin;
+        text-align: center;
+        font-size: $h2MainSize;
+        font-weight: $h2MainWeight;
+    }
+
+    div.leftAndRightAboutUs{
+        flex-direction: row;
+
+        width: 100%;
+
+        gap: 55px;
+
+        align-items: center;
+
+        .leftSide{
+            width: 43%;
+        }
+
+        .rightSide{
+            .boldRed{
+                font-weight:  bold;
+                color: #CB272D;
+
+                &.italic{
+                    font-style: oblique;
+                }
+            }
+
+            
+
+            .atuacao, .trabalhamosCom, .qualidadeSeguranca{
+                display: flex;    
+                justify-content: start;
+                flex-direction: column;
+                align-items: start;   
+            }
+
+            h3{
+                margin: 0;
+            }
+
+            display: flex;
+            width: 45%;
+            align-items: start;
+            flex-direction: column;
+        }
+
+        .WeWorkIcon{
+            .mainIcon{
+                align-items: center;
+                gap: 15px;
+
+                img{
+                    width: 40px;
+                }
+            }
+
+            .WeWorkTitleDesc{
+                align-items: center;
+                gap: 15px;
+            }
+        }
+
+        // $rightSideWidth: 750 - 60%;
+        // .rightSide{
+        //     width: $rightSideWidth;
+        // }   
+
     }
 }

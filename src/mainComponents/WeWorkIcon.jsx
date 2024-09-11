@@ -10,7 +10,7 @@ function WeWorkIcon(props){
                 <div className="flex">
                     <img src={WeWorkImgSrc} alt="" />
                 </div>
-                <div className="flex">
+                <div className="flex WeWorkTitleDesc">
                     <h3>{WeWorkTitle}</h3>
                     <p>{WeWorkDescription}</p>
                 </div>

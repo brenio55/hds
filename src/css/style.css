@@ -4,6 +4,19 @@
   transition: all 0.4s;
 }
 
+.flex {
+  display: flex;
+}
+.flex.justifyCenter {
+  justify-content: center;
+}
+.flex.justifySpaceBetween {
+  justify-content: space-between;
+}
+.flex.justifySpaceAround {
+  justify-content: space-around;
+}
+
 img {
   max-width: 100%;
 }
@@ -16,7 +29,8 @@ body {
 button {
   box-sizing: border-box;
   min-width: 286px;
-  min-height: 43.26px;
+  height: 43.26px;
+  text-align: center;
   background: #CB272D;
   border: 1px solid rgba(255, 255, 255, 0.11);
   box-shadow: -1px 4px 5px rgba(150, 150, 150, 0.35);
@@ -36,6 +50,7 @@ header {
   align-items: center;
   padding: 0px 125px;
   font-family: "Lalezar", sans-serif;
+  z-index: 1000;
 }
 header .logo {
   height: 60px;
@@ -70,4 +85,64 @@ section.mainBanner h2 {
   width: 730px;
   letter-spacing: 0.7px;
   line-height: 70px;
+}
+section.mainBanner div.flex {
+  flex-direction: column;
+}
+section.mainBanner div.flex button {
+  width: fit-content;
+}
+
+section.aboutUs {
+  margin-top: 70px;
+  width: 100%;
+  position: relative;
+}
+section.aboutUs h2 {
+  margin-bottom: 70px;
+  text-align: center;
+  font-size: 60px;
+  font-weight: 800;
+}
+section.aboutUs div.leftAndRightAboutUs {
+  flex-direction: row;
+  width: 100%;
+  gap: 55px;
+  align-items: center;
+}
+section.aboutUs div.leftAndRightAboutUs .leftSide {
+  width: 43%;
+}
+section.aboutUs div.leftAndRightAboutUs .rightSide {
+  display: flex;
+  width: 45%;
+  align-items: start;
+  flex-direction: column;
+}
+section.aboutUs div.leftAndRightAboutUs .rightSide .boldRed {
+  font-weight: bold;
+  color: #CB272D;
+}
+section.aboutUs div.leftAndRightAboutUs .rightSide .boldRed.italic {
+  font-style: oblique;
+}
+section.aboutUs div.leftAndRightAboutUs .rightSide .atuacao, section.aboutUs div.leftAndRightAboutUs .rightSide .trabalhamosCom, section.aboutUs div.leftAndRightAboutUs .rightSide .qualidadeSeguranca {
+  display: flex;
+  justify-content: start;
+  flex-direction: column;
+  align-items: start;
+}
+section.aboutUs div.leftAndRightAboutUs .rightSide h3 {
+  margin: 0;
+}
+section.aboutUs div.leftAndRightAboutUs .WeWorkIcon .mainIcon {
+  align-items: center;
+  gap: 15px;
+}
+section.aboutUs div.leftAndRightAboutUs .WeWorkIcon .mainIcon img {
+  width: 40px;
+}
+section.aboutUs div.leftAndRightAboutUs .WeWorkIcon .WeWorkTitleDesc {
+  align-items: center;
+  gap: 15px;
 }/*# sourceMappingURL=style.css.map */
