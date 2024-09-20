@@ -40,6 +40,11 @@ button {
   font-size: 24px;
 }
 
+strong.redColor {
+  color: #CB272D;
+  font-weight: 700;
+}
+
 header {
   display: flex;
   min-height: 107px;
@@ -145,4 +150,76 @@ section.aboutUs div.leftAndRightAboutUs .WeWorkIcon .mainIcon img {
 section.aboutUs div.leftAndRightAboutUs .WeWorkIcon .WeWorkTitleDesc {
   align-items: center;
   gap: 15px;
+}
+
+section.services {
+  position: relative;
+  width: 100%;
+}
+section.services .titleTop {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+section.services .titleTop img {
+  margin: 0;
+}
+section.services .absolute {
+  position: absolute;
+  width: 100%;
+}
+section.services .absolute h2 {
+  text-align: center;
+  color: white;
+  font-size: 60px;
+}
+section.services .mainSlideWorks h4 {
+  font-size: 20px;
+  text-align: center;
+  padding: 0px 435px;
+}
+section.services .mainSlideWorks .SwiperMainComponent {
+  margin-top: 75px;
+}
+section.services .mainSlideWorks div.slideServices {
+  display: flex;
+  justify-content: center;
+  gap: 45px;
+}
+section.services .mainSlideWorks div.slideServices img {
+  width: 700px;
+  height: 400px;
+  object-fit: cover;
+}
+section.services .mainSlideWorks div.slideServices h3 {
+  position: absolute;
+}
+section.services .mainSlideWorks div.slideServices .slideContentContainer {
+  position: relative;
+  width: fit-content;
+}
+section.services .mainSlideWorks div.slideServices .slideContentContainer .slideTitleContainer {
+  position: absolute;
+  bottom: 4px;
+  width: 100%;
+  background-color: rgba(203, 39, 45, 0.09);
+  height: 60px;
+  color: white;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 600;
+  font-size: 23px;
+  backdrop-filter: blur(8px);
+}
+section.services .mainSlideWorks div.slideServices .slideContentContainer .slideTitleContainer h3 {
+  margin: 0;
+}
+section.services .contactServices {
+  margin-top: 35px;
+}
+
+.swiper-button-next, .swiper-button-prev {
+  color: red !important;
 }/*# sourceMappingURL=style.css.map */

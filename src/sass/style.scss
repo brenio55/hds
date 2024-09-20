@@ -55,6 +55,13 @@ button{
     font-size: 24px;
 }
 
+strong{
+    &.redColor{
+        color: $mainBrandColorRed;
+        font-weight: 700;
+    }
+}
+
 header{
 
     $paddingLR: 125px;
@@ -196,4 +203,103 @@ section.aboutUs{
         // }   
 
     }
+}
+
+section.services{
+    position: relative;
+    width: 100%;
+
+    .titleTop{
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+
+        img {
+            margin: 0;
+        }
+    }
+
+    .absolute{
+        position: absolute;
+        width: 100%;
+
+        h2{            
+            text-align: center;
+            color: white;
+            font-size: $h2MainSize;
+        }
+    }
+
+    .mainSlideWorks{
+        h4{
+            font-size: 20px;
+            text-align: center;
+            padding: 0px 435px;
+        }
+
+        .SwiperMainComponent{
+            margin-top: 75px;
+        }
+
+        .lineRed{
+
+        }
+
+        .lineBlack{
+            
+        }
+
+        div.slideServices{
+            display: flex;
+            justify-content: center;
+            gap: 45px;
+
+            img{
+                $width: 700px;
+                width: $width;
+                height: $width - 300px;
+                object-fit: cover;
+            }
+
+            h3{
+                position: absolute;
+            }
+
+            .slideContentContainer{
+                position: relative;
+                width: fit-content;
+
+                .slideTitleContainer{
+                    position: absolute;
+                    bottom: 4px;
+                    width: 100%;
+                    background-color: rgb(203 39 45 / 9%);
+                    height: 60px;
+                    color: white;
+                    display: flex;
+                    justify-content: center;
+                    flex-direction: column;
+                    align-items: center;
+                    font-weight: 600;
+                    font-size: 23px;
+                    backdrop-filter: blur(8px);
+
+                    h3{
+                        margin: 0;
+                    }
+                }
+            }
+            
+        }
+
+        
+    }
+
+    .contactServices{
+        margin-top: 35px;
+    }
+}
+
+.swiper-button-next, .swiper-button-prev{
+    color: red !important;
 }

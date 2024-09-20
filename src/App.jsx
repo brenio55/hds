@@ -5,6 +5,9 @@ import './css/style.css';
 import Header from './commonComponents/Header';
 import MainBanner from './mainComponents/MainBanner';
 import AboutUs from './mainComponents/AboutUs';
+import Services from './mainComponents/Services';
+import ContactUs from './mainComponents/ContactUs';
+import Footer from './commonComponents/Footer';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -14,6 +17,9 @@ function App() {
       <Header></Header>
       <MainBanner></MainBanner>
       <AboutUs></AboutUs>
+      <Services></Services>
+      <ContactUs></ContactUs>
+      <Footer></Footer>
     </>
   )
 }
