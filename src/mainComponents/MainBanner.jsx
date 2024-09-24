@@ -7,11 +7,16 @@ function MainBanner(){
             <section className="mainBanner">
                 <div className="flex">
                     <h2><Typewriter 
-                        words={["METAIS ROBUSTOS PARA PROJETOS QUE DURAM!"]}
-                        loop={5}
+                        words={[
+                            "METAIS ROBUSTOS PARA PROJETOS QUE DURAM!",
+                            "UM RESULTADO JUSTO PARA NOSSA EMPRESA,   E SATISFATÓRIO PARA NOSSO CLIENTE",
+                            "ÉTICA, EFICIÊNCIA, SEGURANÇA, E QUALIDADE DENTRO E FORA DAS OBRAS!",
+                            "VAMOS UNIR PROPÓSITOS? JUNTE-SE À HDS NESSA!"
+                        ]}
+                        loop
                         cursor
                         cursorStyle="|"
-                        typeSpeed={60}
+                        typeSpeed={70}
 
                     /></h2>
 

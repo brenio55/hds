@@ -87,7 +87,8 @@ section.mainBanner h2 {
   font-weight: 700;
   font-size: 72px;
   margin-bottom: 15px;
-  width: 730px;
+  min-width: 730px;
+  max-width: 96%;
   letter-spacing: 0.7px;
   line-height: 70px;
   height: 210px;
