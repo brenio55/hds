@@ -1,7 +1,7 @@
 $mainBrandColorRed: #CB272D;
 $mainSectionMargin: 70px;
 $mainSectionPadding: 70px;
-$h2MainSize: 60px;
+$h2MainSize: 80px;
 $h2MainWeight: 800;
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Lalezar&display=swap');
@@ -116,6 +116,7 @@ section.mainBanner{
         width: 730px;
         letter-spacing: 0.7px;
         line-height: 70px;
+        height: 210px;
     }
 
     div.flex{
@@ -205,10 +206,8 @@ section.aboutUs{
     }
 }
 
-section.services{
-    position: relative;
-    width: 100%;
 
+@mixin mountainSectionTitle{
     .titleTop{
         display: flex;
         justify-content: center;
@@ -227,8 +226,16 @@ section.services{
             text-align: center;
             color: white;
             font-size: $h2MainSize;
+            margin: 0;
         }
     }
+}
+
+section.services{
+    position: relative;
+    width: 100%;
+
+    @include mountainSectionTitle();
 
     .mainSlideWorks{
         h4{
@@ -302,4 +309,16 @@ section.services{
 
 .swiper-button-next, .swiper-button-prev{
     color: red !important;
+}
+
+section.contactUs{
+    position: relative;
+    width: 100%;
+
+    @include mountainSectionTitle();
+
+    
+    .absolute h2{
+        margin: 140px 0 0 0;
+    }
 }

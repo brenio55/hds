@@ -90,6 +90,7 @@ section.mainBanner h2 {
   width: 730px;
   letter-spacing: 0.7px;
   line-height: 70px;
+  height: 210px;
 }
 section.mainBanner div.flex {
   flex-direction: column;
@@ -106,7 +107,7 @@ section.aboutUs {
 section.aboutUs h2 {
   margin-bottom: 70px;
   text-align: center;
-  font-size: 60px;
+  font-size: 80px;
   font-weight: 800;
 }
 section.aboutUs div.leftAndRightAboutUs {
@@ -171,7 +172,8 @@ section.services .absolute {
 section.services .absolute h2 {
   text-align: center;
   color: white;
-  font-size: 60px;
+  font-size: 80px;
+  margin: 0;
 }
 section.services .mainSlideWorks h4 {
   font-size: 20px;
@@ -222,4 +224,30 @@ section.services .contactServices {
 
 .swiper-button-next, .swiper-button-prev {
   color: red !important;
+}
+
+section.contactUs {
+  position: relative;
+  width: 100%;
+}
+section.contactUs .titleTop {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+section.contactUs .titleTop img {
+  margin: 0;
+}
+section.contactUs .absolute {
+  position: absolute;
+  width: 100%;
+}
+section.contactUs .absolute h2 {
+  text-align: center;
+  color: white;
+  font-size: 80px;
+  margin: 0;
+}
+section.contactUs .absolute h2 {
+  margin: 140px 0 0 0;
 }/*# sourceMappingURL=style.css.map */

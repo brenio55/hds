@@ -1,13 +1,15 @@
 function ContactUs(){
     return (
         <>
-        <section className="ContactUs">
+        <section className="contactUs">
             <div className="titleTop">
-                <img src="" alt="" />
-                <h2>FALE CONOSCO</h2>
-                <img src="" alt="" />
+                <img src="src/img/contactUsMountainTop.svg" alt="" />
+                <div className="absolute">                
+                    <h2>FALE CONOSCO</h2>
+                </div>
+                <img src="src/img/contactUsMountainBottom.svg" alt="" />
             </div>
-
+                
             <div className="mainContactUs">
                 <h4>Entre em contato com nossa equipe de atendimento e tenha seu serviço industrial prestado com qualidade conosco, o mais rápido possível, com um dos melhores preços do mercado!</h4>
 
