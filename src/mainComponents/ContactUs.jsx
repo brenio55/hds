@@ -11,16 +11,23 @@ function ContactUs(){
             </div>
                 
             <div className="mainContactUs">
-                <h4>Entre em contato com nossa equipe de atendimento e tenha seu serviço industrial prestado com qualidade conosco, o mais rápido possível, com um dos melhores preços do mercado!</h4>
+                <h4><strong className="redColor">Entre em contato</strong> com nossa equipe de atendimento e tenha seu serviço industrial prestado com qualidade conosco, o mais rápido possível, com um dos melhores preços do mercado!</h4>
 
-                <div className="contactInfo">
-                    <div className="topContactMountains"></div>
-                    <div className="bottomContactMountains"></div>
+                <div className="contactInfo flex">
+                    <div className="mountainsContact">
+                        <div className="topContactMountains">
+                            <img src="src/img/contactUsMountainTop1.svg" alt="" />
+                        </div>
+                        <div className="bottomContactMountains">
+                        <img src="src/img/contactUsMountainBottom1.svg" alt="" />
+                        </div>
+                    </div>
+                    
 
                     <div className="leftSide">
-                        <img src="" alt="" />
+                        <img src="src/img/faleConoscoImg.png" alt="" />
                     </div>
-                    <div className="righSide">
+                    <div className="rightSide">
                         <h3>Informações de contato</h3>
 
                         <div className="flex">

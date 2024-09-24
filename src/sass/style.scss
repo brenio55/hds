@@ -2,6 +2,7 @@ $mainBrandColorRed: #CB272D;
 $mainSectionMargin: 70px;
 $mainSectionPadding: 70px;
 $h2MainSize: 80px;
+$h4MainSize: 20px;
 $h2MainWeight: 800;
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Lalezar&display=swap');
@@ -239,7 +240,7 @@ section.services{
 
     .mainSlideWorks{
         h4{
-            font-size: 20px;
+            font-size: $h4MainSize;
             text-align: center;
             padding: 0px 435px;
         }
@@ -320,5 +321,53 @@ section.contactUs{
     
     .absolute h2{
         margin: 140px 0 0 0;
+    }
+
+    h4{
+        text-align: center;
+        padding: 0 300px;
+        font-size: $h4MainSize;
+    }
+
+    .contactInfo{
+        position: relative;
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+        
+
+        color: white;
+
+        .mountainsContact{
+            position: absolute;
+            width: 100%;
+        }
+
+        .topContactMountains, .bottomContactMountains{
+            position: relative;
+            z-index: -1;
+            width: 100%;
+
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+
+            img{
+                width: 100%;
+            }
+        }
+
+        .leftSide{
+            width: 50%;
+        }
+
+        .rightSide{
+            width: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
     }
 }

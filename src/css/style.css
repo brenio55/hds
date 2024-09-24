@@ -250,4 +250,42 @@ section.contactUs .absolute h2 {
 }
 section.contactUs .absolute h2 {
   margin: 140px 0 0 0;
+}
+section.contactUs h4 {
+  text-align: center;
+  padding: 0 300px;
+  font-size: 20px;
+}
+section.contactUs .contactInfo {
+  position: relative;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+}
+section.contactUs .contactInfo .mountainsContact {
+  position: absolute;
+  width: 100%;
+}
+section.contactUs .contactInfo .topContactMountains, section.contactUs .contactInfo .bottomContactMountains {
+  position: relative;
+  z-index: -1;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+section.contactUs .contactInfo .topContactMountains img, section.contactUs .contactInfo .bottomContactMountains img {
+  width: 100%;
+}
+section.contactUs .contactInfo .leftSide {
+  width: 50%;
+}
+section.contactUs .contactInfo .rightSide {
+  width: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }/*# sourceMappingURL=style.css.map */
