@@ -1,7 +1,7 @@
 function ContactUs(){
     return (
         <>
-        <section className="contactUs">
+        <section className="contactUs" id="contactUs">
             <div className="titleTop">
                 <img src="src/img/contactUsMountainTop.svg" alt="" />
                 <div className="absolute">                
@@ -28,25 +28,33 @@ function ContactUs(){
                         <img src="src/img/faleConoscoImg.png" alt="" />
                     </div>
                     <div className="rightSide">
-                        <h3>Informações de contato</h3>
-
-                        <div className="flex">
-                            <div className="contactItem">
-                                <img src="" alt="" />
-                                <p>contato@hdsservico.com.br</p>
+                        <div data-aos="fade-right">
+                            <h3>Informações de contato</h3>
+                        </div>
+                        <div className="flex detailedContactInfo">
+                            <div data-aos="fade-right">
+                                <div className="contactItem">                                
+                                    <img src="src/img/mailIcon.svg" alt="" />
+                                    <p><a href="mailto:contato@hdsservico.com.br">contato@hdsservico.com.br</a></p>
+                                </div>
                             </div>
-                            <div className="contactItem">
-                                <img src="" alt="" />
-                                <p>(12) 99221-1775</p>
+                            <div data-aos="fade-right">
+                                <div className="contactItem">                            
+                                <img src="src/img/telephoneIcon.svg" alt="" />
+                                <p><a href="tel:+5512992211775">(12) 99221-1775</a></p>
+                            </div>
                             </div>
                         </div>
 
-                        <button>
-                            <div className="flex">
-                                <img src="" alt="" />
-                                <p>Fale em nosso Whatsapp</p>
-                            </div>
-                        </button>
+                        <div data-aos="fade-right"> 
+                            <a href="https://wa.me/5512992211775"><button>
+                                <div className="flex">
+                                    <img src="src/img/whatsappIcon.svg" alt="" />
+                                    <p>Fale em nosso Whatsapp</p>
+                                </div>
+                            </button>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

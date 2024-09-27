@@ -17,6 +17,13 @@
   justify-content: space-around;
 }
 
+a {
+  text-decoration: none;
+  color: unset;
+  margin: 0;
+  padding: 0;
+}
+
 img {
   max-width: 100%;
 }
@@ -75,6 +82,8 @@ section.mainBanner {
   padding-top: 115px;
   background-image: url("../img/bannerImg59.jpeg");
   background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100%;
   min-height: 100vh;
   color: white;
   display: flex;
@@ -159,6 +168,10 @@ section.aboutUs div.leftAndRightAboutUs .WeWorkIcon .WeWorkTitleDesc {
   align-items: center;
   gap: 15px;
 }
+section.aboutUs button.buttonAboutUsSeeServices:hover {
+  transform: scale(1.01);
+  cursor: pointer;
+}
 
 section.services {
   position: relative;
@@ -187,8 +200,27 @@ section.services .mainSlideWorks h4 {
   text-align: center;
   padding: 0px 435px;
 }
+section.services .mainSlideWorks .pastClients {
+  margin-top: 70px;
+  margin-bottom: 5px;
+  text-align: center;
+  font-size: 32px;
+}
 section.services .mainSlideWorks .SwiperMainComponent {
   margin-top: 75px;
+}
+section.services .mainSlideWorks div.slideNossosParceiros .SwiperMainComponent {
+  margin-top: 35px;
+}
+section.services .mainSlideWorks div.slidePartners {
+  display: flex;
+  justify-content: center;
+  gap: 45px;
+}
+section.services .mainSlideWorks div.slidePartners img {
+  width: 120px;
+  height: 70px;
+  object-fit: cover;
 }
 section.services .mainSlideWorks div.slideServices {
   display: flex;
@@ -228,12 +260,21 @@ section.services .mainSlideWorks div.slideServices .slideContentContainer .slide
 section.services .contactServices {
   margin-top: 35px;
 }
+section.services .contactServices button {
+  min-width: 316px;
+  height: 51.26px;
+}
+section.services .contactServices button:hover {
+  cursor: pointer;
+  transform: scale(1.01);
+}
 
 .swiper-button-next, .swiper-button-prev {
   color: red !important;
 }
 
 section.contactUs {
+  margin-top: 70px;
   position: relative;
   width: 100%;
 }
@@ -268,6 +309,7 @@ section.contactUs .contactInfo {
   width: 100%;
   justify-content: space-between;
   align-items: center;
+  margin-top: 70px;
   color: white;
 }
 section.contactUs .contactInfo .mountainsContact {
@@ -295,4 +337,53 @@ section.contactUs .contactInfo .rightSide {
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  position: relative;
+  z-index: 900;
+}
+section.contactUs .contactInfo .rightSide h3 {
+  font-size: 32px;
+}
+section.contactUs .contactInfo .rightSide .detailedContactInfo {
+  flex-direction: column;
+}
+section.contactUs .contactInfo .rightSide .detailedContactInfo .contactItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+  gap: 15px;
+}
+section.contactUs .contactInfo .rightSide .detailedContactInfo .contactItem:hover {
+  transform: scale(1.01);
+  cursor: pointer;
+}
+section.contactUs .contactInfo .rightSide .detailedContactInfo .contactItem img {
+  width: 41px;
+  height: 41px;
+  object-fit: contain;
+}
+section.contactUs .contactInfo .rightSide .detailedContactInfo p {
+  font-size: 24px;
+}
+section.contactUs .contactInfo .rightSide button {
+  width: 420px;
+  height: 69px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #1d2d8b;
+  border: rgba(255, 255, 255, 0.6117647059) 2px solid;
+  border-radius: 4px;
+}
+section.contactUs .contactInfo .rightSide button:hover {
+  transform: scale(1.01);
+  border: rgba(255, 255, 255, 0.8274509804) 2.1px solid;
+  cursor: pointer;
+}
+section.contactUs .contactInfo .rightSide button .flex {
+  gap: 5px;
+  align-items: center;
+}
+section.contactUs .contactInfo .rightSide button .flex p {
+  margin: 0;
 }/*# sourceMappingURL=style.css.map */

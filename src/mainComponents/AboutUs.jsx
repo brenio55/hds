@@ -3,7 +3,7 @@ import WeWorkIcon from "./WeWorkIcon"
 function AboutUs(){
     return (
         <>
-        <section className="aboutUs">
+        <section className="aboutUs" id="aboutUs">
             <h2>SOBRE NÓS</h2>
 
             <div className="flex leftAndRightAboutUs">
@@ -48,7 +48,7 @@ function AboutUs(){
                         </div>
                     </div>
                     <div data-aos="fade-right">
-                        <button>VER SERVIÇOS</button>
+                        <a href="#services"><button className="buttonAboutUsSeeServices">VER SERVIÇOS</button></a>
                     </div>
                 </div>
             </div>
