@@ -87,11 +87,17 @@ section.mainBanner h2 {
   font-weight: 700;
   font-size: 72px;
   margin-bottom: 15px;
-  min-width: 730px;
-  max-width: 96%;
+  width: 1250px;
   letter-spacing: 0.7px;
   line-height: 70px;
   height: 210px;
+}
+section.mainBanner h2 div.typeWriter {
+  width: inherit !important;
+}
+section.mainBanner h2 div.typeWriter span.typeSpan {
+  display: inline-block;
+  width: inherit;
 }
 section.mainBanner div.flex {
   flex-direction: column;
