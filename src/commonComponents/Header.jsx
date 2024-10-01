@@ -3,14 +3,14 @@ function Header(){
         <>
             <header className="flex">
                 <div className="logo">
-                    <img src="src/img/LOGO.png" alt="" className="logo" />
+                    <a href="#mainBanner"><img src="src/img/LOGO.png" alt="" className="logo" /></a>
                 </div>
                 <nav>
                     <ul>
-                        <a href="#"><li>A HDS</li></a>
-                        <a href="#"><li>SOBRE NÓS</li></a>
-                        <a href="#"><li>SERVIÇOS</li></a>
-                        <a href="#"><li>CONTATO</li></a>
+                        <a href="#mainBanner"><li>A HDS</li></a>
+                        <a href="#aboutUs"><li>SOBRE NÓS</li></a>
+                        <a href="#services"><li>SERVIÇOS</li></a>
+                        <a href="#contactUs"><li>CONTATO</li></a>
                     </ul>
                 </nav>
             </header>

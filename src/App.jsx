@@ -40,9 +40,9 @@ function App() {
 
   return (
     <>
-      <div data-aos="fade-right">
-      <Header></Header>    
       
+      <Header></Header>    
+      <div data-aos="fade-right">
       <MainBanner></MainBanner>
       </div>
       <div data-aos="fade-up">
@@ -54,7 +54,7 @@ function App() {
       <div data-aos="fade-up">
       <ContactUs></ContactUs>
       </div>
-      <div data-aos="fade-up">
+      <div data-aos="fade-right">
       <Footer></Footer>
       </div>
     </>

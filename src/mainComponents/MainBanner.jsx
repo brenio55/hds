@@ -4,7 +4,7 @@ import { Cursor, Typewriter } from "react-simple-typewriter"
 function MainBanner(){
     return (
         <>
-            <section className="mainBanner">
+            <section className="mainBanner" id="mainBanner">
                 <div className="flex">
                     <h2>
                       <div className="typeWriter">
