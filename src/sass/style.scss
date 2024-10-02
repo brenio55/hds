@@ -579,3 +579,11 @@ footer{
     }
     
 }
+
+.conhecerButton{
+    &:hover{
+        transform: scale(1.01);
+        border: rgba(255,255,255,.04) 1px solid;
+        cursor: pointer;
+    }
+}

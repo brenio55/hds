@@ -25,7 +25,7 @@ function MainBanner(){
                     </div>
                     </h2>
 
-                    <button className="vermelhoButton">CONHECER</button>
+                    <a href="#aboutUs"><button className="vermelhoButton conhecerButton">CONHECER</button></a>
                 </div>
             </section>
         </>

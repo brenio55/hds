@@ -450,4 +450,10 @@ footer ul li::before {
 }
 footer ul li:hover::before {
   transform: scaleX(1);
+}
+
+.conhecerButton:hover {
+  transform: scale(1.01);
+  border: rgba(255, 255, 255, 0.04) 1px solid;
+  cursor: pointer;
 }/*# sourceMappingURL=style.css.map */
