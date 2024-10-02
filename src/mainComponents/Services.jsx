@@ -198,49 +198,49 @@ function Services(){
                     >
                         <SwiperSlide>
                             <SlidePartners
-                                imgSrc="src\img\services\parceiros\1569343851713.jpg" 
+                                imgSrc="\img\services\parceiros\1569343851713.jpg" 
                                 titleSlide="Data-Center - Paulínia / SP"
                             ></SlidePartners>
                         </SwiperSlide>
                         <SwiperSlide>
                             <SlidePartners
-                                imgSrc="src\img\services\parceiros\1519899542252.jpg" 
+                                imgSrc="\img\services\parceiros\1519899542252.jpg" 
                                 titleSlide="Data-Center 2 - Paulínia / SP"
                             ></SlidePartners>   
                         </SwiperSlide>
                         <SwiperSlide>
                             <SlidePartners
-                                imgSrc="src\img\services\parceiros\1654080004941.jpg" 
+                                imgSrc="\img\services\parceiros\1654080004941.jpg" 
                                 titleSlide="Data-Center 2 - Paulínia / SP"
                             ></SlidePartners>   
                         </SwiperSlide>
                         <SwiperSlide>
                             <SlidePartners
-                                imgSrc="src\img\services\parceiros\c1a13309fe66dcb601b404e70bab9436_logo-construcap-400x400.jpg" 
+                                imgSrc="\img\services\parceiros\c1a13309fe66dcb601b404e70bab9436_logo-construcap-400x400.jpg" 
                                 titleSlide="Data-Center 2 - Paulínia / SP"
                             ></SlidePartners>   
                         </SwiperSlide>
                         <SwiperSlide>
                             <SlidePartners
-                                imgSrc="src\img\services\parceiros\g4s-vagas.jpg" 
+                                imgSrc="\img\services\parceiros\g4s-vagas.jpg" 
                                 titleSlide="Data-Center 2 - Paulínia / SP"
                             ></SlidePartners>   
                         </SwiperSlide>
                         <SwiperSlide>
                             <SlidePartners
-                                imgSrc="src\img\services\parceiros\Logo RS.jpg" 
+                                imgSrc="\img\services\parceiros\Logo RS.jpg" 
                                 titleSlide="Data-Center 2 - Paulínia / SP"
                             ></SlidePartners>   
                         </SwiperSlide>
                         <SwiperSlide>
                             <SlidePartners
-                                imgSrc="src\img\services\parceiros\SHED.jpg" 
+                                imgSrc="\img\services\parceiros\SHED.jpg" 
                                 titleSlide="Data-Center 2 - Paulínia / SP"
                             ></SlidePartners>   
                         </SwiperSlide>
                         <SwiperSlide>
                             <SlidePartners
-                                imgSrc="src\img\services\parceiros\Temon.png" 
+                                imgSrc="\img\services\parceiros\Temon.png" 
                                 titleSlide="Data-Center 2 - Paulínia / SP"
                             ></SlidePartners>   
                         </SwiperSlide>
