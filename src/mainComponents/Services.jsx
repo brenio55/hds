@@ -14,11 +14,11 @@ function Services(){
         <>
         <section className="services" id="services">
             <div className="titleTop">
-                <img src="src/img/servicesMountainTop.svg" alt="" />
+                <img src="/img/servicesMountainTop.svg" alt="" />
                 <div className="absolute">                
                     <h2>SERVIÇOS</h2>
                 </div>
-                <img src="src/img/servicesMountainBottom.svg" alt="" />
+                <img src="/img/servicesMountainBottom.svg" alt="" />
             </div>
             
             <div className="mainSlideWorks">
@@ -50,115 +50,115 @@ function Services(){
                     >
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/dataCenterSP.jpg" 
+                                imgSrc="/img/services/dataCenterSP.jpg" 
                                 titleSlide="Data-Center - Paulínia / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/dataCenterSP2.jpg" 
+                                imgSrc="/img/services/dataCenterSP2.jpg" 
                                 titleSlide="Data-Center 2 - Paulínia / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/DataCenterSP3.jpg" 
+                                imgSrc="/img/services/DataCenterSP3.jpg" 
                                 titleSlide="Data-Center 3 - Paulínia / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/MaxAtacadistaTaubateS3.jpg" 
+                                imgSrc="/img/services/MaxAtacadistaTaubateS3.jpg" 
                                 titleSlide="Max Atacadista - Taubaté / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/MaxAtacadistaTaubateSP.jpg" 
+                                imgSrc="/img/services/MaxAtacadistaTaubateSP.jpg" 
                                 titleSlide="Max Atacadista 2 - Taubaté / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/MaxAtacadistaTaubateSP2.jpg" 
+                                imgSrc="/img/services/MaxAtacadistaTaubateSP2.jpg" 
                                 titleSlide="Max Atacadista 3 - Taubaté / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/MaxAtacadistaTaubateSP3.jpg" 
+                                imgSrc="/img/services/MaxAtacadistaTaubateSP3.jpg" 
                                 titleSlide="Max Atacadista 4 - Taubaté / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/SuzanoLimeiraSP.jpg" 
+                                imgSrc="/img/services/SuzanoLimeiraSP.jpg" 
                                 titleSlide="Suzano - Limeira / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/SuzanoLimeiraSP2.jpg" 
+                                imgSrc="/img/services/SuzanoLimeiraSP2.jpg" 
                                 titleSlide="Suzano - Limeira / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/YaraCubataoSP.jpg" 
+                                imgSrc="/img/services/YaraCubataoSP.jpg" 
                                 titleSlide="Ambev - Piraí"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/YaraCubataoSP2.jpg" 
+                                imgSrc="/img/services/YaraCubataoSP2.jpg" 
                                 titleSlide="Yara - Cubatão / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/interno1.jpg" 
+                                imgSrc="/img/services/interno1.jpg" 
                                 titleSlide="Trabalho Interno 1"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/interno2.jpg" 
+                                imgSrc="/img/services/interno2.jpg" 
                                 titleSlide="Trabalho Interno 2"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                    imgSrc="src/img/services/interno3.jpg" 
+                                    imgSrc="/img/services/interno3.jpg" 
                                 titleSlide="Trabalho Interno 3"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/AmbevPiraiRJ1.jpg" 
+                                imgSrc="/img/services/AmbevPiraiRJ1.jpg" 
                                 titleSlide="Ambev - Piraí 1"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/AmbevPiraiRJ2.jpg" 
+                                imgSrc="/img/services/AmbevPiraiRJ2.jpg" 
                                 titleSlide="Ambev - Piraí 3"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/AmbevPiraiRJ3.jpg" 
+                                imgSrc="/img/services/AmbevPiraiRJ3.jpg" 
                                 titleSlide="Ambev - Piraí 3"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/CajamarSP.jpg" 
+                                imgSrc="/img/services/CajamarSP.jpg" 
                                 titleSlide="Cajamar / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
-                                imgSrc="src/img/services/ContinentalPneusCamaçariBA1.jpg" 
+                                imgSrc="/img/services/ContinentalPneusCamaçariBA1.jpg" 
                                 titleSlide="Continental Pneus - Camaçari / BA"
                             ></Slide>
                         </SwiperSlide>

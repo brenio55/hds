@@ -3,11 +3,11 @@ function ContactUs(){
         <>
         <section className="contactUs" id="contactUs">
             <div className="titleTop">
-                <img src="src/img/contactUsMountainTop.svg" alt="" />
+                <img src="/img/contactUsMountainTop.svg" alt="" />
                 <div className="absolute">                
                     <h2>FALE CONOSCO</h2>
                 </div>
-                <img src="src/img/contactUsMountainBottom.svg" alt="" />
+                <img src="/img/contactUsMountainBottom.svg" alt="" />
             </div>
                 
             <div className="mainContactUs">
@@ -16,16 +16,16 @@ function ContactUs(){
                 <div className="contactInfo flex">
                     <div className="mountainsContact">
                         <div className="topContactMountains">
-                            <img src="src/img/contactUsMountainTop1.svg" alt="" />
+                            <img src="/img/contactUsMountainTop1.svg" alt="" />
                         </div>
                         <div className="bottomContactMountains">
-                        <img src="src/img/contactUsMountainBottom1.svg" alt="" />
+                        <img src="/img/contactUsMountainBottom1.svg" alt="" />
                         </div>
                     </div>
                     
 
                     <div className="leftSide">
-                        <img src="src/img/faleConoscoImg.png" alt="" />
+                        <img src="/img/faleConoscoImg.png" alt="" />
                     </div>
                     <div className="rightSide">
                         <div data-aos="fade-right">
@@ -34,13 +34,13 @@ function ContactUs(){
                         <div className="flex detailedContactInfo">
                             <div data-aos="fade-right">
                                 <div className="contactItem">                                
-                                    <img src="src/img/mailIcon.svg" alt="" />
+                                    <img src="/img/mailIcon.svg" alt="" />
                                     <p><a href="mailto:contato@hdsservico.com.br">contato@hdsservico.com.br</a></p>
                                 </div>
                             </div>
                             <div data-aos="fade-right">
                                 <div className="contactItem">                            
-                                <img src="src/img/telephoneIcon.svg" alt="" />
+                                <img src="/img/telephoneIcon.svg" alt="" />
                                 <p><a href="tel:+5512992211775">(12) 99221-1775</a></p>
                             </div>
                             </div>
@@ -49,7 +49,7 @@ function ContactUs(){
                         <div data-aos="fade-right"> 
                             <a href="https://wa.me/5512992211775"><button>
                                 <div className="flex">
-                                    <img src="src/img/whatsappIcon.svg" alt="" />
+                                    <img src="/img/whatsappIcon.svg" alt="" />
                                     <p>Fale em nosso Whatsapp</p>
                                 </div>
                             </button>

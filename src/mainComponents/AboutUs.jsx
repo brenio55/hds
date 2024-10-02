@@ -8,7 +8,7 @@ function AboutUs(){
 
             <div className="flex leftAndRightAboutUs">
                 <div className="leftSide">
-                    <img src="src/img/aboutUsImg.jpeg" alt="" />
+                    <img src="/img/aboutUsImg.jpeg" alt="" />
                 </div>
                 <div className="rightSide">
                 <div data-aos="fade-right">
@@ -23,21 +23,21 @@ function AboutUs(){
                             <WeWorkIcon
                                 WeWorkTitle="FABRICAÇÃO"
                                 WeWorkDescription="Tubulações, estruturas metálicam, equipamentos de pequeno porte, sistema de exaustão, incinerador;"
-                                WeWorkImgSrc="src/img/industryIcon.svg"
+                                WeWorkImgSrc="/img/industryIcon.svg"
                             ></WeWorkIcon>
                         </div>
                         <div data-aos="fade-right">
                             <WeWorkIcon
                                 WeWorkTitle="MONTAGEM"
                                 WeWorkDescription="Vasos de pressão, permuta de calor, fornos, caldeiras;"
-                                WeWorkImgSrc="src/img/mountingIcon.svg"
+                                WeWorkImgSrc="/img/mountingIcon.svg"
                             ></WeWorkIcon>
                         </div>
                         <div data-aos="fade-right">
                             <WeWorkIcon
                                 WeWorkTitle="MANUTENÇÃO"
                                 WeWorkDescription="Fornos, Caldeiras, Filtros de manga, permutadores, misturadores, torres, sistema transportador (rosca/correia), vasos, reatores, dentre outros."
-                                WeWorkImgSrc="src/img/maintananceIcon.svg"
+                                WeWorkImgSrc="/img/maintananceIcon.svg"
                             ></WeWorkIcon>
                         </div>
                     </div>

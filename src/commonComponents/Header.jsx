@@ -3,7 +3,7 @@ function Header(){
         <>
             <header className="flex">
                 <div className="logo">
-                    <a href="#mainBanner"><img src="src/img/LOGO.png" alt="" className="logo" /></a>
+                    <a href="#mainBanner"><img src="/img/LOGO.png" alt="" className="logo" /></a>
                 </div>
                 <nav>
                     <ul>
