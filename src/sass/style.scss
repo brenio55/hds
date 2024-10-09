@@ -385,14 +385,24 @@ section.services{
 
     @include mountainSectionTitle();
 
+    .absolute h2{
+        font-size: $h2MainSize;
+
+        @media (min-width: 320px){
+            font-size: 45px;
+        }
+    
+        @media (min-width: 720px){
+            font-size: $h2MainSize;
+        }
+    }
+
     @media (min-width: 320px){
         margin-top: calc($mainSectionMargin + 30px);
-        font-size: 45px;
     }
 
     @media (min-width: 720px){
         margin-top: unset;
-        font-size: unset;
     }
 
     .mainSlideWorks{
@@ -403,10 +413,12 @@ section.services{
 
             @media (min-width: 320px){
                 padding: unset;
+                
             }
         
             @media (min-width: 720px){
                 padding: 0px 435px;
+                
             }
         }
 
@@ -460,6 +472,14 @@ section.services{
                 width: $width;
                 height: $width - 300px;
                 object-fit: cover;
+
+                @media(min-width: 320px){
+                    width: 91vw;
+                }
+
+                @media(min-width: 720px){
+                    width: $width;
+                }
             }
 
             h3{
@@ -467,6 +487,10 @@ section.services{
             }
 
             .slideContentContainer{
+                img{
+                    max-width: unset;
+                }
+
                 position: relative;
                 width: fit-content;
 
@@ -524,16 +548,42 @@ section.contactUs{
 
     @include mountainSectionTitle();
 
+    @media (min-width: 320px){
+        margin-top: calc($mainSectionMargin + 30px);
+    }
+
+    @media (min-width: 720px){
+        margin-top: unset;
+    }
     
     .absolute h2{
         margin: 140px 0 0 0;
+
+        @media (min-width: 320px){
+            margin-top: 30px;
+            font-size: 45px;
+        }
+    
+        @media (min-width: 720px){
+            margin: unset;
+            font-size: 80px;
+        }
     }
+ 
 
     h4{
         text-align: center;
         padding: 0 300px;
         font-size: $h4MainSize;
         margin-bottom: 145px;
+
+        @media (min-width: 320px){
+            padding: 0px 7px;
+        }
+    
+        @media (min-width: 720px){
+            padding: 0px 435px;
+        }
     }
 
     .contactInfo{
@@ -542,13 +592,34 @@ section.contactUs{
         justify-content: space-between;
         align-items: center;
         margin-top: $mainSectionMargin;
+        color: white;
+
+        @media(min-width: 320px){
+            flex-direction: column;
+            color: black;
+        }
+
+        @media(min-width: 720px){
+            flex-direction: row;
+            color: white;
+        }
         
 
-        color: white;
+        
 
         .mountainsContact{
             position: absolute;
             width: 100%;
+
+            @media(min-width: 320px){
+                transform: translateY(33%);
+                z-index: -1;
+            }
+    
+            @media(min-width: 720px){
+                transform: unset;
+                
+            }
         }
 
         .topContactMountains, .bottomContactMountains{
@@ -568,6 +639,24 @@ section.contactUs{
 
         .leftSide{
             width: 50%;
+
+            @media(min-width: 320px){
+                width: 80%;
+            }
+    
+            @media(min-width: 720px){
+                width: 50%;                
+            }
+
+            img{
+                @media(min-width: 320px){
+                    border-radius: 5px;
+                }
+        
+                @media(min-width: 720px){
+                    border-radius: unset;        
+                }   
+            }
         }
 
         .rightSide{

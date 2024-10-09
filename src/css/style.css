@@ -324,16 +324,27 @@ section.services .absolute h2 {
   font-size: 80px;
   margin: 0;
 }
+section.services .absolute h2 {
+  font-size: 80px;
+}
+@media (min-width: 320px) {
+  section.services .absolute h2 {
+    font-size: 45px;
+  }
+}
+@media (min-width: 720px) {
+  section.services .absolute h2 {
+    font-size: 80px;
+  }
+}
 @media (min-width: 320px) {
   section.services {
     margin-top: 100px;
-    font-size: 45px;
   }
 }
 @media (min-width: 720px) {
   section.services {
     margin-top: unset;
-    font-size: unset;
   }
 }
 section.services .mainSlideWorks h4 {
@@ -383,12 +394,25 @@ section.services .mainSlideWorks div.slideServices img {
   height: 400px;
   object-fit: cover;
 }
+@media (min-width: 320px) {
+  section.services .mainSlideWorks div.slideServices img {
+    width: 91vw;
+  }
+}
+@media (min-width: 720px) {
+  section.services .mainSlideWorks div.slideServices img {
+    width: 700px;
+  }
+}
 section.services .mainSlideWorks div.slideServices h3 {
   position: absolute;
 }
 section.services .mainSlideWorks div.slideServices .slideContentContainer {
   position: relative;
   width: fit-content;
+}
+section.services .mainSlideWorks div.slideServices .slideContentContainer img {
+  max-width: unset;
 }
 section.services .mainSlideWorks div.slideServices .slideContentContainer .slideTitleContainer {
   position: absolute;
@@ -447,14 +471,46 @@ section.contactUs .absolute h2 {
   font-size: 80px;
   margin: 0;
 }
+@media (min-width: 320px) {
+  section.contactUs {
+    margin-top: 100px;
+  }
+}
+@media (min-width: 720px) {
+  section.contactUs {
+    margin-top: unset;
+  }
+}
 section.contactUs .absolute h2 {
   margin: 140px 0 0 0;
+}
+@media (min-width: 320px) {
+  section.contactUs .absolute h2 {
+    margin-top: 30px;
+    font-size: 45px;
+  }
+}
+@media (min-width: 720px) {
+  section.contactUs .absolute h2 {
+    margin: unset;
+    font-size: 80px;
+  }
 }
 section.contactUs h4 {
   text-align: center;
   padding: 0 300px;
   font-size: 20px;
   margin-bottom: 145px;
+}
+@media (min-width: 320px) {
+  section.contactUs h4 {
+    padding: 0px 7px;
+  }
+}
+@media (min-width: 720px) {
+  section.contactUs h4 {
+    padding: 0px 435px;
+  }
 }
 section.contactUs .contactInfo {
   position: relative;
@@ -464,9 +520,32 @@ section.contactUs .contactInfo {
   margin-top: 70px;
   color: white;
 }
+@media (min-width: 320px) {
+  section.contactUs .contactInfo {
+    flex-direction: column;
+    color: black;
+  }
+}
+@media (min-width: 720px) {
+  section.contactUs .contactInfo {
+    flex-direction: row;
+    color: white;
+  }
+}
 section.contactUs .contactInfo .mountainsContact {
   position: absolute;
   width: 100%;
+}
+@media (min-width: 320px) {
+  section.contactUs .contactInfo .mountainsContact {
+    transform: translateY(33%);
+    z-index: -1;
+  }
+}
+@media (min-width: 720px) {
+  section.contactUs .contactInfo .mountainsContact {
+    transform: unset;
+  }
 }
 section.contactUs .contactInfo .topContactMountains, section.contactUs .contactInfo .bottomContactMountains {
   position: relative;
@@ -482,6 +561,26 @@ section.contactUs .contactInfo .topContactMountains img, section.contactUs .cont
 }
 section.contactUs .contactInfo .leftSide {
   width: 50%;
+}
+@media (min-width: 320px) {
+  section.contactUs .contactInfo .leftSide {
+    width: 80%;
+  }
+}
+@media (min-width: 720px) {
+  section.contactUs .contactInfo .leftSide {
+    width: 50%;
+  }
+}
+@media (min-width: 320px) {
+  section.contactUs .contactInfo .leftSide img {
+    border-radius: 5px;
+  }
+}
+@media (min-width: 720px) {
+  section.contactUs .contactInfo .leftSide img {
+    border-radius: unset;
+  }
 }
 section.contactUs .contactInfo .rightSide {
   width: 50%;
