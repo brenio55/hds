@@ -651,7 +651,7 @@ footer {
     gap: 25px;
   }
 }
-@media (min-width: 320px) {
+@media (min-width: 720px) {
   footer {
     flex-direction: row;
     gap: unset;
