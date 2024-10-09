@@ -509,6 +509,16 @@ section.services{
                     font-size: 23px;
                     backdrop-filter: blur(8px);
 
+                    @media(min-width: 320px){
+                        padding-bottom: 11px;
+                        padding-left: 5px;
+                    }
+
+                    @media (min-width: 720px){
+                        padding-bottom: unset;
+                        padding-left: unset;
+                    }
+
                     h3{
                         margin: 0;
                     }
@@ -561,7 +571,7 @@ section.contactUs{
 
         @media (min-width: 320px){
             margin-top: 30px;
-            font-size: 45px;
+            font-size: 37px;
         }
     
         @media (min-width: 720px){
@@ -579,10 +589,14 @@ section.contactUs{
 
         @media (min-width: 320px){
             padding: 0px 7px;
+            margin-bottom: 0px;
+            font-size: 17px;
         }
     
         @media (min-width: 720px){
             padding: 0px 435px;
+            margin-bottom: 145px;
+            font-size: 20px;
         }
     }
 
@@ -597,11 +611,13 @@ section.contactUs{
         @media(min-width: 320px){
             flex-direction: column;
             color: black;
+            margin-top: calc($mainSectionMargin - 30px);
         }
 
         @media(min-width: 720px){
             flex-direction: row;
             color: white;
+            margin-top: $mainSectionMargin;
         }
         
 
@@ -668,6 +684,17 @@ section.contactUs{
             position: relative;
             z-index: 900;
 
+            @media (min-width: 320px){
+                min-width: 320px;
+                text-align: center;
+            }
+
+            @media (min-width: 720px){
+                width: unset;
+                min-width: unset;
+                text-align: center;
+            }
+
             h3{
                 font-size: 32px;
             }
@@ -697,6 +724,14 @@ section.contactUs{
 
                 p{
                     font-size: 24px;
+
+                    @media (min-width: 320px){
+                        font-size: 18px;
+                    }
+        
+                    @media (min-width: 720px){
+                        font-size: 24px;
+                    }
                 }
             }
 
@@ -710,6 +745,22 @@ section.contactUs{
                 background-color: #1d2d8b;
                 border: #ffffff9c 2px solid;
                 border-radius: 4px;
+
+                @media (min-width: 320px){
+                    font-size: 18px;
+                    margin-top: 20px;
+                    margin-bottom: 65px;
+                    border-radius: 38px;
+                    width: 299px;
+                }
+    
+                @media (min-width: 720px){
+                    border-radius: 4px;
+                    width: 420px;
+                    font-size: unset;
+                    margin-top: unset;
+                    margin-bottom: unset;
+                }
 
                 &:hover{
                     transform: scale(1.01);
@@ -754,6 +805,18 @@ footer{
 
     .menusFooter{
         gap: 55px;
+
+        &.flex{
+            @media (min-width: 320px){
+                flex-direction: column;
+                text-align: center;
+            }
+        
+            @media (min-width: 720px){
+                flex-direction: row;
+                text-align: unset;
+            }
+        }
     }
 
     img{
@@ -766,6 +829,14 @@ footer{
         flex-direction: column;
         padding: 0;
         gap: 9px;
+
+        @media (min-width: 320px){
+            align-items: center;
+        }
+    
+        @media (min-width: 720px){
+            align-items: start;
+        }
     
         li {
             list-style: none;
