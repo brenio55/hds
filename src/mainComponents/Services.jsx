@@ -105,13 +105,13 @@ function Services(){
                         <SwiperSlide>
                             <Slide
                                 imgSrc="/img/services/YaraCubataoSP.jpg" 
-                                titleSlide="Ambev - Piraí"
+                                titleSlide="Yara - Cubatão / SP"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>
                             <Slide
                                 imgSrc="/img/services/YaraCubataoSP2.jpg" 
-                                titleSlide="Yara - Cubatão / SP"
+                                titleSlide="Yara - Cubatão / SP 2"
                             ></Slide>
                         </SwiperSlide>
                         <SwiperSlide>

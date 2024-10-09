@@ -65,23 +65,64 @@ header {
   font-family: "Lalezar", sans-serif;
   z-index: 1000;
 }
-header .logo {
-  height: 60px;
+@media (min-width: 320px) {
+  header {
+    justify-content: center;
+  }
 }
-header ul {
+@media (min-width: 720px) {
+  header {
+    justify-content: space-between;
+  }
+}
+@media (min-width: 320px) {
+  header .logo {
+    max-width: unset;
+    width: 170px;
+  }
+}
+@media (min-width: 720px) {
+  header .logo {
+    max-height: 60px;
+  }
+}
+@media (min-width: 320px) {
+  header nav {
+    position: absolute;
+    top: 120px;
+    min-height: calc(100svh - 120px);
+    background-color: white;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    left: -100%;
+    transition: all 1.2s;
+  }
+}
+@media (min-width: 720px) {
+  header nav {
+    display: block;
+    position: static;
+    width: unset;
+    background-color: unset;
+    min-height: unset;
+  }
+}
+header nav ul {
   display: flex;
   list-style: none;
   gap: 18px;
   color: black;
 }
-header ul a {
+header nav ul a {
   color: black;
   text-decoration: none;
 }
-header ul li {
+header nav ul li {
   position: relative;
 }
-header ul li::before {
+header nav ul li::before {
   content: "";
   position: absolute;
   bottom: 0;
@@ -93,7 +134,7 @@ header ul li::before {
   transform-origin: left;
   transition: transform 0.3s ease-in-out;
 }
-header ul li:hover::before {
+header nav ul li:hover::before {
   transform: scaleX(1);
 }
 
@@ -111,6 +152,18 @@ section.mainBanner {
   flex-direction: column;
   justify-content: center;
 }
+@media (min-width: 320px) {
+  section.mainBanner {
+    background-size: 265%;
+    padding: 0px 22px;
+  }
+}
+@media (min-width: 720px) {
+  section.mainBanner {
+    background-size: 100%;
+    padding: 115px 124px;
+  }
+}
 section.mainBanner h2 {
   font-weight: 700;
   font-size: 72px;
@@ -120,12 +173,39 @@ section.mainBanner h2 {
   line-height: 70px;
   height: 210px;
 }
+@media (min-width: 320px) {
+  section.mainBanner h2 {
+    font-size: 24px;
+    line-height: 31px;
+  }
+}
+@media (min-width: 720px) {
+  section.mainBanner h2 {
+    font-size: 72px;
+    line-height: 70px;
+  }
+}
 section.mainBanner h2 div.typeWriter {
   width: inherit !important;
 }
 section.mainBanner h2 div.typeWriter span.typeSpan {
   display: inline-block;
   width: inherit;
+}
+@media (min-width: 320px) {
+  section.mainBanner h2 div.typeWriter span.typeSpan {
+    width: 300px;
+  }
+}
+@media (min-width: 720px) {
+  section.mainBanner h2 div.typeWriter span.typeSpan {
+    width: 720px;
+  }
+}
+@media (min-width: 1220px) {
+  section.mainBanner h2 div.typeWriter span.typeSpan {
+    width: inherit;
+  }
 }
 section.mainBanner div.flex {
   flex-direction: column;
@@ -151,14 +231,44 @@ section.aboutUs div.leftAndRightAboutUs {
   gap: 55px;
   align-items: center;
 }
+@media (min-width: 320px) {
+  section.aboutUs div.leftAndRightAboutUs {
+    flex-direction: column;
+  }
+}
+@media (min-width: 720px) {
+  section.aboutUs div.leftAndRightAboutUs {
+    flex-direction: row;
+  }
+}
 section.aboutUs div.leftAndRightAboutUs .leftSide {
   width: 43%;
+}
+@media (min-width: 320px) {
+  section.aboutUs div.leftAndRightAboutUs .leftSide {
+    width: 100%;
+  }
+}
+@media (min-width: 720px) {
+  section.aboutUs div.leftAndRightAboutUs .leftSide {
+    width: 43%;
+  }
 }
 section.aboutUs div.leftAndRightAboutUs .rightSide {
   display: flex;
   width: 45%;
   align-items: start;
   flex-direction: column;
+}
+@media (min-width: 320px) {
+  section.aboutUs div.leftAndRightAboutUs .rightSide {
+    width: 95%;
+  }
+}
+@media (min-width: 720px) {
+  section.aboutUs div.leftAndRightAboutUs .rightSide {
+    width: 45%;
+  }
 }
 section.aboutUs div.leftAndRightAboutUs .rightSide .boldRed {
   font-weight: bold;
@@ -214,10 +324,32 @@ section.services .absolute h2 {
   font-size: 80px;
   margin: 0;
 }
+@media (min-width: 320px) {
+  section.services {
+    margin-top: 100px;
+    font-size: 45px;
+  }
+}
+@media (min-width: 720px) {
+  section.services {
+    margin-top: unset;
+    font-size: unset;
+  }
+}
 section.services .mainSlideWorks h4 {
   font-size: 20px;
   text-align: center;
   padding: 0px 435px;
+}
+@media (min-width: 320px) {
+  section.services .mainSlideWorks h4 {
+    padding: unset;
+  }
+}
+@media (min-width: 720px) {
+  section.services .mainSlideWorks h4 {
+    padding: 0px 435px;
+  }
 }
 section.services .mainSlideWorks .pastClients {
   margin-top: 70px;
