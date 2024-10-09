@@ -616,7 +616,7 @@ section.contactUs .contactInfo .rightSide {
 }
 @media (min-width: 720px) {
   section.contactUs .contactInfo .rightSide {
-    width: unset;
+    width: 50%;
     min-width: unset;
     text-align: center;
   }
