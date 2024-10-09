@@ -168,7 +168,6 @@ section.mainBanner h2 {
   font-weight: 700;
   font-size: 72px;
   margin-bottom: 15px;
-  width: 1250px;
   letter-spacing: 0.7px;
   line-height: 70px;
   height: 210px;
@@ -492,7 +491,7 @@ section.contactUs .absolute h2 {
 }
 @media (min-width: 720px) {
   section.contactUs .absolute h2 {
-    margin: unset;
+    margin: 140px 0 0 0;
     font-size: 80px;
   }
 }
@@ -645,6 +644,18 @@ footer {
   justify-content: space-around;
   padding-bottom: 25px;
   align-items: center;
+}
+@media (min-width: 320px) {
+  footer {
+    flex-direction: column;
+    gap: 25px;
+  }
+}
+@media (min-width: 320px) {
+  footer {
+    flex-direction: row;
+    gap: unset;
+  }
 }
 footer h4 {
   font-weight: 800;

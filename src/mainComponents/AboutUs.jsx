@@ -22,7 +22,7 @@ function AboutUs(){
                         <div data-aos="fade-right">
                             <WeWorkIcon
                                 WeWorkTitle="FABRICAÇÃO"
-                                WeWorkDescription="Tubulações, estruturas metálicam, equipamentos de pequeno porte, sistema de exaustão, incinerador;"
+                                WeWorkDescription="Tubulações, estruturas metálicas, equipamentos de pequeno porte, sistema de exaustão, incinerador;"
                                 WeWorkImgSrc="/img/industryIcon.svg"
                             ></WeWorkIcon>
                         </div>

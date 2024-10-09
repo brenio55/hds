@@ -199,7 +199,7 @@ section.mainBanner{
         font-size: 72px;
         margin-bottom: 15px;
         // min-width: 730px;
-        width: 1250px;
+        // width: 1250px;
         letter-spacing: 0.7px;
         line-height: 70px;
         height: 210px;
@@ -565,7 +565,7 @@ section.contactUs{
         }
     
         @media (min-width: 720px){
-            margin: unset;
+            margin: 140px 0 0 0;
             font-size: 80px;
         }
     }
@@ -737,6 +737,16 @@ footer{
     justify-content: space-around;
     padding-bottom: calc($mainSectionMargin - 45px);
     align-items: center;
+
+    @media (min-width: 320px){
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    @media (min-width: 320px){
+        flex-direction: row;
+        gap: unset;
+    }
 
     h4{
         font-weight: 800;
