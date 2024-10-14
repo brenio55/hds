@@ -91,10 +91,36 @@ header{
 
     @media (min-width: 320px){
         justify-content: center;
+        padding: unset;
+
+        .logoMenu{
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
+            padding-left: 15px;
+            padding-right: 22px;
+
+            span{
+                display: block;
+                width: 40px;
+            }
+        }
     }
 
     @media (min-width: 720px){
         justify-content: space-between;
+        padding: 0px $paddingLR;
+
+        .logoMenu{
+            justify-content: unset;
+            width: unset;
+            align-items: center;
+            padding: unset;
+
+            span{
+                display: none;                               
+            }
+        }
     }
 
     .logo{
@@ -113,23 +139,30 @@ header{
 
         @media (min-width: 320px){
             position: absolute;
-            top: 120px;
-            min-height: calc(100svh - 120px);
+            top: 107px;
+            height: 84dvh;
             background-color: white;
             width: 100%;
             display: flex;
             justify-content: center;
-            align-items: center;      
-            left: -100%;      
+            align-items: center;
+            left: -100%;
             transition: all 1.2s;
+            flex-direction: column;
+
+            &.show{
+                left: 0;
+            }
         }
 
         @media (min-width: 720px){
             display: block;
             position: static;
             width: unset;
+            height: unset;
             background-color: unset;
             min-height: unset;
+            flex-direction: row;
         }
 
         ul {
@@ -137,6 +170,18 @@ header{
             list-style: none;
             gap: 18px;
             color: black;
+
+            @media(min-width: 320px){
+                flex-direction: column;
+                font-size: 38px;
+                justify-content: center;
+            }
+
+            @media(min-width: 720px){
+                flex-direction: row;
+                font-size: unset;
+                justify-content: unset;
+            }
         
             a {
                 color: black;
