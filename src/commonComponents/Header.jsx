@@ -18,10 +18,10 @@ function Header(){
                 
                 <nav>
                     <ul>
-                        <a href="#mainBanner"><li>A HDS</li></a>
-                        <a href="#aboutUs"><li>SOBRE NÓS</li></a>
-                        <a href="#services"><li>SERVIÇOS</li></a>
-                        <a href="#contactUs"><li>CONTATO</li></a>
+                        <a href="#mainBanner" onClick={clickMenu}><li>A HDS</li></a>
+                        <a href="#aboutUs" onClick={clickMenu}><li>SOBRE NÓS</li></a>
+                        <a href="#services" onClick={clickMenu}><li>SERVIÇOS</li></a>
+                        <a href="#contactUs" onClick={clickMenu}><li>CONTATO</li></a>
                     </ul>
                 </nav>
             </header>
