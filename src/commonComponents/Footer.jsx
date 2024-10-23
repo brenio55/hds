@@ -3,16 +3,18 @@ function Footer(){
         <>
         <footer className="flex">
             <div className="logo">
-                <a href="#mainBanner"><img src="/img/LOGO.png" alt="" className="logo" /></a>
+                <a href="/#mainBanner"><img src="/img/LOGO.png" alt="" className="logo" /></a>
             </div>
             <div className="menusFooter flex">
                 <div className="menuNavegacao">
                     <h4><strong>NAVEGAÇÃO</strong></h4>
                     <ul>
-                        <a href="#mainBanner"><li>A HDS</li></a>
-                        <a href="#aboutUs"><li>Sobre Nós</li></a>
-                        <a href="#services"><li>Serviços</li></a>
-                        <a href="#contactUs"><li>Contato</li></a>
+                        <a href="/#mainBanner"><li>A HDS</li></a>
+                        <a href="/#aboutUs"><li>Sobre Nós</li></a>
+                        <a href="/#services"><li>Serviços</li></a>
+                        <a href="/#contactUs"><li>Contato</li></a>
+                        <Link to={'/Login'}><li className="loginLi">Login - Administrativo</li></Link>
+
                     </ul>
                 </div>
                 <div className="menuContato">

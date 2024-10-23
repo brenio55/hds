@@ -859,6 +859,16 @@ section.login .quadradoLogin {
   padding: 50px;
   font-family: sans-serif;
 }
+@media (min-width: 320px) {
+  section.login .quadradoLogin {
+    flex-direction: column;
+  }
+}
+@media (min-width: 720px) {
+  section.login .quadradoLogin {
+    flex-direction: row;
+  }
+}
 section.login .quadradoLogin .L {
   position: relative;
   display: flex;

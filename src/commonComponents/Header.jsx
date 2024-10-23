@@ -13,7 +13,7 @@ function Header(){
             <header className="flex">
                 <div className="flex logoMenu">
                     <div className="logo">
-                        <a href="#mainBanner"><img src="/img/LOGO.png" alt="" className="logo" /></a>
+                        <a href="/#mainBanner"><img src="/img/LOGO.png" alt="" className="logo" /></a>
                     </div>
                     <span className="menuSpan" onClick={clickMenu}><img src="\img\menu.webp" alt="menu" /></span>
                 </div>

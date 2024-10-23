@@ -958,6 +958,14 @@ section.login {
       // outline: 1px solid black;
       padding: 50px;
       font-family: sans-serif;
+
+      @media (min-width: 320px){
+        flex-direction: column;
+      }
+
+      @media (min-width: 720px){
+        flex-direction: row;
+      }
   
       .L {
         position: relative;
