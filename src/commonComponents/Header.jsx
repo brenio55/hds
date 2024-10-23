@@ -24,7 +24,7 @@ function Header(){
                         <a href="/#aboutUs" onClick={clickMenu}><li>SOBRE NÓS</li></a>
                         <a href="/#services" onClick={clickMenu}><li>SERVIÇOS</li></a>
                         <a href="/#contactUs" onClick={clickMenu}><li>CONTATO</li></a>
-                        <a href="/#contactUs" onClick={clickMenu}><li>CONTATO</li></a>
+                        
                         <Link to={'/Login'}><li className="loginLi"><img src="/img/login/login.png" alt="" /> Login</li></Link>
                     </ul>
                 </nav>
