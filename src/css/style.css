@@ -164,7 +164,7 @@ header nav ul a {
 header nav ul li {
   position: relative;
 }
-header nav ul li::before {
+header nav ul li:not(.loginLi)::before {
   content: "";
   position: absolute;
   bottom: 0;
@@ -178,6 +178,26 @@ header nav ul li::before {
 }
 header nav ul li:hover::before {
   transform: scaleX(1);
+}
+header nav ul li.loginLi {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+@media (min-width: 320px) {
+  header nav ul li.loginLi {
+    border-left: unset;
+    padding-left: unset;
+  }
+}
+@media (min-width: 720px) {
+  header nav ul li.loginLi {
+    border-left: 2px solid black;
+    padding-left: 14px;
+  }
+}
+header nav ul li.loginLi img {
+  width: 19px;
 }
 
 section.mainBanner {
@@ -821,4 +841,97 @@ footer ul li:hover::before {
   transform: scale(1.01);
   border: rgba(255, 255, 255, 0.04) 1px solid;
   cursor: pointer;
+}
+
+section.login .telaCompleta {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #e2e2e5;
+}
+section.login .quadradoLogin {
+  display: flex;
+  min-height: 130px;
+  justify-content: center;
+  flex-direction: row;
+  align-items: center;
+  padding: 50px;
+  font-family: sans-serif;
+}
+section.login .quadradoLogin .L {
+  position: relative;
+  display: flex;
+  background-color: white;
+  padding: 15px;
+  padding-left: 35px;
+  min-height: 220px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+section.login .quadradoLogin .L h1 {
+  margin-bottom: 55px;
+}
+section.login .quadradoLogin .L p {
+  color: #7c7c7c;
+  text-align: center;
+}
+section.login .quadradoLogin .L img {
+  width: 100px;
+}
+section.login .quadradoLogin .R {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: #474a59;
+  color: #c2c2c5;
+  min-height: 260px;
+  box-shadow: 0px 0px 40px 16px rgba(0, 0, 0, 0.22);
+  padding: 30px;
+}
+section.login .quadradoLogin .R label {
+  font-size: 14px;
+}
+section.login .quadradoLogin .R input {
+  width: 100%;
+  background-color: unset;
+  border: none;
+  border-bottom: 1px solid rgb(0, 132, 255);
+  height: 20px;
+  margin-bottom: 15px;
+  color: white;
+}
+section.login .quadradoLogin .R input:focus {
+  background-color: unset;
+  outline: unset;
+  color: white;
+  transition: 1.4s all;
+  border-bottom: 1px solid rgb(0, 153, 255);
+}
+section.login .quadradoLogin .R button {
+  background-color: unset;
+  border: unset;
+  margin: 0 auto;
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #c2c2c5;
+  border: 1px solid rgb(203, 39, 45);
+  color: black;
+  background-color: white;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+  transition: all 0.2s;
+}
+section.login .quadradoLogin .R button:hover {
+  transition: all 0.1s;
+  transform: scale(1.05);
+  cursor: pointer;
+  border: 1px solid rgb(158, 158, 254);
 }/*# sourceMappingURL=style.css.map */
