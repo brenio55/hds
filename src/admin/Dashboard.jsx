@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css'; // Importando o CSS
-import Header from '../commonComponents/Header';
+import HeaderAdmin from './HeaderAdmin';
 
 function Dashboard(){
     const navigate = useNavigate();
@@ -13,7 +13,7 @@ function Dashboard(){
 
     return (
         <>
-            <Header/>
+            <HeaderAdmin/>
             <div className="admin-container">
                 <div className="services">
                     <div className="service-card" onClick={() => handleNavigation('/usuarios')}>

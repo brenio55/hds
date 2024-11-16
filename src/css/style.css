@@ -944,4 +944,48 @@ section.login .quadradoLogin .R button:hover {
   transform: scale(1.05);
   cursor: pointer;
   border: 1px solid rgb(158, 158, 254);
+}
+
+/* AdminDashboard.css */
+.headerAdmin {
+  background-color: #003366;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  font-size: 24px;
+}
+
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 150px;
+  height: 90vh;
+  border: 3px solid red;
+  width: 90vw;
+  margin: 0 auto;
+  border-style: double;
+}
+.admin-container .services {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.admin-container .services .service-card {
+  background-color: #fff;
+  border: 2px solid #cc0000;
+  border-radius: 8px;
+  width: 250px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.admin-container .services .service-card h2 {
+  color: #cc0000;
+}
+.admin-container .services .service-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }/*# sourceMappingURL=style.css.map */
