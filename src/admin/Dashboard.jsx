@@ -21,7 +21,7 @@ function Dashboard(){
                         <p>Controle e modifique informações dos usuários cadastrados.</p>
                     </div>
 
-                    <div className="service-card" onClick={() => handleNavigation('/produtos')}>
+                    <div className="service-card" onClick={() => handleNavigation('/pedidosDeCompra')}>
                         <h2>Preencher Pedido de Compra de Material</h2>
                         <p>Preencha e imprima um Pedido de Compra de Material</p>
                     </div>

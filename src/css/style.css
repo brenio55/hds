@@ -46,6 +46,12 @@ button {
   color: white;
   font-weight: 700;
   font-size: 24px;
+  transition: all 0.1s;
+}
+button:hover {
+  transition: all 0.2s;
+  transform: scale(1.05);
+  cursor: pointer;
 }
 
 strong.redColor {
@@ -948,8 +954,7 @@ section.login .quadradoLogin .R button:hover {
 
 /* AdminDashboard.css */
 .headerAdmin {
-  background-color: #003366;
-  color: white;
+  background-color: #8cbded;
   padding: 20px;
   text-align: center;
   font-size: 24px;
@@ -988,4 +993,150 @@ section.login .quadradoLogin .R button:hover {
 .admin-container .services .service-card:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.admin-container.pedidosDeCompra {
+  min-height: 100vh;
+  padding-left: 5px;
+  padding-right: 5px;
+  width: 100vw;
+  height: fit-content;
+}
+.admin-container.pedidosDeCompra .service-card {
+  background-color: #fff;
+  border: 2px solid #cc0000;
+  border-radius: 8px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  height: 134px;
+  padding: 5px;
+  width: 350px;
+}
+
+.pedido-container {
+  margin-top: 30px;
+  width: 100%;
+  max-width: 800px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pedido-container h1 {
+  color: #cc0000;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.pedido-form {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.pedido-form button {
+  height: 61.26px;
+  grid-column: span 2;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.form-group input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.pedido-wrapper {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.itens-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.itens-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  width: 100%;
+}
+
+.itens-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.itens-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.itens-group input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.itens-container h2 {
+  color: #cc0000;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+button {
+  grid-column: span 2;
+  padding: 10px;
+  background-color: #cc0000;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #a30000;
+}
+
+.itens-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.itens-table th, .itens-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.itens-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
 }/*# sourceMappingURL=style.css.map */
