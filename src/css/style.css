@@ -1271,4 +1271,39 @@ button:hover {
   .acoes-container {
     display: none;
   }
+}
+.pdf-preview {
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-preview embed {
+  border: none;
+  width: 100%;
+  height: 800px;
+}
+
+.dev-mode-toggle {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.dev-mode-button {
+  padding: 10px 20px;
+  border: 2px solid #cc0000;
+  background-color: white;
+  color: #cc0000;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.dev-mode-button.active {
+  background-color: #cc0000;
+  color: white;
 }/*# sourceMappingURL=style.css.map */
