@@ -11,16 +11,22 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.46.1",
+    "@xmldom/xmldom": "^0.9.5",
     "aos": "^2.3.4",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "html2canvas": "^1.4.1",
     "jquery": "^3.7.1",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.27.0",
     "react-simple-typewriter": "^5.0.1",
     "supabase": "^1.219.2",
-    "swiper": "^11.1.14"
+    "swiper": "^11.1.14",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

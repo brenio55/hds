@@ -1,36 +1,47 @@
 import $ from 'jquery';
 import { Link } from 'react-router-dom';
-import Login from '../admin/Login';
+import { useAdmin } from '../contexts/AdminContext';
 
 function HeaderAdmin(){
+    const { adminUser, logout } = useAdmin();
 
     function clickMenu(){
         $('nav').toggleClass('show');
     }
+
+    const handleLogout = () => {
+        logout();
+    };
 
     return (
         <>
             <header className="flex headerAdmin">
                 <div className="flex logoMenu">
                     <div className="logo">
-                        <a href="/#mainBanner"><img src="/img/LOGO.png" alt="" className="logo" /></a>
+                        <Link to="/dashboard"><img src="/img/LOGO.png" alt="" className="logo" /></Link>
                     </div>
-                    <span className="menuSpan" onClick={clickMenu}><img src="\img\menu.webp" alt="menu" /></span>
+                    <span className="menuSpan" onClick={clickMenu}><img src="/img/menu.webp" alt="menu" /></span>
                 </div>
                 
                 <nav>
                     <ul>
-                        <a href="/#mainBanner" onClick={clickMenu}><li>A HDS</li></a>
-                        <a href="/#aboutUs" onClick={clickMenu}><li>SOBRE NÓS</li></a>
-                        <a href="/#services" onClick={clickMenu}><li>SERVIÇOS</li></a>
-                        <a href="/#contactUs" onClick={clickMenu}><li>CONTATO</li></a>
-                        
-                        <Link to={'/Login'}><li className="loginLi"><img src="/img/login/login.png" alt="" /> Login</li></Link>
+                        <Link to="/dashboard"><li>Dashboard</li></Link>
+                        <Link to="/pedidosDeCompra"><li>Pedidos</li></Link>
+                        {adminUser ? (
+                            <li className="loginLi">
+                                <span>{adminUser.userName}</span>
+                                <button onClick={handleLogout}>Sair</button>
+                            </li>
+                        ) : (
+                            <Link to="/login"><li className="loginLi">
+                                <img src="/img/login/login.png" alt="" /> Login
+                            </li></Link>
+                        )}
                     </ul>
                 </nav>
             </header>
         </>
-    )
+    );
 }
 
-export default HeaderAdmin
+export default HeaderAdmin;

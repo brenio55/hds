@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 
 import Header from "../commonComponents/Header";
 import supabase from "../utils/Supabase";
+import { useAdmin } from "../contexts/AdminContext";
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAdmin();
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
 
@@ -36,8 +38,9 @@ function Login() {
       // Validação da senha
       if (userData.userPassword === password) {
         console.log("Usuário validado:", userData.userName);
+        login(userData); // Salvando os dados do usuário no contexto
         alert(`Bem-vindo, ${userData.userName}!`);
-        navigate("/dashboard"); // Redireciona para o dashboard
+        navigate("/dashboard", { replace: true });
       } else {
         console.log("Senha incorreta.");
         alert("Usuário ou senha inválidos.");

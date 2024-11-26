@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { preencherPedidoCompra } from '../utils/excelHandler';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import html2canvas from 'html2canvas';
+import { formatCNPJ, formatCEP, formatTelefone } from '../utils/formatters';
 
 import HeaderAdmin from './HeaderAdmin';
 
@@ -17,6 +22,13 @@ function PedidosDeCompra() {
         desconto: '',
         previsaoEntrega: '',
     });
+    const [minDate] = useState(() => {
+        const today = new Date();
+        return today.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    });
+    const [cnpj, setCnpj] = useState('');
+    const [cep, setCep] = useState('');
+    const [contato, setContato] = useState('');
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -60,6 +72,60 @@ function PedidosDeCompra() {
         alert('Pedido de compra gerado com sucesso! Confira o console.');
     };
 
+    const formatarData = (data) => {
+        if (!data) return '';
+        const [ano, mes, dia] = data.split('-');
+        return `${dia}/${mes}/${ano}`;
+    };
+
+    const handleCNPJChange = (e) => {
+        const formatted = formatCNPJ(e.target.value);
+        setCnpj(formatted);
+    };
+
+    const handleCEPChange = (e) => {
+        const formatted = formatCEP(e.target.value);
+        setCep(formatted);
+    };
+
+    const handleContatoChange = (e) => {
+        const formatted = formatTelefone(e.target.value);
+        setContato(formatted);
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        
+        const formData = {
+            codigo: event.target.codigo.value,
+            fornecedor: event.target.fornecedor.value,
+            cnpj: cnpj,
+            endereco: event.target.endereco.value,
+            cep: cep,
+            contato: contato,
+            pedido: event.target.pedido.value,
+            dataVencto: formatarData(event.target.dataVencto.value),
+            condPagto: event.target.condPagto.value,
+            centroCusto: event.target.centroCusto.value
+        };
+
+        try {
+            // Gera o arquivo Excel e obtém a URL do blob
+            const excelUrl = await preencherPedidoCompra(formData, itens);
+            
+            // Navega para a página de preview
+            navigate('/pedido-gerado', { 
+                state: { 
+                    pedidoData: formData,
+                    excelUrl: excelUrl
+                }
+            });
+        } catch (error) {
+            console.error('Erro ao gerar pedido:', error);
+            alert('Erro ao gerar o pedido. Por favor, tente novamente.');
+        }
+    };
+
     return (
         <>
             <HeaderAdmin />
@@ -67,59 +133,85 @@ function PedidosDeCompra() {
                 <div className="pedido-wrapper">
                     <div className="pedido-container">
                         <h1>Pedido de Compra de Material</h1>
-                        <form className="pedido-form">
-                        <div className="form-group">
-                            <label>Código:</label>
-                            <input type="text" placeholder="00" />
-                        </div>
+                        <form className="pedido-form" onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label>Código:</label>
+                                <input type="text" name="codigo" placeholder="00" />
+                            </div>
 
-                        <div className="form-group">
-                            <label>Fornecedor:</label>
-                            <input type="text" placeholder="EMPRESA EXEMPLO, LTDA" />
-                        </div>
+                            <div className="form-group">
+                                <label>Fornecedor:</label>
+                                <input type="text" name="fornecedor" placeholder="EMPRESA EXEMPLO, LTDA" />
+                            </div>
 
-                        <div className="form-group">
-                            <label>CNPJ:</label>
-                            <input type="text" placeholder="00.000.000/0000-00" />
-                        </div>
+                            <div className="form-group">
+                                <label>CNPJ:</label>
+                                <input 
+                                    type="text" 
+                                    name="cnpj"
+                                    value={cnpj}
+                                    onChange={handleCNPJChange}
+                                    placeholder="XX.XXX.XXX/XXXX-XX"
+                                    maxLength={18}
+                                />
+                            </div>
 
-                        <div className="form-group">
-                            <label>Endereço:</label>
-                            <input type="text" placeholder="RUA ... NUMERO ..." />
-                        </div>
+                            <div className="form-group">
+                                <label>Endereço:</label>
+                                <input type="text" name="endereco" placeholder="RUA ... NUMERO ..." />
+                            </div>
 
-                        <div className="form-group">
-                            <label>CEP:</label>
-                            <input type="text" placeholder="00000-000" />
-                        </div>
+                            <div className="form-group">
+                                <label>CEP:</label>
+                                <input 
+                                    type="text" 
+                                    name="cep"
+                                    value={cep}
+                                    onChange={handleCEPChange}
+                                    placeholder="XXXXX-XXX"
+                                    maxLength={9}
+                                />
+                            </div>
 
-                        <div className="form-group">
-                            <label>Contato:</label>
-                            <input type="text" placeholder="(XX) X-XXXX-XXXX" />
-                        </div>
+                            <div className="form-group">
+                                <label>Contato:</label>
+                                <input 
+                                    type="text" 
+                                    name="contato"
+                                    value={contato}
+                                    onChange={handleContatoChange}
+                                    placeholder="(XX) X XXXX-XXXX"
+                                    maxLength={16}
+                                />
+                            </div>
 
-                        <div className="form-group">
-                            <label>Pedido:</label>
-                            <input type="text" placeholder="0000000000" />
-                        </div>
+                            <div className="form-group">
+                                <label>Pedido:</label>
+                                <input type="text" name="pedido" placeholder="0000000000" />
+                            </div>
 
-                        <div className="form-group">
-                            <label>Data Vencto:</label>
-                            <input type="text" placeholder="R$ VALOR,00" />
-                        </div>
+                            <div className="form-group">
+                                <label>Data de Vencimento:</label>
+                                <input 
+                                    type="date" 
+                                    name="dataVencto" 
+                                    min={minDate}
+                                    required 
+                                />
+                            </div>
 
-                        <div className="form-group">
-                            <label>Cond. Pagto:</label>
-                            <input type="text" placeholder="38DDl" />
-                        </div>
+                            <div className="form-group">
+                                <label>Cond. Pagto:</label>
+                                <input type="text" name="condPagto" placeholder="38DDl" />
+                            </div>
 
-                        <div className="form-group">
-                            <label>Centro de Custo:</label>
-                            <input type="text" placeholder="Galpão" />
-                        </div>
+                            <div className="form-group">
+                                <label>Centro de Custo:</label>
+                                <input type="text" name="centroCusto" placeholder="Galpão" />
+                            </div>
 
-                        <button type="submit">Gerar Pedido de Compra de Material</button>
-                    </form>
+                            <button type="submit">Gerar Pedido de Compra de Material</button>
+                        </form>
                     </div>
 
                     <div className="itens-container">

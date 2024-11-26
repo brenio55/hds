@@ -1139,4 +1139,136 @@ button:hover {
 .itens-table th {
   background-color: #f4f4f4;
   font-weight: bold;
+}
+
+.pedido-gerado-container {
+  padding-top: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.pedido-preview {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.template-base {
+  width: 100%;
+  height: auto;
+}
+
+.pedido-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.pedido-content span {
+  position: absolute;
+  font-family: Arial, sans-serif;
+}
+
+.acoes-container {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.acoes-container button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #cc0000;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.acoes-container button:hover {
+  background-color: #a30000;
+}
+
+.excel-preview {
+  width: 100%;
+  max-width: 1000px;
+  margin: 20px auto;
+  background: white;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.excel-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.excel-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.excel-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.excel-preview {
+  position: relative;
+  width: 210mm; /* Largura A4 */
+  height: 297mm; /* Altura A4 */
+  margin: 20px auto;
+  padding: 20mm; /* Margem interna */
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+@media print {
+  .excel-preview {
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+  }
+}
+~ .excel-preview {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 20mm;
+  margin: 10mm auto;
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.excel-preview iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.acoes-container {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.acoes-container button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+@media print {
+  .excel-preview {
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+  }
+  .acoes-container {
+    display: none;
+  }
 }/*# sourceMappingURL=style.css.map */
