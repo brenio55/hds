@@ -1,0 +1,112 @@
+.pedido-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 80px auto 20px;
+}
+
+.acoes-container {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.acoes-container h3 {
+    margin: 0;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.buttons-container {
+    display: flex;
+    gap: 10px;
+}
+
+.buttons-container button {
+    padding: 8px 16px;
+    background-color: #cc0000;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.buttons-container button:hover {
+    background-color: #a30000;
+}
+
+.pedido-content {
+    background: white;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 200px;
+}
+
+/* Estilos para impressão */
+@media print {
+    .acoes-container,
+    .header-admin {
+        display: none;
+    }
+
+    .pedido-container {
+        margin: 0;
+        padding: 0;
+    }
+
+    .pedido-content {
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+    }
+}
+
+/* Estilos para as tabelas dentro do pedido */
+.pedido-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.pedido-content th,
+.pedido-content td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.pedido-content th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    width: 200px;
+}
+
+.pedido-content .contratante,
+.pedido-content .contratada {
+    margin-bottom: 30px;
+}
+
+.pedido-content h3 {
+    margin-bottom: 15px;
+    color: #333;
+    border-bottom: 2px solid #cc0000;
+    padding-bottom: 5px;
+}
+
+/* Adicione estes estilos para o PDF viewer */
+#pdf-viewer {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* Estilos específicos para o PDF */
+@page {
+    size: A4;
+    margin: 20mm;
+}
+

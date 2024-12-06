@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { preencherPedidoCompra } from '../utils/pdfHandler';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-import html2canvas from 'html2canvas';
+import { gerarPedidoCompra } from '../utils/pdfHandler';
 import { formatCNPJ, formatCEP, formatTelefone } from '../utils/formatters';
 
 import HeaderAdmin from './HeaderAdmin';
@@ -174,20 +171,13 @@ function PedidosDeCompra() {
             centroCusto: event.target.centroCusto.value
         };
 
-        console.log('Dados do formulário:', formData);
-        console.log('Itens:', itens);
-
         try {
-            // Gera o PDF e obtém a URL do blob
-            const pdfUrl = await preencherPedidoCompra(formData, itens);
+            const htmlContent = await gerarPedidoCompra(formData, itens);
             
-            console.log('PDF URL recebida:', pdfUrl);
-
-            // Navega para a página de preview com a URL do PDF
             navigate('/pedido-gerado', { 
                 state: { 
                     pedidoData: formData,
-                    pdfUrl: pdfUrl
+                    htmlContent: htmlContent
                 }
             });
         } catch (error) {

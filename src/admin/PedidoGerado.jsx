@@ -1,50 +1,69 @@
-import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Document, Page, PDFViewer } from '@react-pdf/renderer';
+import Html from 'react-pdf-html';
+import ReactDOM from 'react-dom';
 import HeaderAdmin from './HeaderAdmin';
+import './PedidoGerado.css';
 
 function PedidoGerado() {
+    const pedidoRef = useRef(null);
     const location = useLocation();
-    const navigate = useNavigate();
-    const { pdfUrl } = location.state || {};
+    const { pedidoData, htmlContent } = location.state || {};
 
-    if (!pdfUrl) {
-        return <div>Erro: PDF não encontrado</div>;
-    }
+    useEffect(() => {
+        if (htmlContent) {
+            pedidoRef.current.innerHTML = htmlContent;
+        }
+    }, [htmlContent]);
 
-    const handleDownload = () => {
-        const link = document.createElement('a');
-        link.href = pdfUrl;
-        link.download = 'pedido-de-compra.pdf';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    const handlePrint = () => {
+        window.print();
     };
 
-    console.log('Estado recebido:', location.state);
-    console.log('PDF URL na página de preview:', pdfUrl);
+    const handleExportPDF = async () => {
+        try {
+            const MyDocument = () => (
+                <Document>
+                    <Page size="A4">
+                        <Html>{htmlContent}</Html>
+                    </Page>
+                </Document>
+            );
+
+            const container = document.createElement('div');
+            container.id = 'pdf-viewer';
+            document.body.appendChild(container);
+
+            ReactDOM.render(
+                <PDFViewer width="100%" height="100%" showToolbar={true}>
+                    <MyDocument />
+                </PDFViewer>,
+                container
+            );
+        } catch (error) {
+            console.error('Erro ao gerar PDF:', error);
+            alert('Erro ao gerar o PDF. Por favor, tente novamente.');
+        }
+    };
+
+    if (!htmlContent) {
+        return <div>Erro: Conteúdo não encontrado</div>;
+    }
 
     return (
         <>
             <HeaderAdmin />
-            <div className="pedido-gerado-container">
-                <h1>Pedido de Compra Gerado</h1>
-                
-                <div className="pdf-preview">
-                    <embed 
-                        src={pdfUrl}
-                        type="application/pdf"
-                        width="1400px"
-                        height="800px"
-                    />
-                </div>
-
+            <div className="pedido-container">
                 <div className="acoes-container">
-                    <button onClick={handleDownload}>
-                        Baixar PDF
-                    </button>
-                    <button onClick={() => navigate('/pedidosDeCompra')}>
-                        Novo Pedido
-                    </button>
+                    <h3>Ações</h3>
+                    <div className="buttons-container">
+                        <button onClick={handlePrint}>Imprimir</button>
+                        <button onClick={handleExportPDF}>Exportar PDF</button>
+                    </div>
+                </div>
+                <div ref={pedidoRef} className="pedido-content">
+                    {/* O conteúdo HTML será injetado aqui */}
                 </div>
             </div>
         </>

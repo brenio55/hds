@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido de Compra</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        .footer {
+            font-size: 0.9em;
+            text-align: center;
+            color: #666;
+            margin-top: 20px;
+        }
+        .logo {
+            display: block;
+            margin: 0 auto 20px;
+            height: 80px;
+        }
+        .red {
+            color: red;
+        }
+        .signature-line {
+            border-bottom: 1px solid #000;
+            width: 200px;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="../../img/LOGO.png" alt="Logo" class="logo" height="80px">
+        <h1>PEDIDO DE COMPRA DE MATERIAL</h1>
+        
+        <div class="contratante">
+            <!-- Esta seção será substituída pelos dados fixos da contratante -->
+        </div>
+
+        <div class="contratada">
+            <!-- Esta seção será substituída pelos dados do fornecedor -->
+        </div>
+
+        <h2>Detalhes do Pedido</h2>
+        <table>
+            <tr>
+                <th>Código</th>
+                <th>Fornecedor</th>
+                <th>CNPJ</th>
+                <th>Endereço</th>
+                <th>CEP</th>
+                <th>Contato</th>
+            </tr>
+            <tr>
+                <td>12345</td>
+                <td>Fornecedor XYZ</td>
+                <td>00.000.000/0000-00</td>
+                <td>Rua Exemplo, 123</td>
+                <td>12000-000</td>
+                <td>(12) 3456-7890</td>
+            </tr>
+            <tr style="height: 10px;"></tr> <!-- Espaçamento entre as linhas -->
+            <tr>
+                <th>Pedido</th>
+                <th>Data Vencimento</th>
+                <th>Cond. Pagto</th>
+                <th>Centro de Custo</th>
+                <th colspan="2"></th>
+            </tr>
+            <tr>
+                <td>001</td>
+                <td>01/01/2024</td>
+                <td>À vista</td>
+                <td>Financeiro</td>
+                <td colspan="2"></td>
+            </tr>
+        </table>
+        <div class="flex-container">
+            <div style="width: 60%;">
+                <h2>Totais</h2>
+                <table>
+                    <tr>
+                        <th>Descontos</th>
+                        <td>R$ 100,00</td>
+                    </tr>
+                    <tr>
+                        <th>Frete</th>
+                        <td>R$ 50,00</td>
+                    </tr>
+                    <tr>
+                        <th>Outras Despesas</th>
+                        <td>R$ 30,00</td>
+                    </tr>
+                    <tr>
+                        <th>Total Bruto</th>
+                        <td>R$ 1.100,00</td>
+                    </tr>
+                    <tr>
+                        <th>Total Final</th>
+                        <td>R$ 1.080,00</td>
+                    </tr>
+                </table>
+            </div>
+            <div style="width: 35%;">
+                <h2>Data Final de Entrega</h2>
+                <table>
+                    <tr>
+                        <td>15/01/2024</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <h2>Descrição dos Materiais</h2>
+        <table>
+            <tr>
+                <th>Descrição do material</th>
+                <th>Un</th>
+                <th>Qntd.</th>
+                <th>Valor Unitario</th>
+                <th>Valor Total</th>
+                <th>%</th>
+                <th>Prev. Entrega</th>
+            </tr>
+            <tr>
+                <td>Material A</td>
+                <td>Un</td>
+                <td>10</td>
+                <td>R$ 50,00</td>
+                <td>R$ 500,00</td>
+                <td>5%</td>
+                <td>10/01/2024</td>
+            </tr>
+            <tr>
+                <td>Material B</td>
+                <td>Un</td>
+                <td>20</td>
+                <td>R$ 30,00</td>
+                <td>R$ 600,00</td>
+                <td>10%</td>
+                <td>15/01/2024</td>
+            </tr>
+        </table>
+        <h2>Dados Adicionais</h2>
+        <table>
+            <tr>
+                <td></td>
+            </tr>
+        </table>
+        <h2>Outros</h2>
+        <table>
+            <tr>
+                <td>Frete (  ) CIF     (   ) FOB</td>
+            </tr>
+        </table>
+
+        <!-- <tr>
+            <th>Informações Importantes para o Fornecedor</th>
+        </tr> -->
+        <tr>
+            <td>
+                <h2>Informações Importantes para o Fornecedor</h2>
+                <p><strong>Os Preços:</strong> Inclusos nos preços todas as taxas, tributos e impostos pertencentes à aquisição.</p>
+                <p><strong>Prazo de Entrega:</strong> O material somente poderá ser entregue de acordo com a programação da obra. Caso o fornecedor não atenda a essa programação, a CONTRATANTE está autorizada a comprar o material de outros fornecedores e proceder ao desconto da diferença do FORNECEDOR.</p>
+                <p><strong>EPIs:</strong> O FORNECEDOR deverá munir seus funcionários com os EPIs adequados para a entrega e/ou descarga, conforme OSMA 024.</p>
+                <p><strong>Venda Mercantil:</strong> Todas as Notas Fiscais de Venda Mercantil deverão constar obrigatoriamente a correta identificação da Nomenclatura Comum do MERCOSUL (NCM), conforme estabelece a legislação fiscal vigente. Não serão aceitas, em hipótese alguma, Notas Fiscais de Venda Mercantil sem a correta identificação de NCM. Toda e qualquer mercadoria fornecida para a CONTRATANTE deverá ser acompanhada da Nota Fiscal devida. Quando acordado com a CONTRATANTE a realização de pagamento mediante a emissão de Nota Fiscal de Simples Faturamento, tal ato será mera liberalidade da CONTRATANTE, sendo obrigação do FORNECEDOR entregar o material à CONTRATANTE acompanhado da devida Nota Fiscal.</p>
+                <p><strong>Pagamento:</strong> Somente serão consideradas para efeito de pagamento as quantidades aceitas durante a entrega na obra. Quando for o caso, somente serão consideradas as pesagens que forem efetuadas na balança da CONTRATANTE ou em outra indicada pela mesma. Serão consideradas a cubicagem efetuada pelo apontador da CONTRATANTE, devidamente anotada no canhoto da Nota Fiscal. Para efeito de pagamento, o prazo fixado no presente pedido de fornecimento será contado da data de entrega da mercadoria, incluindo-se nesta contagem o dia de emissão da respectiva Nota Fiscal. Todavia, caso o material solicitado não seja entregue na data da emissão da Nota Fiscal, o prazo para pagamento aqui estabelecido ficará prorrogado por tantos dias quantos forem os de atraso, sem quaisquer ônus para a CONTRATANTE. O FORNECEDOR deverá discriminar no corpo da Nota Fiscal o endereço da obra. Caso as faturas sejam emitidas com incorreções ou encaminhadas para o endereço diferente do indicado, as mesmas serão devolvidas e o prazo de pagamento passará a ser contado a partir da reapresentação das notas devidamente corrigidas no protocolo da CONTRATANTE.</p>
+                <p><strong>Defeitos ou Acidentes:</strong> No caso de defeito de fabricação ou danos pelo transporte, o FORNECEDOR deverá substituir o produto sem qualquer ônus para a CONTRATANTE, no prazo máximo de 48 horas. Em caso de acidente, o FORNECEDOR deverá enviar um relato do acidente, bem como o número do lote do material, promovendo a substituição do produto eventualmente danificado nas mesmas condições ora descritas.</p>
+                <p><strong>Tributos e Contribuições:</strong> Correrão por conta exclusiva do FORNECEDOR todos os tributos e contribuições que incidam ou venham a incidir sobre o presente pedido de fornecimento.</p>
+                <p><strong>Responsabilidade Social:</strong> O FORNECEDOR se obriga a não empregar menores de 18 anos em atividades noturnas, perigosas ou insalubres e menores de 16 anos em qualquer trabalho, exceto na condição de aprendizes, a partir de 14 anos, bem como não utilizar qualquer forma de trabalho escravo ou análogo, devendo ainda incluir em todos os seus contratos com seus fornecedores, dispositivo vedando que os mesmos o façam.</p>
+                <p><strong>Obediência às Normas:</strong> O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis, relativamente à segurança, higiene e medicina do trabalho, especialmente a norma regulamentadora NR 18, do Ministério do Trabalho, bem como as normas internas expedidas pela CONTRATANTE. No caso de desobediência, as consequências, inclusive multas aplicadas pelos órgãos públicos, serão suportadas pelo FORNECEDOR, mesmo que lançadas contra a CONTRATANTE ou terceiros. Neste caso, ainda que passíveis de defesa, o valor respectivo será caucionado pela CONTRATANTE, que poderá descontá-los dos haveres do FORNECEDOR, sendo certo que o FORNECEDOR também estará sujeito a uma multa de R$ 200,00 por infração de cada funcionário.</p>
+                <p><strong>Multas e Penalidades:</strong> Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento, em favor do CONTRATANTE, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE. Em caso de atraso na data de entrega pactuada, o FORNECEDOR ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa moratória diária no valor correspondente a 1,0% (um por cento) do valor total deste pedido de compra, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE. A aplicação das multas previstas nesse contrato está limitada a 30% (trinta por cento) do valor total desse pedido de compra. Não serão deduzidos desse montante os valores diretamente pagos pelas seguradoras em decorrência dos seguros previstos neste contrato. As multas previstas neste contrato não excluem quaisquer outras penalidades previstas em lei.</p>
+            </td>
+        </tr>
+
+        <h2>Assinaturas</h2>
+        <p>Contratante: <span class="signature-line"></span></p>
+        <p>Fornecedor: <span class="signature-line"></span></p>
+    </div>
+</body>
+</html>

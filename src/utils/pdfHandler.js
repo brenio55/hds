@@ -1,104 +1,112 @@
 import { PDFDocument, rgb } from 'pdf-lib';
 
-export async function preencherPedidoCompra(dadosPedido, itens) {
+export async function gerarPedidoCompra(dadosPedido, itens) {
     try {
-        const templatePath = '/docs/admin/pedidoDeCompraTemplate.pdf';
-        const response = await fetch(templatePath);
-        const templateBytes = await response.arrayBuffer();
+        // Carrega o template HTML
+        const response = await fetch('/docs/admin/pedidoDeCompraTemplateCode.html');
+        let template = await response.text();
 
-        const pdfDoc = await PDFDocument.load(templateBytes);
-        const pages = pdfDoc.getPages();
-        const firstPage = pages[0];
-
-        // Obtém as dimensões da página
-        const { width, height } = firstPage.getSize();
-        const centerX = width / 2;
-        let currentY = height - 100; // Começa do topo com margem
-        const lineHeight = 25; // Espaçamento entre linhas
-
-        // Função auxiliar para escrever texto centralizado
-        const writeText = (text, y) => {
-            firstPage.drawText(text, {
-                x: centerX - 150, // Ajuste conforme necessário
-                y: y,
-                size: 12,
-                color: rgb(0, 0, 0)
-            });
+        // Dados fixos da contratante
+        const dadosContratante = {
+            nome: 'Hds Serviço Ltda',
+            cnpj: '40.931.075/0001-00',
+            inscricaoEstadual: '688.578.880.111',
+            inscricaoMunicipal: '000000000091587',
+            endereco: 'Av Dom Pedro I, 242 Campos Eliseos',
+            cidade: 'Taubaté',
+            uf: 'SP'
         };
 
-        // Escreve os dados do cabeçalho
-        writeText(`Código: ${dadosPedido.codigo}`, currentY);
-        currentY -= lineHeight;
-        
-        writeText(`Fornecedor: ${dadosPedido.fornecedor}`, currentY);
-        currentY -= lineHeight;
-        
-        writeText(`CNPJ: ${dadosPedido.cnpj}`, currentY);
-        currentY -= lineHeight;
-        
-        writeText(`Endereço: ${dadosPedido.endereco}`, currentY);
-        currentY -= lineHeight;
-        
-        writeText(`CEP: ${dadosPedido.cep}`, currentY);
-        currentY -= lineHeight;
-        
-        writeText(`Contato: ${dadosPedido.contato}`, currentY);
-        currentY -= lineHeight;
-        
-        writeText(`Pedido: ${dadosPedido.pedido}`, currentY);
-        currentY -= lineHeight;
-        
-        writeText(`Data Vencimento: ${dadosPedido.dataVencto}`, currentY);
-        currentY -= lineHeight;
-        
-        writeText(`Cond. Pagto: ${dadosPedido.condPagto}`, currentY);
-        currentY -= lineHeight;
-        
-        writeText(`Centro de Custo: ${dadosPedido.centroCusto}`, currentY);
-        currentY -= lineHeight * 2; // Espaço extra antes dos itens
+        // Mantém os dados da contratante fixos
+        template = template.replace(
+            /<div class="contratante">([\s\S]*?)<\/div>/,
+            `<div class="contratante">
+                <h3>Contratante</h3>
+                <table>
+                    <tbody>
+                        <tr>
+                            <th>Nome</th>
+                            <td>${dadosContratante.nome}</td>
+                        </tr>
+                        <tr>
+                            <th>CNPJ</th>
+                            <td>${dadosContratante.cnpj}</td>
+                        </tr>
+                        <tr>
+                            <th>Inscrição Estadual</th>
+                            <td>${dadosContratante.inscricaoEstadual}</td>
+                        </tr>
+                        <tr>
+                            <th>Inscrição Municipal</th>
+                            <td>${dadosContratante.inscricaoMunicipal}</td>
+                        </tr>
+                        <tr>
+                            <th>Endereço</th>
+                            <td>${dadosContratante.endereco}</td>
+                        </tr>
+                        <tr>
+                            <th>Cidade/UF</th>
+                            <td>${dadosContratante.cidade}/${dadosContratante.uf}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>`
+        );
 
-        // Escreve o cabeçalho dos itens
-        writeText('ITENS DO PEDIDO', currentY);
-        currentY -= lineHeight;
+        // Substitui os dados da contratada (fornecedor)
+        template = template.replace(
+            /<div class="contratada">([\s\S]*?)<\/div>/,
+            `<div class="contratada">
+                <h3>Contratada</h3>
+                <table>
+                    <tbody>
+                        <tr>
+                            <th>Nome</th>
+                            <td>${dadosPedido.fornecedor}</td>
+                        </tr>
+                        <tr>
+                            <th>CNPJ</th>
+                            <td>${dadosPedido.cnpj}</td>
+                        </tr>
+                        <tr>
+                            <th>Endereço</th>
+                            <td>${dadosPedido.endereco}</td>
+                        </tr>
+                        <tr>
+                            <th>CEP</th>
+                            <td>${dadosPedido.cep}</td>
+                        </tr>
+                        <tr>
+                            <th>Contato</th>
+                            <td>${dadosPedido.contato}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>`
+        );
 
-        // Escreve os itens
-        itens.forEach((item, index) => {
-            writeText(`Item ${index + 1}:`, currentY);
-            currentY -= lineHeight;
-            
-            writeText(`  Código: ${item.item}`, currentY);
-            currentY -= lineHeight;
-            
-            writeText(`  Descrição: ${item.descricao}`, currentY);
-            currentY -= lineHeight;
-            
-            writeText(`  Unidade: ${item.unidade}`, currentY);
-            currentY -= lineHeight;
-            
-            writeText(`  Quantidade: ${item.quantidade}`, currentY);
-            currentY -= lineHeight;
-            
-            writeText(`  IPI: ${item.ipi}%`, currentY);
-            currentY -= lineHeight;
-            
-            writeText(`  Valor Unitário: R$ ${item.valorUnitario}`, currentY);
-            currentY -= lineHeight;
-            
-            writeText(`  Valor Total: R$ ${item.valorTotal}`, currentY);
-            currentY -= lineHeight;
-            
-            writeText(`  Desconto: ${item.desconto}%`, currentY);
-            currentY -= lineHeight;
-            
-            writeText(`  Previsão de Entrega: ${item.previsaoEntrega}`, currentY);
-            currentY -= lineHeight * 1.5; // Espaço extra entre itens
-        });
+        // Gera a tabela de itens dinamicamente
+        const itensHTML = itens.map(item => `
+            <tr>
+                <td>${item.descricao}</td>
+                <td>${item.unidade}</td>
+                <td>${item.quantidade}</td>
+                <td>R$ ${item.valorUnitario}</td>
+                <td>R$ ${item.valorTotal}</td>
+                <td>${item.ipi}%</td>
+                <td>${item.previsaoEntrega}</td>
+            </tr>
+        `).join('');
 
-        const pdfBytes = await pdfDoc.save();
-        const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-        return URL.createObjectURL(pdfBlob);
+        // Substitui a tabela de exemplo por itens reais
+        template = template.replace(
+            /<tr>\s*<td>Material A<\/td>[\s\S]*?<\/tr>\s*<tr>\s*<td>Material B<\/td>[\s\S]*?<\/tr>/, 
+            itensHTML
+        );
+
+        return template;
     } catch (error) {
-        console.error('Erro ao processar PDF:', error);
+        console.error('Erro ao gerar pedido:', error);
         throw error;
     }
 } 

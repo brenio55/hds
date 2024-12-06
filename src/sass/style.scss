@@ -1074,10 +1074,12 @@ section.login {
 
 .headerAdmin {
     background-color: #8cbded;
-    
     padding: 20px;
     text-align: center;
     font-size: 24px;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 .admin-container {
