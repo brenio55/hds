@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatCNPJ, formatCEP, formatTelefone } from '../utils/formatters';
 import HeaderAdmin from './HeaderAdmin';
+import './PedidosDeCompra.css';
 
 function PedidosDeCompra() {
     const [itens, setItens] = useState([]);
@@ -220,6 +221,21 @@ function PedidosDeCompra() {
             // Lê o template HTML
             const response = await fetch('/docs/admin/pedidoDeCompraTemplateCode.html');
             let templateHtml = await response.text();
+
+            // Carrega a imagem e converte para base64
+            const imgResponse = await fetch('/img/LOGO.png');
+            const imgBlob = await imgResponse.blob();
+            const reader = new FileReader();
+            const imgBase64 = await new Promise(resolve => {
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(imgBlob);
+            });
+
+            // Substitui a referência da imagem no template
+            templateHtml = templateHtml.replace(
+                /<img src="[^"]*" alt="Logo" class="logo"[^>]*>/,
+                `<img src="${imgBase64}" alt="Logo" class="logo" style="height: 80px;">`
+            );
 
             // Substitui os valores no template
             const hoje = new Date();
@@ -589,7 +605,7 @@ function PedidosDeCompra() {
                                             <td>{item.valorTotal}</td>
                                             <td>{item.desconto}</td>
                                             <td>{item.previsaoEntrega}</td>
-                                            <td>
+                                            <td className="acoes-td">
                                                 <button onClick={() => handleEditItem(index)}>Editar</button>
                                                 <button onClick={() => handleDeleteItem(index)}>Excluir</button>
                                             </td>
