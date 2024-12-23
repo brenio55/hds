@@ -5,8 +5,8 @@ import UserHome from './UserHome';
 import './css/style.css';
 import Login from './admin/Login';
 import Dashboard from './admin/Dashboard';
-import PedidosDeCompra from './admin/pedidosDeCompra';
-import PedidoGerado from './admin/PedidoGerado';
+import PedidosDeCompra from './admin/PedidosDeCompra';
+// import PedidoGerado from './admin/PedidoGerado';
 import { AdminProvider } from './contexts/AdminContext';
 
 
@@ -20,7 +20,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pedidosDeCompra" element={<PedidosDeCompra />} />
-          <Route path="/pedido-gerado" element={<PedidoGerado />} />
+          {/* <Route path="/pedido-gerado" element={<PedidoGerado />} /> */}
         </Routes>
       </BrowserRouter>
     </AdminProvider>

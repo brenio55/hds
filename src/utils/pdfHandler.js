@@ -1,11 +1,20 @@
 import { PDFDocument, rgb } from 'pdf-lib';
 
-export async function gerarPedidoCompra(dadosPedido, itens) {
+export async function gerarPedidoCompra(dadosPedido) {
     try {
-        // Carrega o template HTML
-        const response = await fetch('/docs/admin/pedidoDeCompraTemplateCode.html');
-        let template = await response.text();
-
+        console.log('Dados recebidos no pdfHandler:', {
+            dadosPedido,
+            totais: {
+                descontos: dadosPedido.descontos,
+                valorFrete: dadosPedido.valorFrete,
+                outrasDespesas: dadosPedido.outrasDespesas,
+                totalBruto: dadosPedido.totalBruto,
+                totalFinal: dadosPedido.totalFinal
+            }
+        });
+        
+        let template = await fetch('/docs/admin/pedidoDeCompraTemplateCode.html').then(r => r.text());
+        
         // Dados fixos da contratante
         const dadosContratante = {
             nome: 'Hds Serviço Ltda',
@@ -86,15 +95,15 @@ export async function gerarPedidoCompra(dadosPedido, itens) {
         );
 
         // Gera a tabela de itens dinamicamente
-        const itensHTML = itens.map(item => `
+        const itensHTML = (dadosPedido.itens || []).map(item => `
             <tr>
-                <td>${item.descricao}</td>
-                <td>${item.unidade}</td>
-                <td>${item.quantidade}</td>
-                <td>R$ ${item.valorUnitario}</td>
-                <td>R$ ${item.valorTotal}</td>
-                <td>${item.ipi}%</td>
-                <td>${item.previsaoEntrega}</td>
+                <td>${item.descricao || ''}</td>
+                <td>${item.unidade || ''}</td>
+                <td>${item.quantidade || ''}</td>
+                <td>R$ ${item.valorUnitario || ''}</td>
+                <td>R$ ${item.valorTotal || ''}</td>
+                <td>${item.ipi || ''}%</td>
+                <td>${item.previsaoEntrega || ''}</td>
             </tr>
         `).join('');
 
@@ -103,6 +112,44 @@ export async function gerarPedidoCompra(dadosPedido, itens) {
             /<tr>\s*<td>Material A<\/td>[\s\S]*?<\/tr>\s*<tr>\s*<td>Material B<\/td>[\s\S]*?<\/tr>/, 
             itensHTML
         );
+
+        // Substitui os valores dos totais
+        template = template.replace(
+            /<tr>\s*<th>Descontos<\/th>\s*<td>R\$ 100,00<\/td><\/tr>/,
+            `<tr><th>Descontos</th><td>R$ ${dadosPedido.descontos || '0,00'}</td></tr>`
+        );
+
+        template = template.replace(
+            /<tr>\s*<th>Frete<\/th>\s*<td>R\$ 50,00<\/td><\/tr>/,
+            `<tr><th>Frete</th><td>R$ ${dadosPedido.valorFrete || '0,00'}</td></tr>`
+        );
+
+        template = template.replace(
+            /<tr>\s*<th>Outras Despesas<\/th>\s*<td>R\$ 30,00<\/td><\/tr>/,
+            `<tr><th>Outras Despesas</th><td>R$ ${dadosPedido.outrasDespesas || '0,00'}</td></tr>`
+        );
+
+        template = template.replace(
+            /<tr>\s*<th>Total Bruto<\/th>\s*<td>R\$ 1.100,00<\/td><\/tr>/,
+            `<tr><th>Total Bruto</th><td>R$ ${dadosPedido.totalBruto || '0,00'}</td></tr>`
+        );
+
+        template = template.replace(
+            /<tr>\s*<th>Total Final<\/th>\s*<td>R\$ 1.080,00<\/td><\/tr>/,
+            `<tr><th>Total Final</th><td>R$ ${dadosPedido.totalFinal || '0,00'}</td></tr>`
+        );
+
+        // Substitui as informações importantes
+        if (dadosPedido.informacoesImportantes) {
+            template = template.replace(
+                /<h2>Descrição dos Materiais<\/h2>/,
+                `<h2>Descrição dos Materiais</h2>
+                <div class="informacoes-importantes">
+                    <h3>Informações Importantes para o Fornecedor</h3>
+                    <p>${dadosPedido.informacoesImportantes}</p>
+                </div>`
+            );
+        }
 
         return template;
     } catch (error) {

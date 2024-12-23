@@ -15,7 +15,7 @@
             color: #333;
         }
         .container {
-            max-width: 1200px;
+/*            max-width: 1200px;*/
             margin: 0 auto;
             background: #fff;
             padding: 20px;
@@ -66,12 +66,42 @@
             display: flex;
             justify-content: space-between;
         }
+
+        .pedidoTd{
+            border-right: unset;
+        }
+
+        .pedidoInfoTop1, .pedidoInfoTop1 table{   
+                padding: 0;
+                border-left: unset;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="../../img/LOGO.png" alt="Logo" class="logo" height="80px">
-        <h1>PEDIDO DE COMPRA DE MATERIAL</h1>
+        <table>
+            <tr>
+                <td><img src="../../img/LOGO.png" alt="Logo" class="logo" height="80px"></td>
+                <td class="pedidoTd"><h1>PEDIDO DE COMPRA DE MATERIAL</h1></td>
+
+                <td >
+                    <table class="pedidoInfoTop1"> 
+                    <tr>    
+                                    <td>Pedido:</td>
+                                    <td>Data:</td>
+                                    <td>Revisão:</td>
+                    </tr>
+                    <tr>
+                                    <td>20000001</td>
+                                    <td>12/12/2024</td>
+                                    <td>1</td>
+                    </tr>
+                    </table>
+                </td>   
+            </tr>
+        </table>
+        
+        
         
         <div class="contratante">
             <!-- Esta seção será substituída pelos dados fixos da contratante -->

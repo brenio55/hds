@@ -46,23 +46,33 @@
 }
 
 /* Estilos para impressão */
+/* Estilos para impressão */
 @media print {
-    .acoes-container,
-    .header-admin {
-        display: none;
+    body * {
+        visibility: hidden;
     }
-
-    .pedido-container {
-        margin: 0;
-        padding: 0;
+    
+    .pedido-content,
+    .pedido-content * {
+        visibility: visible;
     }
-
+    
     .pedido-content {
-        box-shadow: none;
-        padding: 0;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
         margin: 0;
+        padding: 20px;
+        box-shadow: none;
+    }
+
+    .header-admin,
+    .acoes-container {
+        display: none !important;
     }
 }
+
 
 /* Estilos para as tabelas dentro do pedido */
 .pedido-content table {

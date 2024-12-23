@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { gerarPedidoCompra } from '../utils/pdfHandler';
 import { formatCNPJ, formatCEP, formatTelefone } from '../utils/formatters';
-
 import HeaderAdmin from './HeaderAdmin';
 
 function PedidosDeCompra() {
-    const navigate = useNavigate();
     const [itens, setItens] = useState([]);
     const [itemAtual, setItemAtual] = useState({
         item: '',
@@ -27,6 +23,14 @@ function PedidosDeCompra() {
     const [cep, setCep] = useState('');
     const [contato, setContato] = useState('');
     const [devMode, setDevMode] = useState(false);
+    const [dadosPedido, setDadosPedido] = useState({
+        valorFrete: '0,00',
+        outrasDespesas: '0,00',
+        informacoesImportantes: '',
+        condPagto: '',
+        prazoEntrega: '',
+        frete: ''
+    });
 
     const dadosTeste = {
         codigo: '001',
@@ -79,24 +83,36 @@ function PedidosDeCompra() {
 
     const handleInputChange = (e) => {
         if (devMode) {
-            // No devMode, não alteramos os valores
             return;
         }
         
         const { name, value } = e.target;
-        setItemAtual(prev => ({
-            ...prev,
-            [name]: value,
-            valorTotal: name === 'quantidade' || name === 'valorUnitario' ?
-                (prev.quantidade && prev.valorUnitario ? 
-                    (parseFloat(prev.quantidade) * parseFloat(prev.valorUnitario)).toFixed(2) : '') :
-                prev.valorTotal
-        }));
+        
+        // Create a copy of the current state
+        const updatedItem = { ...itemAtual };
+        updatedItem[name] = value;
+
+        // Calculate total value when quantity or unit value changes
+        if (name === 'quantidade' || name === 'valorUnitario') {
+            const quantidade = parseFloat(updatedItem.quantidade.replace(',', '.')) || 0;
+            const valorUnitario = parseFloat(updatedItem.valorUnitario.replace(',', '.')) || 0;
+            
+            // Calculate total and format to 2 decimal places
+            const total = (quantidade * valorUnitario).toFixed(2);
+            updatedItem.valorTotal = total.toString().replace('.', ',');
+        }
+
+        setItemAtual(updatedItem);
     };
 
     const handleAddItem = () => {
         if (devMode) {
-            setItens(prev => [...prev, itemTeste]);
+            // Criar uma cópia do itemTeste com valores calculados
+            const novoItem = { ...itemTeste };
+            const quantidade = parseFloat(novoItem.quantidade.toString().replace(',', '.')) || 0;
+            const valorUnitario = parseFloat(novoItem.valorUnitario.toString().replace(',', '.')) || 0;
+            novoItem.valorTotal = (quantidade * valorUnitario).toFixed(2).toString();
+            setItens(prev => [...prev, novoItem]);
         } else {
             setItens(prev => [...prev, itemAtual]);
         }
@@ -123,12 +139,159 @@ function PedidosDeCompra() {
         setItens((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const handleGenerateBuyRequest = () => {
-        const pedidosDeCompraRequest = {
-            itens: [...itens],
-        };
-        console.log('Pedido de Compra Gerado:', JSON.stringify(pedidosDeCompraRequest, null, 2));
-        alert('Pedido de compra gerado com sucesso! Confira o console.');
+    const calcularTotalIPI = () => {
+        let total = 0;
+        itens.forEach(item => {
+            const valorTotal = parseFloat(item.valorTotal.toString().replace(',', '.')) || 0;
+            const ipi = parseFloat(item.ipi.toString().replace(',', '.')) || 0;
+            const ipiValor = valorTotal * (ipi / 100);
+            total += ipiValor;
+            console.log(`IPI calculado para item: ${ipiValor} (${ipi}% de ${valorTotal})`);
+        });
+        console.log(`Total IPI final: ${total}`);
+        return total.toFixed(2).replace('.', ',');
+    };
+
+    const calcularTotalDescontos = () => {
+        let total = 0;
+        itens.forEach(item => {
+            const valorTotal = parseFloat(item.valorTotal.toString().replace(',', '.')) || 0;
+            const desconto = parseFloat(item.desconto.toString().replace(',', '.')) || 0;
+            const descontoValor = valorTotal * (desconto / 100);
+            total += descontoValor;
+            console.log(`Desconto calculado para item: ${descontoValor} (${desconto}% de ${valorTotal})`);
+        });
+        console.log(`Total descontos final: ${total}`);
+        return total.toFixed(2).replace('.', ',');
+    };
+
+    const calcularTotalBruto = () => {
+        let total = 0;
+        itens.forEach(item => {
+            const valorTotal = parseFloat(item.valorTotal.toString().replace(',', '.')) || 0;
+            total += valorTotal;
+            console.log(`Somando ao total bruto: ${valorTotal}`);
+        });
+        console.log(`Total bruto final: ${total}`);
+        return total.toFixed(2).replace('.', ',');
+    };
+
+    const calcularTotalFinal = () => {
+        const totalBruto = parseFloat(calcularTotalBruto().replace(',', '.'));
+        const ipiTotal = parseFloat(calcularTotalIPI().replace(',', '.'));
+        const totalDescontos = parseFloat(calcularTotalDescontos().replace(',', '.'));
+        const frete = parseFloat(dadosPedido.valorFrete.replace(',', '.')) || 0;
+        const outras = parseFloat(dadosPedido.outrasDespesas.replace(',', '.')) || 0;
+
+        console.log('Valores para cálculo final:', {
+            totalBruto,
+            ipiTotal,
+            totalDescontos,
+            frete,
+            outras
+        });
+
+        const total = totalBruto + ipiTotal - totalDescontos + frete + outras;
+        console.log(`Total final calculado: ${total}`);
+        return total.toFixed(2).replace('.', ',');
+    };
+
+    const handleGerarPedido = async () => {
+        try {
+            // Calcula todos os totais
+            const totalBruto = calcularTotalBruto();
+            const ipiTotal = calcularTotalIPI();
+            const totalDescontos = calcularTotalDescontos();
+            const totalFinal = calcularTotalFinal();
+
+            // Formata os valores monetários
+            const formatarValorMonetario = (valor) => {
+                if (!valor) return '0,00';
+                return typeof valor === 'string' ? valor : valor.toString().replace('.', ',');
+            };
+
+            // Formata a data para o padrão brasileiro
+            const formatarData = (data) => {
+                if (!data) return '';
+                const [ano, mes, dia] = data.split('-');
+                return `${dia}/${mes}/${ano}`;
+            };
+
+            // Lê o template HTML
+            const response = await fetch('/docs/admin/pedidoDeCompraTemplateCode.html');
+            let templateHtml = await response.text();
+
+            // Substitui os valores no template
+            const hoje = new Date();
+            const dataFormatada = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
+            
+            // Substitui os dados do pedido
+            templateHtml = templateHtml.replace('20000001', document.querySelector('[name="pedido"]').value || '');
+            templateHtml = templateHtml.replace('12/12/2024', dataFormatada);
+
+            // Substitui os dados do fornecedor
+            templateHtml = templateHtml.replace('12345', document.querySelector('[name="codigo"]').value || '');
+            templateHtml = templateHtml.replace('Fornecedor XYZ', document.querySelector('[name="fornecedor"]').value || '');
+            templateHtml = templateHtml.replace('00.000.000/0000-00', cnpj || '');
+            templateHtml = templateHtml.replace('Rua Exemplo, 123', document.querySelector('[name="endereco"]').value || '');
+            templateHtml = templateHtml.replace('12000-000', cep || '');
+            templateHtml = templateHtml.replace('(12) 3456-7890', contato || '');
+
+            // Substitui os dados adicionais
+            templateHtml = templateHtml.replace('001', document.querySelector('[name="pedido"]').value || '');
+            templateHtml = templateHtml.replace('01/01/2024', formatarData(document.querySelector('[name="dataVencto"]').value) || '');
+            templateHtml = templateHtml.replace('À vista', document.querySelector('[name="condPagto"]').value || '');
+            templateHtml = templateHtml.replace('Financeiro', document.querySelector('[name="centroCusto"]').value || '');
+
+            // Substitui os totais
+            templateHtml = templateHtml.replace('R$ 100,00', `R$ ${formatarValorMonetario(totalDescontos)}`);
+            templateHtml = templateHtml.replace('R$ 50,00', `R$ ${formatarValorMonetario(dadosPedido.valorFrete)}`);
+            templateHtml = templateHtml.replace('R$ 30,00', `R$ ${formatarValorMonetario(dadosPedido.outrasDespesas)}`);
+            templateHtml = templateHtml.replace('R$ 1.100,00', `R$ ${formatarValorMonetario(totalBruto)}`);
+            templateHtml = templateHtml.replace('R$ 1.080,00', `R$ ${formatarValorMonetario(totalFinal)}`);
+
+            // Substitui a tabela de itens
+            let itensHtml = '';
+            itens.forEach(item => {
+                itensHtml += `
+                <tr>
+                    <td>${item.descricao}</td>
+                    <td>${item.unidade}</td>
+                    <td>${item.quantidade}</td>
+                    <td>R$ ${formatarValorMonetario(item.valorUnitario)}</td>
+                    <td>R$ ${formatarValorMonetario(item.valorTotal)}</td>
+                    <td>${item.ipi}%</td>
+                    <td>${formatarData(item.previsaoEntrega)}</td>
+                </tr>`;
+            });
+            
+            // Encontra a tabela de materiais e substitui os itens de exemplo
+            const materiaisPattern = /<tr>\s*<td>Material A<\/td>[\s\S]*?<td>Material B<\/td>[\s\S]*?<\/tr>/;
+            templateHtml = templateHtml.replace(materiaisPattern, itensHtml);
+
+            // Cria um Blob com o HTML modificado
+            const blob = new Blob([templateHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+
+            // Abre em uma nova aba
+            window.open(url, '_blank');
+
+            // Limpa o URL object após um tempo
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        } catch (error) {
+            console.error('Erro ao gerar pedido:', error);
+            alert('Erro ao gerar o pedido. Por favor, tente novamente.');
+        }
+    };
+
+    // Função para atualizar dados do pedido
+    const handleDadosPedidoChange = (e) => {
+        const { name, value } = e.target;
+        setDadosPedido(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
     const formatarData = (data) => {
@@ -157,33 +320,7 @@ function PedidosDeCompra() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        
-        const formData = {
-            codigo: event.target.codigo.value,
-            fornecedor: event.target.fornecedor.value,
-            cnpj: cnpj,
-            endereco: event.target.endereco.value,
-            cep: cep,
-            contato: contato,
-            pedido: event.target.pedido.value,
-            dataVencto: formatarData(event.target.dataVencto.value),
-            condPagto: event.target.condPagto.value,
-            centroCusto: event.target.centroCusto.value
-        };
-
-        try {
-            const htmlContent = await gerarPedidoCompra(formData, itens);
-            
-            navigate('/pedido-gerado', { 
-                state: { 
-                    pedidoData: formData,
-                    htmlContent: htmlContent
-                }
-            });
-        } catch (error) {
-            console.error('Erro ao gerar pedido:', error);
-            alert('Erro ao gerar o pedido. Por favor, tente novamente.');
-        }
+        handleGerarPedido();
     };
 
     return (
