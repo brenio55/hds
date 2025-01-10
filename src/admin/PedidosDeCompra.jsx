@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { formatCNPJ, formatCEP, formatTelefone } from '../utils/formatters';
 import HeaderAdmin from './HeaderAdmin';
 import './PedidosDeCompra.css';
+import { salvarPedidoCompleto } from '../services/ApiService';
 
 function PedidosDeCompra() {
     const [itens, setItens] = useState([]);
@@ -204,6 +205,26 @@ function PedidosDeCompra() {
             const ipiTotal = calcularTotalIPI();
             const totalDescontos = calcularTotalDescontos();
             const totalFinal = calcularTotalFinal();
+
+            // Prepara os dados do pedido para salvar no banco
+            const pedidoParaSalvar = {
+                codigo: document.querySelector('[name="codigo"]').value,
+                fornecedor: document.querySelector('[name="fornecedor"]').value,
+                cnpj: cnpj,
+                endereco: document.querySelector('[name="endereco"]').value,
+                contato: contato,
+                pedido: document.querySelector('[name="pedido"]').value,
+                dataVencto: document.querySelector('[name="dataVencto"]').value,
+                totalBruto,
+                totalDescontos,
+                valorFrete: dadosPedido.valorFrete,
+                outrasDespesas: dadosPedido.outrasDespesas,
+                totalFinal,
+                previsaoEntrega: new Date().toISOString().split('T')[0]
+            };
+
+            // Salva os dados no Supabase
+            await salvarPedidoCompleto(pedidoParaSalvar, itens);
 
             // Formata os valores monetários
             const formatarValorMonetario = (valor) => {
