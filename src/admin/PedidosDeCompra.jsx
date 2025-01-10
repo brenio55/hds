@@ -222,21 +222,15 @@ function PedidosDeCompra() {
             const response = await fetch('/docs/admin/pedidoDeCompraTemplateCode.html');
             let templateHtml = await response.text();
 
-            // Carrega a imagem e converte para base64
-            const imgResponse = await fetch('/img/LOGO.png');
-            const imgBlob = await imgResponse.blob();
-            const reader = new FileReader();
-            const imgBase64 = await new Promise(resolve => {
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(imgBlob);
-            });
+            // Obtém o caminho absoluto base da aplicação
+            const baseUrl = window.location.origin;
 
-            // Substitui a referência da imagem no template
+            // Substitui a referência da imagem no template com o caminho absoluto
             templateHtml = templateHtml.replace(
                 /<img src="[^"]*" alt="Logo" class="logo"[^>]*>/,
-                `<img src="${imgBase64}" alt="Logo" class="logo" style="height: 80px;">`
+                `<img src="${baseUrl}/img/LOGO.png" alt="Logo" class="logo" style="height: 80px;">`
             );
-
+            
             // Substitui os valores no template
             const hoje = new Date();
             const dataFormatada = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
@@ -280,7 +274,7 @@ function PedidosDeCompra() {
                     <td>${formatarData(item.previsaoEntrega)}</td>
                 </tr>`;
             });
-            
+
             // Encontra a tabela de materiais e substitui os itens de exemplo
             const materiaisPattern = /<tr>\s*<td>Material A<\/td>[\s\S]*?<td>Material B<\/td>[\s\S]*?<\/tr>/;
             templateHtml = templateHtml.replace(materiaisPattern, itensHtml);
