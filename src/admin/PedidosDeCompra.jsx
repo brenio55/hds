@@ -48,7 +48,7 @@ function PedidosDeCompra() {
     };
 
     const itemTeste = {
-        item: 'ITEM001',
+        item: '1001',
         descricao: 'Material de Teste',
         unidade: 'UN',
         quantidade: '10',
@@ -92,7 +92,13 @@ function PedidosDeCompra() {
         
         // Create a copy of the current state
         const updatedItem = { ...itemAtual };
-        updatedItem[name] = value;
+
+        // Se for o campo item, garantir que só aceita números
+        if (name === 'item') {
+            updatedItem[name] = value.replace(/\D/g, '');
+        } else {
+            updatedItem[name] = value;
+        }
 
         // Calculate total value when quantity or unit value changes
         if (name === 'quantidade' || name === 'valorUnitario') {
@@ -223,8 +229,8 @@ function PedidosDeCompra() {
                 previsaoEntrega: new Date().toISOString().split('T')[0]
             };
 
-            // Salva os dados no Supabase
-            await salvarPedidoCompleto(pedidoParaSalvar, itens);
+            // Salva os dados no Supabase e recebe o novo número do pedido
+            const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
 
             // Formata os valores monetários
             const formatarValorMonetario = (valor) => {
@@ -256,8 +262,8 @@ function PedidosDeCompra() {
             const hoje = new Date();
             const dataFormatada = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
             
-            // Substitui os dados do pedido
-            templateHtml = templateHtml.replace('20000001', document.querySelector('[name="pedido"]').value || '');
+            // Substitui os dados do pedido usando o novo número gerado
+            templateHtml = templateHtml.replace('20000001', numeroPedido.toString());
             templateHtml = templateHtml.replace('12/12/2024', dataFormatada);
 
             // Substitui os dados do fornecedor
@@ -283,9 +289,10 @@ function PedidosDeCompra() {
 
             // Substitui a tabela de itens
             let itensHtml = '';
-            itens.forEach(item => {
+            itens.forEach((item, index) => {
                 itensHtml += `
                 <tr>
+                    <td>${index + 1}</td>
                     <td>${item.descricao}</td>
                     <td>${item.unidade}</td>
                     <td>${item.quantidade}</td>
@@ -297,7 +304,7 @@ function PedidosDeCompra() {
             });
 
             // Encontra a tabela de materiais e substitui os itens de exemplo
-            const materiaisPattern = /<tr>\s*<td>Material A<\/td>[\s\S]*?<td>Material B<\/td>[\s\S]*?<\/tr>/;
+            const materiaisPattern = /<tr>\s*<td>[12]<\/td>\s*<td>Material [AB]<\/td>[\s\S]*?<\/tr>/g;
             templateHtml = templateHtml.replace(materiaisPattern, itensHtml);
 
             // Cria um Blob com o HTML modificado
@@ -596,6 +603,7 @@ function PedidosDeCompra() {
                             <table className="itens-table">
                                 <thead>
                                     <tr>
+                                        <th>#</th>
                                         <th>Item</th>
                                         <th>Descrição</th>
                                         <th>Un</th>
@@ -611,6 +619,7 @@ function PedidosDeCompra() {
                                 <tbody>
                                     {itens.map((item, index) => (
                                         <tr key={index}>
+                                            <td>{index + 1}</td>
                                             <td>{item.item}</td>
                                             <td>{item.descricao}</td>
                                             <td>{item.unidade}</td>

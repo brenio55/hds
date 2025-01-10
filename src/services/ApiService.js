@@ -2,13 +2,40 @@ import supabase from '../utils/Supabase';
 
 // Funções relacionadas a Pedidos
 export const pedidosService = {
+    async gerarNumeroPedido() {
+        try {
+            // Busca o último pedido
+            const { data, error } = await supabase
+                .from('pedidos')
+                .select('pedido_id')
+                .order('pedido_id', { ascending: false })
+                .limit(1);
+
+            if (error) throw error;
+
+            // Se não houver pedidos, começa do 1
+            if (!data || data.length === 0) {
+                return 1;
+            }
+
+            // Retorna o próximo número
+            return parseInt(data[0].pedido_id) + 1;
+        } catch (error) {
+            console.error('Erro ao gerar número do pedido:', error);
+            throw error;
+        }
+    },
+
     async criarPedido(dadosPedido) {
         try {
+            // Gera um novo número de pedido
+            const numeroPedido = await this.gerarNumeroPedido();
+
             // Inserir o pedido principal
             const { data: pedidoData, error: pedidoError } = await supabase
                 .from('pedidos')
                 .insert([{
-                    pedido_id: dadosPedido.pedido,
+                    pedido_id: numeroPedido,
                     data_criacao: new Date().toISOString().split('T')[0],
                     total_bruto: parseFloat(dadosPedido.totalBruto.replace(',', '.')),
                     descontos: parseFloat(dadosPedido.totalDescontos.replace(',', '.')),
@@ -21,7 +48,7 @@ export const pedidosService = {
 
             if (pedidoError) throw pedidoError;
 
-            return pedidoData;
+            return { ...pedidoData[0], numeroPedido };
         } catch (error) {
             console.error('Erro ao criar pedido:', error);
             throw error;
@@ -31,12 +58,16 @@ export const pedidosService = {
     async inserirItensPedido(pedidoId, itens) {
         try {
             // Primeiro, vamos garantir que os materiais existam
-            for (const item of itens) {
+            for (let index = 0; index < itens.length; index++) {
+                const item = itens[index];
+                // Converte o ID do item para número, removendo qualquer texto
+                const materialId = parseInt(item.item.replace(/\D/g, ''));
+                
                 // Verifica se o material já existe
                 const { data: materialExistente } = await supabase
                     .from('materiais')
                     .select('material_id')
-                    .eq('material_id', item.item)
+                    .eq('material_id', materialId)
                     .single();
 
                 // Se o material não existe, cria-o
@@ -44,19 +75,19 @@ export const pedidosService = {
                     await supabase
                         .from('materiais')
                         .insert([{
-                            material_id: item.item,
+                            material_id: materialId,
                             descricao: item.descricao,
                             unidade: item.unidade
                         }]);
                 }
 
-                // Insere o item do pedido
+                // Insere o item do pedido com numeração sequencial
                 const { error: itemError } = await supabase
                     .from('itens_pedido')
                     .insert([{
-                        item_id: parseInt(item.item),
-                        pedido_id: pedidoId,
-                        material_id: item.item,
+                        item_id: index + 1, // Numeração sequencial começando do 1
+                        pedido_id: parseInt(pedidoId),
+                        material_id: materialId,
                         quantidade: parseFloat(item.quantidade.replace(',', '.')),
                         ipi: parseFloat(item.ipi.replace(',', '.')),
                         valor_unitario: parseFloat(item.valorUnitario.replace(',', '.')),
@@ -136,12 +167,12 @@ export const salvarPedidoCompleto = async (dadosPedido, itens) => {
         });
 
         // 2. Criar pedido
-        const pedido = await pedidosService.criarPedido(dadosPedido);
+        const { numeroPedido } = await pedidosService.criarPedido(dadosPedido);
 
         // 3. Inserir itens do pedido
-        await pedidosService.inserirItensPedido(dadosPedido.pedido, itens);
+        await pedidosService.inserirItensPedido(numeroPedido, itens);
 
-        return { success: true, pedido };
+        return { success: true, numeroPedido };
     } catch (error) {
         console.error('Erro ao salvar pedido completo:', error);
         throw error;
