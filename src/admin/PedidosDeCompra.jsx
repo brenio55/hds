@@ -304,7 +304,7 @@ function PedidosDeCompra() {
             });
 
             // Encontra a tabela de materiais e substitui os itens de exemplo
-            const materiaisPattern = /<tr>\s*<td>[12]<\/td>\s*<td>Material [AB]<\/td>[\s\S]*?<\/tr>/g;
+            const materiaisPattern = /<tr>\s*<td>1<\/td>\s*<td>Material A<\/td>[\s\S]*?<td>Material B<\/td>[\s\S]*?<\/tr>/;
             templateHtml = templateHtml.replace(materiaisPattern, itensHtml);
 
             // Cria um Blob com o HTML modificado
