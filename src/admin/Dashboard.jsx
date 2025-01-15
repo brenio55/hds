@@ -16,7 +16,7 @@ function Dashboard(){
             <HeaderAdmin/>
             <div className="admin-container">
                 <div className="services">
-                    <div className="service-card" onClick={() => handleNavigation('/usuarios')}>
+                    {/* <div className="service-card" onClick={() => handleNavigation('/usuarios')}>
                         <h2>Gerenciar Usuários</h2>
                         <p>Controle e modifique informações dos usuários cadastrados.</p>
                     </div>
@@ -34,6 +34,34 @@ function Dashboard(){
                     <div className="service-card" onClick={() => handleNavigation('/relatorios')}>
                         <h2>Relatórios</h2>
                         <p>Busque Pedidos de Compra de Material e Serviço, verifique relatórios sobre acessos de usuários, dentre outros</p>
+                    </div> */}
+
+                    <div className="service-section">
+                        <h2>Propostas e Centros de Custo</h2>
+                        <div className="service-buttons">
+                            <div className="serviceButton">Gerar Proposta (Centro de Custo)</div>
+                            <div className="serviceButton">Consultar Propostas (Centro de Custo)</div>
+                        </div>
+                    </div>
+                    <div className="service-section">
+                        <h2>Geração e Consulta de Pedidos</h2>
+                        <div className="service-buttons"> 
+                            <a href="/pedidosDeCompra"><div className="serviceButton">Gerar Pedido de Compra </div></a> 
+                            <div className="serviceButton">Gerar Pedido de Material</div>
+                            <div className="serviceButton">Gerar Pedido de Locação</div>
+                            <div className="serviceButton">Faturar Pedido de Compra</div>
+                            <div className="serviceButton">Consultar Pedidos C-M-L e Faturamentos</div>
+                            <div className="serviceButton">HH</div>
+
+                        </div>
+                    </div>
+                    <div className="service-section">
+                        <h2>Financeiro - Registro e Consulta</h2>
+                        <div className="service-buttons"> 
+                            <div className="serviceButton">Consultar Custo de Obra de Centro de Custo</div>
+                            <div className="serviceButton">RC - Aluguel de Casas</div>
+                            <div className="serviceButton">RC - Reembolso Funcionário</div>
+                        </div>
                     </div>
                 </div>
             </div>
