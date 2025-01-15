@@ -16,26 +16,6 @@ function Dashboard(){
             <HeaderAdmin/>
             <div className="admin-container">
                 <div className="services">
-                    {/* <div className="service-card" onClick={() => handleNavigation('/usuarios')}>
-                        <h2>Gerenciar Usuários</h2>
-                        <p>Controle e modifique informações dos usuários cadastrados.</p>
-                    </div>
-
-                    <div className="service-card" onClick={() => handleNavigation('/pedidosDeCompra')}>
-                        <h2>Preencher Pedido de Compra de Material</h2>
-                        <p>Preencha e imprima um Pedido de Compra de Material</p>
-                    </div>
-
-                    <div className="service-card" onClick={() => handleNavigation('/produtos')}>
-                        <h2>Preencher Pedido de Compra de Serviço</h2>
-                        <p>Preencha e imprima um Pedido de Compra de Serviço</p>
-                    </div>
-
-                    <div className="service-card" onClick={() => handleNavigation('/relatorios')}>
-                        <h2>Relatórios</h2>
-                        <p>Busque Pedidos de Compra de Material e Serviço, verifique relatórios sobre acessos de usuários, dentre outros</p>
-                    </div> */}
-
                     <div className="service-section">
                         <h2>Propostas e Centros de Custo</h2>
                         <div className="service-buttons">
@@ -46,13 +26,13 @@ function Dashboard(){
                     <div className="service-section">
                         <h2>Geração e Consulta de Pedidos</h2>
                         <div className="service-buttons"> 
-                            <a href="/pedidosDeCompra"><div className="serviceButton">Gerar Pedido de Compra </div></a> 
-                            <div className="serviceButton">Gerar Pedido de Material</div>
-                            <div className="serviceButton">Gerar Pedido de Locação</div>
+                            <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeCompra')}>Gerar Pedido de Compra</div>
+                            <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeMaterial')}>Gerar Pedido de Material</div>
+                            <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeLocacao')}>Gerar Pedido de Locação</div>
+                            <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeServico')}>Gerar Pedido de Serviço</div>
                             <div className="serviceButton">Faturar Pedido de Compra</div>
-                            <div className="serviceButton">Consultar Pedidos C-M-L e Faturamentos</div>
+                            <div className="serviceButton">Consultar Pedidos C-M-L-S e Faturamentos</div>
                             <div className="serviceButton">HH</div>
-
                         </div>
                     </div>
                     <div className="service-section">
