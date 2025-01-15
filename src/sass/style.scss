@@ -1476,3 +1476,22 @@ div.service-buttons {
     flex-direction: column;
     gap: 10px;
 }
+
+.toggle-password {
+    width: 150px;
+    height: 20px;
+    min-width: unset;
+    font-size: 14px;
+    padding: 12px 2px !important;
+    margin-bottom: -2px !important;
+}
+
+.password-input-container{
+    justify-content: space-between;
+    align-items: end;
+    gap: 10px;
+
+    input{
+        margin-bottom: 0px !important;
+    }
+}

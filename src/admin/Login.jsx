@@ -1,15 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Header from "../commonComponents/Header";
 import supabase from "../utils/Supabase";
 import { useAdmin } from "../contexts/AdminContext";
+import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
   const { login } = useAdmin();
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [notification, setNotification] = useState({ message: "", type: "" });
+
+  useEffect(() => {
+    if (notification.message) {
+      const timer = setTimeout(() => {
+        setNotification({ message: "", type: "" });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   async function requestLogin(event) {
     event.preventDefault();
@@ -24,12 +36,13 @@ function Login() {
 
       if (error) {
         console.error("Erro ao consultar o banco de dados:", error.message);
+        setNotification({ message: "Erro ao conectar com o servidor", type: "error" });
         return;
       }
 
       if (data.length === 0) {
         console.log("Usuário não encontrado!");
-        alert("Usuário ou senha inválidos.");
+        setNotification({ message: "Usuário ou senha inválidos", type: "error" });
         return;
       }
 
@@ -39,14 +52,17 @@ function Login() {
       if (userData.userPassword === password) {
         console.log("Usuário validado:", userData.userName);
         login(userData); // Salvando os dados do usuário no contexto
-        alert(`Bem-vindo, ${userData.userName}!`);
-        navigate("/dashboard", { replace: true });
+        setNotification({ message: `Bem-vindo, ${userData.userName}!`, type: "success" });
+        setTimeout(() => {
+          navigate("/dashboard", { replace: true });
+        }, 1000);
       } else {
         console.log("Senha incorreta.");
-        alert("Usuário ou senha inválidos.");
+        setNotification({ message: "Usuário ou senha inválidos", type: "error" });
       }
     } catch (err) {
       console.error("Erro na validação:", err);
+      setNotification({ message: "Erro ao processar a requisição", type: "error" });
     }
   }
 
@@ -61,6 +77,11 @@ function Login() {
               <p>Faça Login para acessar esta página</p>
             </div>
             <div className="R">
+              {notification.message && (
+                <div className={`notification ${notification.type}`}>
+                  {notification.message}
+                </div>
+              )}
               <form onSubmit={requestLogin} method="POST">
                 <label htmlFor="user">Usuário</label>
                 <br></br>
@@ -74,13 +95,23 @@ function Login() {
                 <br></br>
                 <label htmlFor="password">Senha</label>
                 <br></br>
-                <input
-                  autoComplete="on"
-                  type="password"
-                  name="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="password-input-container flex">
+                  <input
+                    autoComplete="on"
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button 
+                    
+                    type="button" 
+                    className="toggle-password"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? "Ocultar Senha" : "Ver Senha"}
+                  </button>
+                </div>
                 <br />
                 <button type="submit">Enviar</button>
               </form>
