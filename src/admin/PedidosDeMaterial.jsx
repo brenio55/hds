@@ -237,64 +237,93 @@ function PedidosDeMaterial() {
             );
 
             // Substituir "Pedido de Compra" por "Pedido de Material"
-            templateHtml = templateHtml.replace(/Pedido de Compra/g, 'Pedido de Material');
+            templateHtml = templateHtml.replace(/PEDIDO DE COMPRA/g, 'PEDIDO DE MATERIAL');
 
-            // Substituir os valores no template
-            const substituicoes = {
-                '{{numeroPedido}}': numeroPedido,
-                '{{codigo}}': document.querySelector('[name="codigo"]').value,
-                '{{fornecedor}}': document.querySelector('[name="fornecedor"]').value,
-                '{{cnpj}}': cnpj,
-                '{{endereco}}': document.querySelector('[name="endereco"]').value,
-                '{{cep}}': cep,
-                '{{contato}}': contato,
-                '{{pedido}}': document.querySelector('[name="pedido"]').value,
-                '{{dataVencto}}': formatarData(document.querySelector('[name="dataVencto"]').value),
-                '{{condPagto}}': dadosPedido.condPagto,
-                '{{prazoEntrega}}': dadosPedido.prazoEntrega,
-                '{{frete}}': dadosPedido.frete,
-                '{{informacoesImportantes}}': dadosPedido.informacoesImportantes,
-                '{{totalBruto}}': formatarValorMonetario(totalBruto),
-                '{{totalIPI}}': formatarValorMonetario(ipiTotal),
-                '{{totalDescontos}}': formatarValorMonetario(totalDescontos),
-                '{{valorFrete}}': formatarValorMonetario(dadosPedido.valorFrete),
-                '{{outrasDespesas}}': formatarValorMonetario(dadosPedido.outrasDespesas),
-                '{{totalFinal}}': formatarValorMonetario(totalFinal)
-            };
+            // Atualizar a tabela de detalhes do pedido
+            const hoje = new Date();
+            const dataFormatada = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
+            
+            // Atualizar informações do cabeçalho
+            templateHtml = templateHtml.replace(/<td>20000001<\/td>\s*<td>12\/12\/2024<\/td>\s*<td>1<\/td>/, 
+                `<td>${numeroPedido}</td><td>${dataFormatada}</td><td>1</td>`);
 
-            Object.entries(substituicoes).forEach(([chave, valor]) => {
-                templateHtml = templateHtml.replace(new RegExp(chave, 'g'), valor || '');
-            });
+            // Atualizar detalhes do pedido
+            templateHtml = templateHtml.replace(
+                /<td>12345<\/td>\s*<td>Fornecedor XYZ<\/td>\s*<td>00\.000\.000\/0000-00<\/td>\s*<td>Rua Exemplo, 123<\/td>\s*<td>12000-000<\/td>\s*<td>\(12\) 3456-7890<\/td>/,
+                `<td>${document.querySelector('[name="codigo"]').value}</td>
+                <td>${document.querySelector('[name="fornecedor"]').value}</td>
+                <td>${cnpj}</td>
+                <td>${document.querySelector('[name="endereco"]').value}</td>
+                <td>${cep}</td>
+                <td>${contato}</td>`
+            );
 
-            // Gerar linhas da tabela de itens
-            let linhasTabela = '';
-            itens.forEach((item, index) => {
-                linhasTabela += `
-                    <tr>
-                        <td>${item.item}</td>
+            // Atualizar informações do pedido
+            templateHtml = templateHtml.replace(
+                /<td>001<\/td>\s*<td>01\/01\/2024<\/td>\s*<td>À vista<\/td>\s*<td>Financeiro<\/td>/,
+                `<td>${document.querySelector('[name="pedido"]').value}</td>
+                <td>${formatarData(document.querySelector('[name="dataVencto"]').value)}</td>
+                <td>${dadosPedido.condPagto || 'N/A'}</td>
+                <td>${document.querySelector('[name="centroCusto"]')?.value || 'N/A'}</td>`
+            );
+
+            // Atualizar totais
+            templateHtml = templateHtml.replace(
+                /<td>R\$ 100,00<\/td>[\s\S]*?<td>R\$ 50,00<\/td>[\s\S]*?<td>R\$ 30,00<\/td>[\s\S]*?<td>R\$ 1\.100,00<\/td>[\s\S]*?<td>R\$ 1\.080,00<\/td>/,
+                `<td>R$ ${formatarValorMonetario(totalDescontos)}</td>
+                <td>R$ ${formatarValorMonetario(dadosPedido.valorFrete)}</td>
+                <td>R$ ${formatarValorMonetario(dadosPedido.outrasDespesas)}</td>
+                <td>R$ ${formatarValorMonetario(totalBruto)}</td>
+                <td>R$ ${formatarValorMonetario(totalFinal)}</td>`
+            );
+
+            // Atualizar data final de entrega
+            templateHtml = templateHtml.replace(
+                /<td>15\/01\/2024<\/td>/,
+                `<td>${dadosPedido.prazoEntrega || 'A combinar'}</td>`
+            );
+
+            // Limpar a tabela de materiais existente e adicionar os novos itens
+            const tabelaMateriais = itens.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
                         <td>${item.descricao}</td>
                         <td>${item.unidade}</td>
                         <td>${item.quantidade}</td>
-                        <td>${item.ipi}</td>
-                        <td>${formatarValorMonetario(item.valorUnitario)}</td>
-                        <td>${formatarValorMonetario(item.valorTotal)}</td>
-                        <td>${item.desconto}</td>
+                    <td>R$ ${formatarValorMonetario(item.valorUnitario)}</td>
+                    <td>R$ ${formatarValorMonetario(item.valorTotal)}</td>
+                    <td>${item.ipi}%</td>
                         <td>${formatarData(item.previsaoEntrega)}</td>
                     </tr>
-                `;
-            });
+            `).join('');
 
-            // Substituir o marcador de posição da tabela pelos itens
-            templateHtml = templateHtml.replace('{{tabelaItens}}', linhasTabela);
+            templateHtml = templateHtml.replace(
+                /<tr>\s*<td>1<\/td>[\s\S]*?<\/tr>\s*<tr>\s*<td>2<\/td>[\s\S]*?<\/tr>/,
+                tabelaMateriais
+            );
 
-            // Criar um Blob com o HTML modificado
+            // Atualizar dados adicionais
+            templateHtml = templateHtml.replace(
+                /<h2>Dados Adicionais<\/h2>\s*<table>\s*<tr>\s*<td><\/td>\s*<\/tr>\s*<\/table>/,
+                `<h2>Dados Adicionais</h2>
+                <table>
+                    <tr>
+                        <td>${dadosPedido.informacoesImportantes || 'Nenhuma informação adicional'}</td>
+                    </tr>
+                </table>`
+            );
+
+            // Atualizar informações de frete
+            templateHtml = templateHtml.replace(
+                /Frete \(  \) CIF     \(   \) FOB/,
+                `Frete (${dadosPedido.frete === 'CIF' ? 'X' : '  '}) CIF     (${dadosPedido.frete === 'FOB' ? 'X' : '  '}) FOB`
+            );
+
+            // Criar o Blob e abrir em nova janela
             const blob = new Blob([templateHtml], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
-
-            // Abrir o documento em uma nova janela
-            const novaPagina = window.open(url, '_blank');
-            novaPagina.focus();
-
+            window.open(url, '_blank');
+            URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Erro ao gerar pedido:', error);
             alert('Erro ao gerar pedido. Por favor, tente novamente.');
