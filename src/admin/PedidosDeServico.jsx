@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatCNPJ, formatCEP, formatTelefone } from '../utils/formatters';
 import HeaderAdmin from './HeaderAdmin';
-import './PedidosDeCompra.css';
+import './pedidos.scss';
 import { salvarPedidoCompleto } from '../services/ApiService';
 
 function PedidosDeServico() {
@@ -28,6 +28,12 @@ function PedidosDeServico() {
 
             const response = await fetch('/docs/admin/pedidoDeCompraTemplateCode.html');
             let templateHtml = await response.text();
+
+            // Substitui a referência da imagem no template com o caminho correto
+            templateHtml = templateHtml.replace(
+                /<img[^>]*>/,
+                `<img src="/docs/admin/LOGO.png" alt="Logo" class="logo" style="height: 80px;">`
+            );
 
             // Substituir "Pedido de Compra" por "Pedido de Serviço"
             templateHtml = templateHtml.replace(/Pedido de Compra/g, 'Pedido de Serviço');

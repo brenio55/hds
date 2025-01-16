@@ -10,6 +10,11 @@
             margin: 20px;
             background-color: #f9f9f9;
         }
+        
+        h1:first-child{
+            font-size: 18px;
+        }
+
         h1, h2 {
             text-align: center;
             color: #333;
@@ -51,14 +56,14 @@
         .logo {
             display: block;
             margin: 0 auto 20px;
-            height: 80px;
+            height: 50px;
         }
         .red {
             color: red;
         }
         .signature-line {
             border-bottom: 1px solid #000;
-            width: 200px;
+            width: 600px;
             display: inline-block;
             margin-top: 20px;
         }
@@ -75,13 +80,19 @@
                 padding: 0;
                 border-left: unset;
         }
+        .assinaturas{
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            flex-direction: column;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <table>
             <tr>
-                <td><img src="./LOGO.png" alt="Logo" class="logo" height="80px" /></td>
+                <td><img src="./LOGO.png" alt="Logo" class="logo" height="50px" /></td>
                 <td class="pedidoTd"><h1>PEDIDO DE COMPRA DE MATERIAL</h1></td>
 
                 <td >
@@ -246,8 +257,10 @@
         </tr>
 
         <h2>Assinaturas</h2>
-        <p>Contratante: <span class="signature-line"></span></p>
-        <p>Fornecedor: <span class="signature-line"></span></p>
+        <div class="assinaturas">
+            <p>Contratante: <span class="signature-line"></span></p>
+            <p>Fornecedor: <span class="signature-line"></span></p>
+        </div>
     </div>
 </body>
 </html>

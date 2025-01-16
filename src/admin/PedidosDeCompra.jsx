@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatCNPJ, formatCEP, formatTelefone } from '../utils/formatters';
 import HeaderAdmin from './HeaderAdmin';
-import './PedidosDeCompra.css';
+import './pedidos.scss';
 import { salvarPedidoCompleto } from '../services/ApiService';
 
 function PedidosDeCompra() {
@@ -206,13 +206,11 @@ function PedidosDeCompra() {
 
     const handleGerarPedido = async () => {
         try {
-            // Calcula todos os totais
             const totalBruto = calcularTotalBruto();
             const ipiTotal = calcularTotalIPI();
             const totalDescontos = calcularTotalDescontos();
             const totalFinal = calcularTotalFinal();
 
-            // Prepara os dados do pedido para salvar no banco
             const pedidoParaSalvar = {
                 codigo: document.querySelector('[name="codigo"]').value,
                 fornecedor: document.querySelector('[name="fornecedor"]').value,
@@ -229,33 +227,35 @@ function PedidosDeCompra() {
                 previsaoEntrega: new Date().toISOString().split('T')[0]
             };
 
-            // Salva os dados no Supabase e recebe o novo número do pedido
             const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
 
-            // Formata os valores monetários
             const formatarValorMonetario = (valor) => {
                 if (!valor) return '0,00';
                 return typeof valor === 'string' ? valor : valor.toString().replace('.', ',');
             };
 
-            // Formata a data para o padrão brasileiro
             const formatarData = (data) => {
                 if (!data) return '';
                 const [ano, mes, dia] = data.split('-');
                 return `${dia}/${mes}/${ano}`;
             };
 
-            // Lê o template HTML
+            // Carregar a imagem como base64
+            const logoResponse = await fetch('/docs/admin/LOGO.png');
+            const logoBlob = await logoResponse.blob();
+            const logoBase64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(logoBlob);
+            });
+
             const response = await fetch('/docs/admin/pedidoDeCompraTemplateCode.html');
             let templateHtml = await response.text();
 
-            // Obtém o caminho absoluto base da aplicação
-            const baseUrl = window.location.origin;
-
-            // Substitui a referência da imagem no template com o caminho absoluto
+            // Substitui a referência da imagem no template com a versão base64
             templateHtml = templateHtml.replace(
-                /<img src="[^"]*" alt="Logo" class="logo"[^>]*>/,
-                `<img src="${baseUrl}/img/LOGO.png" alt="Logo" class="logo" style="height: 80px;">`
+                /<img[^>]*>/,
+                `<img src="${logoBase64}" alt="Logo" class="logo" style="height: 80px;">`
             );
             
             // Substitui os valores no template

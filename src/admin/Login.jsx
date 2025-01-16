@@ -84,7 +84,7 @@ function Login() {
               )}
               <form onSubmit={requestLogin} method="POST">
                 <label htmlFor="user">Usuário</label>
-                <br></br>
+                
                 <input
                   type="text"
                   name="user"
@@ -92,9 +92,9 @@ function Login() {
                   value={user}
                   onChange={(e) => setUser(e.target.value)}
                 />
-                <br></br>
+                
                 <label htmlFor="password">Senha</label>
-                <br></br>
+                
                 <div className="password-input-container flex">
                   <input
                     autoComplete="on"

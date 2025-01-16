@@ -11,6 +11,7 @@ export function AdminProvider({ children }) {
 
     const logout = () => {
         setAdminUser(null);
+        navigate('/');
     };
 
     return (

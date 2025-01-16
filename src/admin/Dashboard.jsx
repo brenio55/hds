@@ -26,8 +26,8 @@ function Dashboard(){
                     <div className="service-section">
                         <h2>Geração e Consulta de Pedidos</h2>
                         <div className="service-buttons"> 
-                            <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeCompra')}>Gerar Pedido de Compra</div>
-                            <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeMaterial')}>Gerar Pedido de Material</div>
+                            {/* <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeCompra')}>Gerar Pedido de Compra</div> */}
+                            <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeMaterial')}>Gerar Pedido de Compra de Material</div>
                             <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeLocacao')}>Gerar Pedido de Locação</div>
                             <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeServico')}>Gerar Pedido de Serviço</div>
                             <div className="serviceButton">Faturar Pedido de Compra</div>
