@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS public.sessions (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT REFERENCES public.users(id) ON DELETE CASCADE,
+  token TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+); 

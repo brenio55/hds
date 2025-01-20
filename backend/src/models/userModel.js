@@ -1,4 +1,4 @@
-const { queryBuilder } = require('../config/database');
+const db = require('../config/database');
 const bcrypt = require('bcrypt');
 
 class UserModel {
@@ -9,13 +9,14 @@ class UserModel {
       VALUES ($1, $2, $3, NOW())
       RETURNING id, username, role, created_at
     `;
-    const values = [username, hashedPassword, role];
-    const result = await queryBuilder.query(query, values);
+    
+    const result = await db.query(query, [username, hashedPassword, role]);
     return result.rows[0];
   }
 
   static async findByUsername(username) {
-    const result = await queryBuilder.queryByJson('users', { username });
+    const query = 'SELECT * FROM users WHERE username = $1';
+    const result = await db.query(query, [username]);
     return result.rows[0];
   }
 
@@ -23,10 +24,16 @@ class UserModel {
     const query = `
       INSERT INTO sessions (user_id, token, created_at)
       VALUES ($1, $2, NOW())
-      RETURNING id, user_id, created_at
+      RETURNING id, user_id, token, created_at
     `;
-    const values = [userId, token];
-    const result = await queryBuilder.query(query, values);
+    
+    const result = await db.query(query, [userId, token]);
+    return result.rows[0];
+  }
+
+  static async findSessionByToken(token) {
+    const query = 'SELECT * FROM sessions WHERE token = $1';
+    const result = await db.query(query, [token]);
     return result.rows[0];
   }
 }
