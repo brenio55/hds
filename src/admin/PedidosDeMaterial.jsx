@@ -308,7 +308,7 @@ function PedidosDeMaterial() {
                 `<h2>Dados Adicionais</h2>
                 <table>
                     <tr>
-                        <td>${dadosPedido.informacoesImportantes || 'Nenhuma informação adicional'}</td>
+                        <td>${(dadosPedido.informacoesImportantes || 'Nenhuma informação adicional').replace(/\n/g, '<br>')}</td>
                     </tr>
                 </table>`
             );
