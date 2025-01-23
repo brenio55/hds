@@ -146,7 +146,8 @@ export const userService = {
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify(requestData),
-                credentials: 'include'
+                credentials: 'include',
+                mode: 'cors'
             });
 
             console.log('Headers da resposta:', Object.fromEntries(response.headers.entries()));
@@ -197,7 +198,8 @@ export const userService = {
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify(requestData),
-                credentials: 'include'
+                credentials: 'include',
+                mode: 'cors'
             });
 
             console.log('Headers da resposta:', Object.fromEntries(response.headers.entries()));
