@@ -1,25 +1,27 @@
 import supabase from '../utils/Supabase';
 
+// URL base da API
+const API_URL = import.meta.env.VITE_API_URL;
+
+// Função para gerenciar o token
+const getStoredToken = () => localStorage.getItem('authToken');
+const setStoredToken = (token) => localStorage.setItem('authToken', token);
+const removeStoredToken = () => localStorage.removeItem('authToken');
+
 // Funções relacionadas a Pedidos
 export const pedidosService = {
     async gerarNumeroPedido() {
         try {
-            // Busca o último pedido
-            const { data, error } = await supabase
-                .from('pedidos')
-                .select('pedido_id')
-                .order('pedido_id', { ascending: false })
-                .limit(1);
+            const response = await fetch(`${API_URL}/pedidos/proximo-numero`, {
+                headers: createAuthHeaders()
+            });
 
-            if (error) throw error;
-
-            // Se não houver pedidos, começa do 1
-            if (!data || data.length === 0) {
-                return 1;
+            if (!response.ok) {
+                throw new Error('Erro ao gerar número do pedido');
             }
 
-            // Retorna o próximo número
-            return parseInt(data[0].pedido_id) + 1;
+            const data = await response.json();
+            return data.numero;
         } catch (error) {
             console.error('Erro ao gerar número do pedido:', error);
             throw error;
@@ -28,27 +30,18 @@ export const pedidosService = {
 
     async criarPedido(dadosPedido) {
         try {
-            // Gera um novo número de pedido
-            const numeroPedido = await this.gerarNumeroPedido();
+            const response = await fetch(`${API_URL}/pedidos`, {
+                method: 'POST',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosPedido)
+            });
 
-            // Inserir o pedido principal
-            const { data: pedidoData, error: pedidoError } = await supabase
-                .from('pedidos')
-                .insert([{
-                    pedido_id: numeroPedido,
-                    data_criacao: new Date().toISOString().split('T')[0],
-                    total_bruto: parseFloat(dadosPedido.totalBruto.replace(',', '.')),
-                    descontos: parseFloat(dadosPedido.totalDescontos.replace(',', '.')),
-                    frete: parseFloat(dadosPedido.valorFrete.replace(',', '.')),
-                    outras_despesas: parseFloat(dadosPedido.outrasDespesas.replace(',', '.')),
-                    total_final: parseFloat(dadosPedido.totalFinal.replace(',', '.')),
-                    prev_entrega: dadosPedido.previsaoEntrega
-                }])
-                .select();
+            if (!response.ok) {
+                throw new Error('Erro ao criar pedido');
+            }
 
-            if (pedidoError) throw pedidoError;
-
-            return { ...pedidoData[0], numeroPedido };
+            const data = await response.json();
+            return data;
         } catch (error) {
             console.error('Erro ao criar pedido:', error);
             throw error;
@@ -57,44 +50,14 @@ export const pedidosService = {
 
     async inserirItensPedido(pedidoId, itens) {
         try {
-            // Primeiro, vamos garantir que os materiais existam
-            for (let index = 0; index < itens.length; index++) {
-                const item = itens[index];
-                // Converte o ID do item para número, removendo qualquer texto
-                const materialId = parseInt(item.item.replace(/\D/g, ''));
-                
-                // Verifica se o material já existe
-                const { data: materialExistente } = await supabase
-                    .from('materiais')
-                    .select('material_id')
-                    .eq('material_id', materialId)
-                    .single();
+            const response = await fetch(`${API_URL}/pedidos/${pedidoId}/itens`, {
+                method: 'POST',
+                headers: createAuthHeaders(),
+                body: JSON.stringify({ itens })
+            });
 
-                // Se o material não existe, cria-o
-                if (!materialExistente) {
-                    await supabase
-                        .from('materiais')
-                        .insert([{
-                            material_id: materialId,
-                            descricao: item.descricao,
-                            unidade: item.unidade
-                        }]);
-                }
-
-                // Insere o item do pedido com numeração sequencial
-                const { error: itemError } = await supabase
-                    .from('itens_pedido')
-                    .insert([{
-                        item_id: index + 1, // Numeração sequencial começando do 1
-                        pedido_id: parseInt(pedidoId),
-                        material_id: materialId,
-                        quantidade: parseFloat(item.quantidade.replace(',', '.')),
-                        ipi: parseFloat(item.ipi.replace(',', '.')),
-                        valor_unitario: parseFloat(item.valorUnitario.replace(',', '.')),
-                        valor_total: parseFloat(item.valorTotal.replace(',', '.'))
-                    }]);
-
-                if (itemError) throw itemError;
+            if (!response.ok) {
+                throw new Error('Erro ao inserir itens do pedido');
             }
 
             return true;
@@ -109,49 +72,32 @@ export const pedidosService = {
 export const clientesService = {
     async atualizarOuCriarCliente(dadosCliente) {
         try {
-            // Verifica se o cliente já existe
-            const { data: clienteExistente } = await supabase
-                .from('clientInfo')
-                .select('*')
-                .eq('clientCode', dadosCliente.codigo)
-                .single();
+            const response = await fetch(`${API_URL}/clientes`, {
+                method: 'POST',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosCliente)
+            });
 
-            if (clienteExistente) {
-                // Atualiza o cliente existente
-                const { data, error } = await supabase
-                    .from('clientInfo')
-                    .update({
-                        RazaoSocial: dadosCliente.fornecedor,
-                        CNPJ: dadosCliente.cnpj,
-                        Endereço: dadosCliente.endereco,
-                        Telefone: dadosCliente.contato
-                    })
-                    .eq('clientCode', dadosCliente.codigo)
-                    .select();
-
-                if (error) throw error;
-                return data;
-            } else {
-                // Cria um novo cliente
-                const { data, error } = await supabase
-                    .from('clientInfo')
-                    .insert([{
-                        clientCode: dadosCliente.codigo,
-                        RazaoSocial: dadosCliente.fornecedor,
-                        CNPJ: dadosCliente.cnpj,
-                        Endereço: dadosCliente.endereco,
-                        Telefone: dadosCliente.contato
-                    }])
-                    .select();
-
-                if (error) throw error;
-                return data;
+            if (!response.ok) {
+                throw new Error('Erro ao atualizar/criar cliente');
             }
+
+            const data = await response.json();
+            return data;
         } catch (error) {
             console.error('Erro ao atualizar/criar cliente:', error);
             throw error;
         }
     }
+};
+
+// Função para criar headers com autenticação
+const createAuthHeaders = () => {
+    const token = getStoredToken();
+    return {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
 };
 
 // Função para salvar pedido completo
@@ -183,31 +129,112 @@ export const salvarPedidoCompleto = async (dadosPedido, itens) => {
 export const userService = {
     async registerUser(userData, authorizationCode) {
         try {
-            // Verifica se o usuário já existe
-            const { data: existingUser } = await supabase
-                .from('users')
-                .select('userName')
-                .eq('userName', userData.userName)
-                .single();
+            const requestData = {
+                username: userData.userName,
+                password: userData.password,
+                role: 'user'
+            };
 
-            if (existingUser) {
-                throw new Error('Usuário já existe');
+            console.log('URL da API:', API_URL);
+            console.log('URL completa:', `${API_URL}/auth/register`);
+            console.log('Enviando requisição de registro:', requestData);
+
+            const response = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(requestData),
+                credentials: 'include'
+            });
+
+            console.log('Headers da resposta:', Object.fromEntries(response.headers.entries()));
+            console.log('Status da resposta:', response.status);
+            console.log('Status text:', response.statusText);
+
+            let responseText;
+            try {
+                responseText = await response.text();
+                console.log('Resposta bruta:', responseText);
+                const data = responseText ? JSON.parse(responseText) : {};
+                console.log('Dados da resposta:', data);
+
+                if (!response.ok) {
+                    const errorMessage = data.errors ? 
+                        data.errors.map(err => err.msg).join(', ') : 
+                        data.error || 'Erro ao registrar usuário';
+                    throw new Error(errorMessage);
+                }
+
+                return data;
+            } catch (parseError) {
+                console.error('Erro ao parsear resposta:', parseError);
+                console.log('Resposta que falhou:', responseText);
+                throw new Error('Erro ao processar resposta do servidor');
             }
-
-            // Insere o novo usuário
-            const { data, error } = await supabase
-                .from('users')
-                .insert([{
-                    userName: userData.userName,
-                    userPassword: userData.password
-                }])
-                .select();
-
-            if (error) throw error;
-            return data[0];
         } catch (error) {
             console.error('Erro ao registrar usuário:', error);
             throw error;
         }
+    },
+
+    async login(username, password) {
+        try {
+            const requestData = {
+                username,
+                password
+            };
+
+            console.log('URL da API:', API_URL);
+            console.log('URL completa:', `${API_URL}/auth/login`);
+            console.log('Enviando requisição de login:', requestData);
+
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(requestData),
+                credentials: 'include'
+            });
+
+            console.log('Headers da resposta:', Object.fromEntries(response.headers.entries()));
+            console.log('Status da resposta:', response.status);
+            console.log('Status text:', response.statusText);
+
+            let responseText;
+            try {
+                responseText = await response.text();
+                console.log('Resposta bruta:', responseText);
+                const data = responseText ? JSON.parse(responseText) : {};
+                console.log('Dados da resposta:', data);
+
+                if (!response.ok) {
+                    const errorMessage = data.errors ? 
+                        data.errors.map(err => err.msg).join(', ') : 
+                        data.error || 'Erro ao fazer login';
+                    throw new Error(errorMessage);
+                }
+                
+                if (data.token) {
+                    setStoredToken(data.token);
+                }
+
+                return data;
+            } catch (parseError) {
+                console.error('Erro ao parsear resposta:', parseError);
+                console.log('Resposta que falhou:', responseText);
+                throw new Error('Erro ao processar resposta do servidor');
+            }
+        } catch (error) {
+            console.error('Erro ao fazer login:', error);
+            throw error;
+        }
+    },
+
+    logout() {
+        removeStoredToken();
     }
 }; 

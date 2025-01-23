@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { userService } from '../services/ApiService';
 
 const AdminContext = createContext();
 
@@ -10,8 +11,8 @@ export function AdminProvider({ children }) {
     };
 
     const logout = () => {
+        userService.logout();
         setAdminUser(null);
-        navigate('/');
     };
 
     return (
