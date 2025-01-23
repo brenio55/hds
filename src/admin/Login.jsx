@@ -4,13 +4,20 @@ import { useNavigate } from "react-router-dom";
 import Header from "../commonComponents/Header";
 import supabase from "../utils/Supabase";
 import { useAdmin } from "../contexts/AdminContext";
+import { userService } from "../services/ApiService";
 import "./Login.css";
+
+// Senha de autorização para registro (temporária)
+const AUTHORIZATION_CODE = "HDS2024";
 
 function Login() {
   const navigate = useNavigate();
   const { login } = useAdmin();
+  const [isRegistering, setIsRegistering] = useState(false);
   const [user, setUser] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [authCode, setAuthCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [notification, setNotification] = useState({ message: "", type: "" });
 
@@ -23,11 +30,35 @@ function Login() {
     }
   }, [notification]);
 
+  async function handleRegister(event) {
+    event.preventDefault();
+
+    if (password !== confirmPassword) {
+      setNotification({ message: "As senhas não coincidem", type: "error" });
+      return;
+    }
+
+    if (authCode !== AUTHORIZATION_CODE) {
+      setNotification({ message: "Código de autorização inválido", type: "error" });
+      return;
+    }
+
+    try {
+      await userService.registerUser(
+        { userName: user, password: password },
+        authCode
+      );
+      setNotification({ message: "Usuário registrado com sucesso!", type: "success" });
+      setIsRegistering(false);
+    } catch (error) {
+      setNotification({ message: error.message || "Erro ao registrar usuário", type: "error" });
+    }
+  }
+
   async function requestLogin(event) {
     event.preventDefault();
 
     try {
-      // Busca o usuário no banco de dados
       const { data, error } = await supabase
         .from("users")
         .select("id, userName, userPassword")
@@ -48,10 +79,9 @@ function Login() {
 
       const userData = data[0];
 
-      // Validação da senha
       if (userData.userPassword === password) {
         console.log("Usuário validado:", userData.userName);
-        login(userData); // Salvando os dados do usuário no contexto
+        login(userData);
         setNotification({ message: `Bem-vindo, ${userData.userName}!`, type: "success" });
         setTimeout(() => {
           navigate("/dashboard", { replace: true });
@@ -74,7 +104,7 @@ function Login() {
           <div className="quadradoLogin">
             <div className="L">
               <img src="/img/LOGO.png" alt="logo" className="logo" />
-              <p>Faça Login para acessar esta página</p>
+              <p>{isRegistering ? "Registre-se para criar uma conta" : "Faça Login para acessar esta página"}</p>
             </div>
             <div className="R">
               {notification.message && (
@@ -82,9 +112,8 @@ function Login() {
                   {notification.message}
                 </div>
               )}
-              <form onSubmit={requestLogin} method="POST">
+              <form onSubmit={isRegistering ? handleRegister : requestLogin} method="POST">
                 <label htmlFor="user">Usuário</label>
-                
                 <input
                   type="text"
                   name="user"
@@ -94,7 +123,6 @@ function Login() {
                 />
                 
                 <label htmlFor="password">Senha</label>
-                
                 <div className="password-input-container flex">
                   <input
                     autoComplete="on"
@@ -104,7 +132,6 @@ function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                   />
                   <button 
-                    
                     type="button" 
                     className="toggle-password"
                     onClick={() => setShowPassword(!showPassword)}
@@ -112,8 +139,45 @@ function Login() {
                     {showPassword ? "Ocultar Senha" : "Ver Senha"}
                   </button>
                 </div>
+
+                {isRegistering && (
+                  <>
+                    <label htmlFor="confirmPassword">Confirmar Senha</label>
+                    <div className="password-input-container flex">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="confirmPassword"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+                    </div>
+
+                    <label htmlFor="authCode">Código de Autorização</label>
+                    <input
+                      type="password"
+                      name="authCode"
+                      value={authCode}
+                      onChange={(e) => setAuthCode(e.target.value)}
+                    />
+                  </>
+                )}
+                
                 <br />
-                <button type="submit">Enviar</button>
+                <button type="submit">{isRegistering ? "Registrar" : "Enviar"}</button>
+                <button 
+                  type="button" 
+                  className="toggle-mode"
+                  onClick={() => {
+                    setIsRegistering(!isRegistering);
+                    setNotification({ message: "", type: "" });
+                    setUser("");
+                    setPassword("");
+                    setConfirmPassword("");
+                    setAuthCode("");
+                  }}
+                >
+                  {isRegistering ? "Voltar para Login" : "Criar Conta"}
+                </button>
               </form>
             </div>
           </div>

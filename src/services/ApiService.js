@@ -177,4 +177,37 @@ export const salvarPedidoCompleto = async (dadosPedido, itens) => {
         console.error('Erro ao salvar pedido completo:', error);
         throw error;
     }
+};
+
+// Funções relacionadas a Usuários
+export const userService = {
+    async registerUser(userData, authorizationCode) {
+        try {
+            // Verifica se o usuário já existe
+            const { data: existingUser } = await supabase
+                .from('users')
+                .select('userName')
+                .eq('userName', userData.userName)
+                .single();
+
+            if (existingUser) {
+                throw new Error('Usuário já existe');
+            }
+
+            // Insere o novo usuário
+            const { data, error } = await supabase
+                .from('users')
+                .insert([{
+                    userName: userData.userName,
+                    userPassword: userData.password
+                }])
+                .select();
+
+            if (error) throw error;
+            return data[0];
+        } catch (error) {
+            console.error('Erro ao registrar usuário:', error);
+            throw error;
+        }
+    }
 }; 
