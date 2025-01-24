@@ -3,6 +3,7 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const authRoutes = require('./routes/authRoutes');
+const propostaRoutes = require('./routes/propostaRoutes');
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Rotas
 app.use('/auth', authRoutes);
+app.use('/api/propostas', propostaRoutes);
 
 // Tratamento de erros
 app.use((err, req, res, next) => {
