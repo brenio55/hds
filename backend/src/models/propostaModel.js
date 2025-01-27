@@ -12,21 +12,27 @@ class PropostaModel {
       RETURNING *
     `;
 
-    const valor_final = typeof propostaData.valor_final === 'string' 
-      ? parseFloat(propostaData.valor_final.replace(/\./g, '').replace(',', '.'))
-      : propostaData.valor_final;
-
     const values = [
       propostaData.descricao,
       propostaData.data_emissao,
-      JSON.stringify(propostaData.client_info),
+      typeof propostaData.client_info === 'string' 
+        ? propostaData.client_info 
+        : JSON.stringify(propostaData.client_info),
       propostaData.versao,
       propostaData.documento_text || '[padrao]',
       propostaData.especificacoes_html,
-      JSON.stringify(propostaData.afazer_hds || []),
-      JSON.stringify(propostaData.afazer_contratante || []),
-      JSON.stringify(propostaData.naofazer_hds || []),
-      valor_final,
+      typeof propostaData.afazer_hds === 'string'
+        ? propostaData.afazer_hds
+        : JSON.stringify(propostaData.afazer_hds || []),
+      typeof propostaData.afazer_contratante === 'string'
+        ? propostaData.afazer_contratante
+        : JSON.stringify(propostaData.afazer_contratante || []),
+      typeof propostaData.naofazer_hds === 'string'
+        ? propostaData.naofazer_hds
+        : JSON.stringify(propostaData.naofazer_hds || []),
+      typeof propostaData.valor_final === 'string' 
+        ? parseFloat(propostaData.valor_final.replace(/\./g, '').replace(',', '.'))
+        : propostaData.valor_final,
       propostaData.user_id
     ];
 
@@ -47,6 +53,21 @@ class PropostaModel {
   static async findById(id) {
     const query = 'SELECT * FROM propostas WHERE id = $1';
     const result = await db.query(query, [id]);
+    return result.rows[0];
+  }
+
+  static async updatePdfVersion(id, versao, pdfUid) {
+    const query = `
+      UPDATE propostas 
+      SET pdf_versions = pdf_versions || $1
+      WHERE id = $2
+      RETURNING *
+    `;
+
+    const pdfVersions = {};
+    pdfVersions[versao] = pdfUid;
+
+    const result = await db.query(query, [pdfVersions, id]);
     return result.rows[0];
   }
 }
