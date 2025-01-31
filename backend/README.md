@@ -175,6 +175,45 @@ curl -X POST http://localhost:3000/api/propostas \
   }'
 ```
 
+### Consultar uma Proposta
+```http
+GET /api/propostas/{id}
+```
+
+**Parâmetros da URL:**
+```json
+{
+  "id": "string" // ID da proposta
+}
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "id": "123",
+  "descricao": "Proposta de desenvolvimento web",
+  "data_emissao": "2024-03-20",
+  "client_info": {
+    "nome": "Cliente A",
+    "email": "cliente@email.com"
+  },
+  "valor_final": "10.000,50",
+  "versao": "1.0",
+  "status": "em_analise"
+}
+```
+
+**Exemplo de Uso:**
+```bash
+curl -X GET http://localhost:3000/api/propostas/123 \
+  -H "Authorization: Bearer seu_token"
+```
+
 ## 🚨 Tratamento de Erros
 
 A API retorna os seguintes códigos de status HTTP:
