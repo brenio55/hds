@@ -161,6 +161,20 @@ curl -X POST http://localhost:3000/auth/login \
   }'
 ```
 
+### Criar uma Proposta
+```bash
+curl -X POST http://localhost:3000/api/propostas \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "descricao": "Proposta de desenvolvimento web",
+    "data_emissao": "2024-03-20",
+    "client_info": {"nome": "Cliente A", "email": "cliente@email.com"},
+    "valor_final": "10.000,50",
+    "versao": "1.0"
+  }'
+```
+
 ## 🚨 Tratamento de Erros
 
 A API retorna os seguintes códigos de status HTTP:
@@ -171,35 +185,3 @@ A API retorna os seguintes códigos de status HTTP:
 - `401`: Não autorizado
 - `500`: Erro interno do servidor
 
-## 🔐 Segurança
-
-- Senhas são hasheadas usando bcrypt
-- Autenticação via JWT
-- CORS habilitado
-- Validação de dados em todas as requisições
-
-## 📦 Estrutura do Projeto
-
-```
-erp-backend/
-├── src/
-│   ├── config/
-│   │   ├── database.js
-│   │   └── swagger.js
-│   ├── controllers/
-│   │   └── authController.js
-│   ├── middleware/
-│   │   ├── auth.js
-│   │   └── validate.js
-│   ├── models/
-│   │   └── userModel.js
-│   ├── routes/
-│   │   └── authRoutes.js
-│   ├── services/
-│   │   └── authService.js
-│   ├── server.js
-│   └── app.js
-├── .env
-├── docker-compose.yml
-└── package.json
-```

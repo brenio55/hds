@@ -56,6 +56,17 @@ class AuthService {
       token
     };
   }
+
+  async logout(token) {
+    try {
+      // Aqui você pode implementar a lógica para invalidar o token
+      // Por exemplo, adicionar o token a uma lista negra
+      // Ou remover a sessão do usuário do banco de dados
+      return true;
+    } catch (error) {
+      throw new Error('Erro ao realizar logout');
+    }
+  }
 }
 
 module.exports = AuthService; 

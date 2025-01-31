@@ -1,6 +1,6 @@
 const express = require('express');
 const AuthController = require('../controllers/authController');
-const { validateRegister, validateLogin } = require('../middleware/validate');
+const { validateRegister, validateLogin, validateLogout } = require('../middleware/validate');
 
 const router = express.Router();
 
@@ -52,5 +52,25 @@ router.post('/register', validateRegister, AuthController.register);
  *                 type: string
  */
 router.post('/login', validateLogin, AuthController.login);
+
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     summary: Realiza logout do usuário
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *             properties:
+ *               token:
+ *                 type: string
+ */
+router.post('/logout', validateLogout, AuthController.logout);
 
 module.exports = router; 
