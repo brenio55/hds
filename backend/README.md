@@ -214,6 +214,77 @@ curl -X GET http://localhost:3000/api/propostas/123 \
   -H "Authorization: Bearer seu_token"
 ```
 
+### Pesquisar Propostas
+```http
+GET /api/propostas/search
+```
+
+**Query Parameters (ao menos um é obrigatório):**
+```json
+{
+  "descricao": "string",
+  "data_emissao": "string",
+  "valor_final": "string",
+  "status": "string",
+  "versao": "string",
+  "client_info.nome": "string",
+  "client_info.email": "string"
+}
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "total": 2,
+  "propostas": [
+    {
+      "id": "123",
+      "descricao": "Proposta de desenvolvimento web",
+      "data_emissao": "2024-03-20",
+      "client_info": {
+        "nome": "Cliente A",
+        "email": "cliente@email.com"
+      },
+      "valor_final": "10.000,50",
+      "versao": "1.0",
+      "status": "em_analise"
+    },
+    {
+      "id": "124",
+      "descricao": "Proposta de desenvolvimento mobile",
+      "data_emissao": "2024-03-20",
+      "client_info": {
+        "nome": "Cliente A",
+        "email": "cliente@email.com"
+      },
+      "valor_final": "15.000,00",
+      "versao": "1.0",
+      "status": "em_analise"
+    }
+  ]
+}
+```
+
+**Exemplos de Uso:**
+```bash
+# Buscar por descrição
+curl -X GET "http://localhost:3000/api/propostas/search?descricao=web" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por múltiplos parâmetros
+curl -X GET "http://localhost:3000/api/propostas/search?status=em_analise&client_info.nome=Cliente%20A" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar todas as propostas (sem parâmetros)
+curl -X GET "http://localhost:3000/api/propostas/search" \
+  -H "Authorization: Bearer seu_token"
+```
+
 ## 🚨 Tratamento de Erros
 
 A API retorna os seguintes códigos de status HTTP:
