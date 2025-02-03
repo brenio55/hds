@@ -26,14 +26,24 @@ class PropostaController {
 
   static async search(req, res) {
     try {
-      const { field, value } = req.query;
-      if (!field || !value) {
-        return res.status(400).json({ error: 'Campo de busca e valor são obrigatórios' });
+      const queryParams = req.query;
+      
+      // Se não houver parâmetros, retorna todas as propostas
+      if (Object.keys(queryParams).length === 0) {
+        const propostas = await PropostaModel.findAll();
+        return res.json({
+          total: propostas.length,
+          propostas
+        });
       }
 
-      const propostas = await PropostaService.search(field, value);
-      res.json(propostas);
+      const propostas = await PropostaService.searchByParams(queryParams);
+      res.json({
+        total: propostas.length,
+        propostas
+      });
     } catch (error) {
+      console.error('Erro na busca:', error);
       res.status(400).json({ error: error.message });
     }
   }

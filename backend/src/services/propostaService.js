@@ -67,6 +67,14 @@ class PropostaService {
       throw new Error('Erro ao gerar PDF: ' + error.message);
     }
   }
+
+  static async searchByParams(params) {
+    try {
+      return await PropostaModel.findByParams(params);
+    } catch (error) {
+      throw new Error('Erro ao buscar propostas: ' + error.message);
+    }
+  }
 }
 
 module.exports = PropostaService; 

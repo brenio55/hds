@@ -70,6 +70,40 @@ class PropostaModel {
     const result = await db.query(query, [pdfVersions, id]);
     return result.rows[0];
   }
+
+  static async findAll() {
+    const query = 'SELECT * FROM propostas ORDER BY created_at DESC';
+    const result = await db.query(query);
+    return result.rows;
+  }
+
+  static async findByParams(params) {
+    let conditions = [];
+    let values = [];
+    let paramIndex = 1;
+
+    for (const [key, value] of Object.entries(params)) {
+      if (key.includes('client_info.')) {
+        // Busca em campos JSON
+        const field = key.split('.')[1];
+        conditions.push(`client_info->>'${field}' ILIKE $${paramIndex}`);
+      } else {
+        // Busca em campos normais
+        conditions.push(`${key}::text ILIKE $${paramIndex}`);
+      }
+      values.push(`%${value}%`);
+      paramIndex++;
+    }
+
+    const query = `
+      SELECT * FROM propostas 
+      WHERE ${conditions.join(' AND ')}
+      ORDER BY created_at DESC
+    `;
+
+    const result = await db.query(query, values);
+    return result.rows;
+  }
 }
 
 module.exports = PropostaModel; 
