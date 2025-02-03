@@ -1,0 +1,276 @@
+.proposta-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 104px 20px 20px;
+}
+
+.proposta-container {
+  max-width: 1600px;
+  margin: 35px auto;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.proposta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 0 8px;
+}
+.proposta-header h1 {
+  color: #2c3e50;
+  font-size: 1.8rem;
+  margin: 0;
+}
+.proposta-header .preview-button {
+  padding: 8px 16px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.proposta-header .preview-button:hover {
+  background: #217dbb;
+}
+
+.proposta-form .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+  height: fit-content;
+}
+.proposta-form .form-grid .left-column, .proposta-form .form-grid .right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.proposta-form .form-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin: 0;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+}
+.proposta-form .form-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.proposta-form .form-section .section-header h2 {
+  color: #2c3e50;
+  font-size: 1.2rem;
+  margin: 0;
+  font-weight: 500;
+}
+.proposta-form .form-section .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.proposta-form .form-section .search-group {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.proposta-form .form-section input, .proposta-form .form-section textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+.proposta-form .form-section input:focus, .proposta-form .form-section textarea:focus {
+  border-color: #e74c3c;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.1);
+}
+.proposta-form .form-section textarea {
+  resize: vertical;
+  min-height: 120px;
+  flex: 1;
+}
+.proposta-form .form-section .icon-button {
+  padding: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin: 5px 0;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  flex-shrink: 0;
+  color: black;
+  height: fit-content;
+  border: 2px solid rgba(231, 76, 60, 0.5);
+}
+.proposta-form .form-section .icon-button:hover {
+  background: rgba(52, 152, 219, 0.1);
+}
+.proposta-form .form-section .icon-button.search {
+  background: #3498db;
+  color: white;
+  padding: 8px 12px;
+}
+.proposta-form .form-section .icon-button.search:hover {
+  background: #217dbb;
+}
+.proposta-form .fornecimentos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  height: 100%;
+}
+.proposta-form .fornecimentos-grid .fornecimento-group {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.proposta-form .fornecimentos-grid .fornecimento-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  font-weight: 500;
+}
+.proposta-form .fornecimentos-grid .fornecimento-group textarea {
+  flex: 1;
+}
+.proposta-form .fornecimentos-grid .fornecimento-cliente {
+  display: flex;
+  gap: 8px;
+  height: 100%;
+}
+.proposta-form .fornecimentos-grid .fornecimento-cliente textarea {
+  flex: 1;
+}
+.proposta-form .form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+}
+.proposta-form .form-actions .submit-button {
+  padding: 12px 32px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+.proposta-form .form-actions .submit-button:hover {
+  background: #d62c1a;
+  transform: translateY(-1px);
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal .modal-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 500px;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal .modal-content .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.modal .modal-content .modal-header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.4rem;
+}
+.modal .modal-content .modal-header .close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #2c3e50;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+.modal .modal-content .modal-header .close-button:hover {
+  background: rgba(44, 62, 80, 0.1);
+}
+.modal .modal-content .modal-body {
+  padding: 20px;
+}
+.modal .modal-content .modal-body .search-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+.modal .modal-content .modal-body .drop-zone {
+  border: 2px dashed #e0e0e0;
+  padding: 40px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.modal .modal-content .modal-body .drop-zone:hover {
+  border-color: #3498db;
+  background: rgba(52, 152, 219, 0.05);
+}
+.modal .modal-content .modal-body .drop-zone p {
+  margin: 0;
+  color: #2c3e50;
+}
+.modal .modal-content .modal-body .items-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 1200px) {
+  .proposta-form .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .proposta-form .fornecimentos-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 768px) {
+  .modal .modal-content {
+    min-width: 90%;
+    margin: 20px;
+  }
+}/*# sourceMappingURL=GerarPropostas.css.map */

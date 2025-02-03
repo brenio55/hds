@@ -65,6 +65,8 @@ button{
     font-size: 24px;
     transition: all 0.1s;
 
+    margin: 2px;
+
     &:hover{
         transition: all 0.2s;
         transform: scale(1.05);
@@ -1496,3 +1498,4 @@ div.service-buttons {
         margin-bottom: 0px !important;
     }
 }
+

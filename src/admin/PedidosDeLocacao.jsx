@@ -268,7 +268,7 @@ function PedidosDeLocacao() {
             );
 
             // Substituir "Pedido de Compra" por "Pedido de Locação"
-            templateHtml = templateHtml.replace(/PEDIDO DE COMPRA/g, 'PEDIDO DE LOCAÇÃO');
+            templateHtml = templateHtml.replace(/PEDIDO DE COMPRA DE MATERIAL/g, 'PEDIDO DE LOCAÇÃO');
 
             // Atualizar a tabela de detalhes do pedido
             const hoje = new Date();
