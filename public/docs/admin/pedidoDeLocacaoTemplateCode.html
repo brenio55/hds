@@ -90,6 +90,21 @@
             margin-top: 20px;
             margin-bottom: 10px;
         }
+        .info-table td {
+            padding: 15px;
+        }
+        .info-table p {
+            margin-bottom: 10px;
+        }
+        .totals-table th,
+        .totals-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .totals-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -161,30 +176,30 @@
         <div class="flex-container">
             <div style="width: 60%;">
                 <h2>Totais</h2>
-                <table>
+                <table class="totals-table">
                     <tr>
                         <th>Total Bruto</th>
-                        <td>R$ 2.144,00</td>
+                        <td>R$ 2.000,00</td>
                     </tr>
                     <tr>
                         <th>(+) IPI</th>
-                        <td>R$ -</td>
+                        <td>R$ 200,00</td>
                     </tr>
                     <tr>
                         <th>(+) Frete</th>
-                        <td>R$ 100,00</td>
+                        <td>R$ 0,00</td>
                     </tr>
                     <tr>
                         <th>(+) Outras despesas</th>
-                        <td>R$ -</td>
+                        <td>R$ 0,00</td>
                     </tr>
                     <tr>
                         <th>(-) Desconto</th>
-                        <td>R$ -</td>
+                        <td>R$ 100,00</td>
                     </tr>
                     <tr>
                         <th>(=) Total Final</th>
-                        <td>R$ 2.244,00</td>
+                        <td>R$ 2.100,00</td>
                     </tr>
                 </table>
             </div>
@@ -375,33 +390,37 @@
             </tr>
         </table>
 
-        <div style="margin-top: 30px;">
-            <p>Taubaté-SP, ___/___/____</p>
-            
-            <div class="assinaturas">
-                <div>
-                    <p>Assinatura do Fornecedor</p>
-                    <div class="signature-line"></div>
-                    <p>Nome: _______________________</p>
-                </div>
+        <h2>Dados Adicionais</h2>
+        <table>
+            <tr>
+                <td></td>
+            </tr>
+        </table>
 
-                <div>
-                    <p>Assinatura da Contratante</p>
-                    <div class="signature-line"></div>
-                    <p>Comprador: _______________________</p>
-                    <div class="signature-line"></div>
-                    <p>Autorização: _______________________</p>
-                </div>
+        <h2>Informações Importantes</h2>
+        <table>
+            <tr>
+                <td>Frete: (  ) CIF     (   ) FOB</td>
+            </tr>
+        </table>
 
-                <div>
-                    <p>Testemunhas:</p>
-                    <div class="signature-line"></div>
-                    <p>1. _______________________</p>
-                    <div class="signature-line"></div>
-                    <p>2. _______________________</p>
-                </div>
-            </div>
-        </div>
+
+        <h2>Informações Importantes para o Fornecedor</h2>
+        <table class="info-table">
+            <tr>
+                <td>
+                    <p><strong>Os Preços:</strong> Inclusos nos preços todas as taxas, tributos e impostos pertencentes à aquisição.</p>
+                    <p><strong>Prazo de Entrega:</strong> Material somente poderá ser entregue de acordo com programação da obra e caso o fornecedor não atenda esta programação, fica a CONTRATANTE autorizada a comprar o material de outros fornecedores e proceder o desconto da diferença do FORNECEDOR.</p>
+                    <p><strong>EPIS:</strong> O FORNECEDOR terá que munir seus funcionários com os EPIs adequados a entrega e/ou descarga, conforme OSMA 024.</p>
+                    <p><strong>Pagamento:</strong> Somente serão consideradas para efeito de pagamento, as quantidades aceitas durante a entrega na obra. Quando for o caso, somente serão consideradas as pesagens que forem efetuadas na balança da CONTRATANTE ou em outra indicada pela mesma.</p>
+                    <p><strong>Defeitos ou Acidentes:</strong> No caso de defeito de fabricação ou danos pelo transporte, o FORNECEDOR deverá substituir o produto sem qualquer õnus para a CONTRATANTE, no prazo máximo de 48 horas.</p>
+                    <p><strong>Tributos e Contribuições:</strong> Correrão por conta exclusivas do FORNECEDOR todos os tributos e contribuições que incidam ou venham a incidir sobre o presente pedido de fornecimento.</p>
+                    <p><strong>Responsabilidade Social:</strong> O FORNECEDOR se obriga a não empregar menores de 18 anos em atividades noturnas, perigosas ou insalubres e menores de 16 anos em qualquer trabalho.</p>
+                    <p><strong>Obediência as normas:</strong> O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis.</p>
+                    <p><strong>Multas e penalidades:</strong> Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento.</p>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html> 

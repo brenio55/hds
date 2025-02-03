@@ -239,4 +239,14 @@ export const userService = {
     logout() {
         removeStoredToken();
     }
+};
+
+const getServiceOrderTemplate = async (serviceOrder) => {
+    try {
+        const response = await api.post('/service-orders/template', serviceOrder);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao obter template do pedido de serviço:', error);
+        throw error;
+    }
 }; 
