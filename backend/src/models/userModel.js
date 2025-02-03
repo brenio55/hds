@@ -36,6 +36,12 @@ class UserModel {
     const result = await db.query(query, [token]);
     return result.rows[0];
   }
+
+  static async findById(id) {
+    const query = 'SELECT * FROM users WHERE id = $1';
+    const result = await db.query(query, [id]);
+    return result.rows[0];
+  }
 }
 
 module.exports = UserModel; 

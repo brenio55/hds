@@ -100,6 +100,32 @@ Para endpoints protegidos, inclua o token JWT no header:
 Authorization: Bearer seu_token_jwt
 ```
 
+### Obter Perfil do Usuário
+```http
+GET /auth/profile
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "id": "1",
+  "username": "usuario",
+  "role": "admin",
+  "created_at": "2024-03-21T10:00:00Z"
+}
+```
+
+**Exemplo de Uso:**
+```bash
+curl -X GET http://localhost:3000/auth/profile \
+  -H "Authorization: Bearer seu_token"
+```
+
 ## 🔒 Roles e Permissões
 
 O sistema possui dois níveis de acesso:

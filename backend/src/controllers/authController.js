@@ -1,5 +1,6 @@
 const AuthService = require('../services/authService');
 const { validationResult } = require('express-validator');
+const UserModel = require('../models/userModel');
 
 class AuthController {
   static async register(req, res) {
@@ -42,6 +43,23 @@ class AuthController {
       const { token } = req.body;
       await AuthService.logout(token);
       res.json({ message: 'Logout realizado com sucesso' });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  static async getProfile(req, res) {
+    try {
+      // O usuário já está disponível através do middleware de autenticação
+      const user = req.user;
+
+      // Busca informações adicionais do usuário se necessário
+      const userDetails = await UserModel.findById(user.id);
+      
+      // Remove a senha antes de enviar
+      const { password, ...userWithoutPassword } = userDetails;
+
+      res.json(userWithoutPassword);
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
