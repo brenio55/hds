@@ -73,7 +73,7 @@ function GerarPropostas() {
                                             onClick={() => setShowClientSearch(!showClientSearch)}
                                             className="icon-button search"
                                         >
-                                            🔍
+                                            Buscar Cliente 🔍
                                         </button>
                                     </div>
                                     <input
@@ -95,7 +95,7 @@ function GerarPropostas() {
                                         onClick={() => setShowImageUpload(!showImageUpload)}
                                         className="icon-button"
                                     >
-                                        📎
+                                        Anexar Arquivos📎
                                     </button>
                                 </div>
                                 <textarea
@@ -148,14 +148,15 @@ function GerarPropostas() {
                                                 placeholder="Fornecimentos do cliente"
                                                 rows="4"
                                             />
-                                            <button
+                                           
+                                        </div>
+                                        <button
                                                 type="button"
                                                 onClick={() => setShowPreviousItems(!showPreviousItems)}
                                                 className="icon-button"
                                             >
-                                                📋
+                                                Buscar Itens Cadastrados Previamente 📋
                                             </button>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
