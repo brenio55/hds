@@ -237,20 +237,15 @@ function PedidosDeServico() {
                 previsaoEntrega: new Date().toISOString().split('T')[0]
             };
 
-            const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
+            // const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
+            const numeroPedido = '1234567890';
+            // alterar depois quando o back estiver fazendo
 
             const formatarValorMonetario = (valor) => {
                 if (!valor) return '0,00';
                 return typeof valor === 'string' ? valor : valor.toString().replace('.', ',');
             };
 
-            const formatarData = (data) => {
-                if (!data) return '';
-                const [ano, mes, dia] = data.split('-');
-                return `${dia}/${mes}/${ano}`;
-            };
-
-            // Carregar a imagem como base64
             const logoResponse = await fetch('/docs/admin/LOGO.png');
             const logoBlob = await logoResponse.blob();
             const logoBase64 = await new Promise((resolve) => {
@@ -262,24 +257,19 @@ function PedidosDeServico() {
             const response = await fetch('/docs/admin/pedidoDeServicoTemplateCode.html');
             let templateHtml = await response.text();
 
-            // Substitui a referência da imagem no template com a versão base64
             templateHtml = templateHtml.replace(
                 /<img[^>]*>/,
                 `<img src="${logoBase64}" alt="Logo" class="logo" style="height: 80px;">`
             );
 
-            // Substituir "Pedido de Compra" por "Pedido de Serviço"
-            templateHtml = templateHtml.replace(/PEDIDO DE COMPRA/g, 'PEDIDO DE SERVIÇO');
-
-            // Atualizar a tabela de detalhes do pedido
             const hoje = new Date();
             const dataFormatada = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
             
-            // Atualizar informações do cabeçalho
-            templateHtml = templateHtml.replace(/<td>20000001<\/td>\s*<td>12\/12\/2024<\/td>\s*<td>1<\/td>/, 
-                `<td>${numeroPedido}</td><td>${dataFormatada}</td><td>1</td>`);
+            templateHtml = templateHtml.replace(
+                /<td>20000001<\/td>\s*<td>12\/12\/2024<\/td>\s*<td>1<\/td>/,
+                `<td>${numeroPedido}</td><td>${dataFormatada}</td><td>1</td>`
+            );
 
-            // Atualizar detalhes do pedido
             templateHtml = templateHtml.replace(
                 /<td>12345<\/td>\s*<td>Fornecedor XYZ<\/td>\s*<td>00\.000\.000\/0000-00<\/td>\s*<td>Rua Exemplo, 123<\/td>\s*<td>12000-000<\/td>\s*<td>\(12\) 3456-7890<\/td>/,
                 `<td>${document.querySelector('[name="codigo"]').value}</td>
@@ -290,7 +280,6 @@ function PedidosDeServico() {
                 <td>${contato}</td>`
             );
 
-            // Atualizar informações do pedido
             templateHtml = templateHtml.replace(
                 /<td>001<\/td>\s*<td>01\/01\/2024<\/td>\s*<td>À vista<\/td>\s*<td>Financeiro<\/td>/,
                 `<td>${document.querySelector('[name="pedido"]').value}</td>
@@ -299,24 +288,7 @@ function PedidosDeServico() {
                 <td>${document.querySelector('[name="centroCusto"]')?.value || 'N/A'}</td>`
             );
 
-            // Atualizar totais
-            templateHtml = templateHtml.replace(
-                /<td>R\$ 100,00<\/td>[\s\S]*?<td>R\$ 50,00<\/td>[\s\S]*?<td>R\$ 30,00<\/td>[\s\S]*?<td>R\$ 1\.100,00<\/td>[\s\S]*?<td>R\$ 1\.080,00<\/td>/,
-                `<td>R$ ${formatarValorMonetario(totalDescontos)}</td>
-                <td>R$ ${formatarValorMonetario(dadosPedido.valorFrete)}</td>
-                <td>R$ ${formatarValorMonetario(dadosPedido.outrasDespesas)}</td>
-                <td>R$ ${formatarValorMonetario(totalBruto)}</td>
-                <td>R$ ${formatarValorMonetario(totalFinal)}</td>`
-            );
-
-            // Atualizar data final de entrega
-            templateHtml = templateHtml.replace(
-                /<td>15\/01\/2024<\/td>/,
-                `<td>${dadosPedido.prazoEntrega || 'A combinar'}</td>`
-            );
-
-            // Limpar a tabela de materiais existente e adicionar os novos itens
-            const tabelaMateriais = itens.map((item, index) => `
+            const tabelaItens = itens.map((item, index) => `
                 <tr>
                     <td>${index + 1}</td>
                     <td>${item.descricao}</td>
@@ -330,11 +302,40 @@ function PedidosDeServico() {
             `).join('');
 
             templateHtml = templateHtml.replace(
-                /<tr>\s*<td>1<\/td>[\s\S]*?<\/tr>\s*<tr>\s*<td>2<\/td>[\s\S]*?<\/tr>/,
-                tabelaMateriais
+                /<tbody>\s*{{#each items}}[\s\S]*?{{\/each}}\s*<\/tbody>/,
+                `<tbody>${tabelaItens}</tbody>`
             );
 
-            // Atualizar dados adicionais
+            templateHtml = templateHtml.replace(
+                /<th>Total Bruto<\/th>\s*<td>R\$ 2\.144,00<\/td>/,
+                `<th>Total Bruto</th><td>R$ ${calcularTotalBruto()}</td>`
+            );
+
+            templateHtml = templateHtml.replace(
+                /<th>\(\+\) IPI<\/th>\s*<td>R\$ -<\/td>/,
+                `<th>(+) IPI</th><td>R$ ${calcularTotalIPI()}</td>`
+            );
+
+            templateHtml = templateHtml.replace(
+                /<th>\(\+\) Frete<\/th>\s*<td>R\$ 100,00<\/td>/,
+                `<th>(+) Frete</th><td>R$ ${formatarValorMonetario(dadosPedido.valorFrete)}</td>`
+            );
+
+            templateHtml = templateHtml.replace(
+                /<th>\(\+\) Outras despesas<\/th>\s*<td>R\$ -<\/td>/,
+                `<th>(+) Outras despesas</th><td>R$ ${formatarValorMonetario(dadosPedido.outrasDespesas)}</td>`
+            );
+
+            templateHtml = templateHtml.replace(
+                /<th>\(-\) Desconto<\/th>\s*<td>R\$ -<\/td>/,
+                `<th>(-) Desconto</th><td>R$ ${calcularTotalDescontos()}</td>`
+            );
+
+            templateHtml = templateHtml.replace(
+                /<th>\(=\) Total Final<\/th>\s*<td>R\$ 2\.244,00<\/td>/,
+                `<th>(=) Total Final</th><td>R$ ${calcularTotalFinal()}</td>`
+            );
+
             templateHtml = templateHtml.replace(
                 /<h2>Dados Adicionais<\/h2>\s*<table>\s*<tr>\s*<td><\/td>\s*<\/tr>\s*<\/table>/,
                 `<h2>Dados Adicionais</h2>
@@ -345,7 +346,6 @@ function PedidosDeServico() {
                 </table>`
             );
 
-            // Atualizar informações de frete
             templateHtml = templateHtml.replace(
                 /Frete \(  \) CIF     \(   \) FOB/,
                 `Frete (${dadosPedido.frete === 'CIF' ? 'X' : '  '}) CIF     (${dadosPedido.frete === 'FOB' ? 'X' : '  '}) FOB`
@@ -356,11 +356,11 @@ function PedidosDeServico() {
             templateHtml = templateHtml.replace(
                 /<h2>CARACTERÍSTICAS TÉCNICAS DA OBRA \(Escopo da Contratação\)<\/h2>\s*<table>[\s\S]*?<\/table>/,
                 `<h2>CARACTERÍSTICAS TÉCNICAS DA OBRA (Escopo da Contratação)</h2>
-                <table>
-                    <tr>
-                        <td>${document.querySelector('[name="escopoContratacao"]').value || ''}</td>
-                    </tr>
-                </table>`
+                 <table>
+                   <tr>
+                     <td>${document.querySelector('[name="escopoContratacao"]').value || ''}</td>
+                   </tr>
+                 </table>`
             );
 
             // Atualiza a seção de Responsabilidade da Contratada
@@ -369,15 +369,15 @@ function PedidosDeServico() {
             templateHtml = templateHtml.replace(
                 /<h2>RESPONSABILIDADE DA CONTRATADA<\/h2>\s*<table>[\s\S]*?<\/table>/,
                 `<h2>RESPONSABILIDADE DA CONTRATADA</h2>
-                <table>
-                    <tr>
-                        <td>
-                            <ul>
-                                ${respContratadaList}
-                            </ul>
-                        </td>
-                    </tr>
-                </table>`
+                 <table>
+                   <tr>
+                     <td>
+                       <ul>
+                         ${respContratadaList}
+                       </ul>
+                     </td>
+                   </tr>
+                 </table>`
             );
 
             // Atualiza a seção de Responsabilidades da Contratante
@@ -386,19 +386,18 @@ function PedidosDeServico() {
             templateHtml = templateHtml.replace(
                 /<h2>RESPONSABILIDADES DA CONTRATANTE<\/h2>\s*<table>[\s\S]*?<\/table>/,
                 `<h2>RESPONSABILIDADES DA CONTRATANTE</h2>
-                <table>
-                    <tr>
-                        <td>
-                            <ul>
-                                ${respContratanteList}
-                            </ul>
-                        </td>
-                    </tr>
-                </table>`
+                 <table>
+                   <tr>
+                     <td>
+                       <ul>
+                         ${respContratanteList}
+                       </ul>
+                     </td>
+                   </tr>
+                 </table>`
             );
             // ==========================
 
-            // Criar o Blob e abrir em nova janela
             const blob = new Blob([templateHtml], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             window.open(url, '_blank');
@@ -703,6 +702,36 @@ function PedidosDeServico() {
                                     onChange={handleDadosPedidoChange}
                                 />
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Escopo da Contratação:</label>
+                            <textarea
+                                name="escopoContratacao"
+                                placeholder="Digite o escopo da contratação"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Responsabilidade da Contratada:</label>
+                            <textarea
+                                name="respContratada"
+                                placeholder="Digite a responsabilidade da contratada (uma linha para cada item)"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Responsabilidades da Contratante:</label>
+                            <textarea
+                                name="respContratante"
+                                placeholder="Digite as responsabilidades da contratante (uma linha para cada item)"
+                            />
                         </div>
                     </div>
 

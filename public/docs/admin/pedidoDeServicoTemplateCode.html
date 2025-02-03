@@ -158,6 +158,47 @@
             </tr>
         </table>
 
+        <h2>Itens do Pedido</h2>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Descrição</th>
+                    <th>Quantidade</th>
+                    <th>Preço Unitário</th>
+                    <th>Taxa (%)</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each items}}
+                <tr>
+                    <td>{{@index}}</td>
+                    <td>{{description}}</td>
+                    <td>{{quantity}}</td>
+                    <td>R$ {{unitPrice}}</td>
+                    <td>{{taxRate}}%</td>
+                    <td>R$ {{total}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>R$ {{subtotal}}</span>
+            </div>
+            <div class="total-row">
+                <span>Total Impostos:</span>
+                <span>R$ {{taxTotal}}</span>
+            </div>
+            <div class="total-row final-total">
+                <span>Total:</span>
+                <span>R$ {{total}}</span>
+            </div>
+        </div>
+
         <div class="flex-container">
             <div style="width: 60%;">
                 <h2>Totais</h2>
