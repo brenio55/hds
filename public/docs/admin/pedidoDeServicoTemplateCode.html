@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido de Serviço</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        
+        h1:first-child{
+            font-size: 18px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        .footer {
+            font-size: 0.9em;
+            text-align: center;
+            color: #666;
+            margin-top: 20px;
+        }
+        .logo {
+            display: block;
+            margin: 0 auto 20px;
+            height: 50px;
+        }
+        .red {
+            color: red;
+        }
+        .signature-line {
+            border-bottom: 1px solid #000;
+            width: 600px;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .pedidoTd{
+            border-right: unset;
+        }
+
+        .pedidoInfoTop1, .pedidoInfoTop1 table{   
+                padding: 0;
+                border-left: unset;
+        }
+        .assinaturas{
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            flex-direction: column;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <table>
+            <tr>
+                <td><img src="./LOGO.png" alt="Logo" class="logo" height="50px" /></td>
+                <td class="pedidoTd"><h1>PEDIDO DE SERVIÇO</h1></td>
+                <td>
+                    <table class="pedidoInfoTop1"> 
+                    <tr>    
+                        <td>Pedido:</td>
+                        <td>Data:</td>
+                        <td>Revisão:</td>
+                    </tr>
+                    <tr>
+                        <td>20000001</td>
+                        <td>12/12/2024</td>
+                        <td>1</td>
+                    </tr>
+                    </table>
+                </td>   
+            </tr>
+        </table>
+
+        <div class="contratante">
+            <!-- Esta seção será substituída pelos dados fixos da contratante -->
+        </div>
+
+        <div class="contratada">
+            <!-- Esta seção será substituída pelos dados do fornecedor -->
+        </div>
+
+        <h2>Detalhes do Pedido</h2>
+        <table>
+            <tr>
+                <th>Código</th>
+                <th>Fornecedor</th>
+                <th>CNPJ</th>
+                <th>Endereço</th>
+                <th>CEP</th>
+                <th>Contato</th>
+            </tr>
+            <tr>
+                <td>12345</td>
+                <td>Fornecedor XYZ</td>
+                <td>00.000.000/0000-00</td>
+                <td>Rua Exemplo, 123</td>
+                <td>12000-000</td>
+                <td>(12) 3456-7890</td>
+            </tr>
+            <tr style="height: 10px;"></tr>
+            <tr>
+                <th>Pedido</th>
+                <th>Data Vencimento</th>
+                <th>Cond. Pagto</th>
+                <th>Centro de Custo</th>
+                <th colspan="2"></th>
+            </tr>
+            <tr>
+                <td>001</td>
+                <td>01/01/2024</td>
+                <td>À vista</td>
+                <td>Financeiro</td>
+                <td colspan="2"></td>
+            </tr>
+        </table>
+
+        <div class="flex-container">
+            <div style="width: 60%;">
+                <h2>Totais</h2>
+                <table>
+                    <tr>
+                        <th>Total Bruto</th>
+                        <td>R$ 2.144,00</td>
+                    </tr>
+                    <tr>
+                        <th>(+) IPI</th>
+                        <td>R$ -</td>
+                    </tr>
+                    <tr>
+                        <th>(+) Frete</th>
+                        <td>R$ 100,00</td>
+                    </tr>
+                    <tr>
+                        <th>(+) Outras despesas</th>
+                        <td>R$ -</td>
+                    </tr>
+                    <tr>
+                        <th>(-) Desconto</th>
+                        <td>R$ -</td>
+                    </tr>
+                    <tr>
+                        <th>(=) Total Final</th>
+                        <td>R$ 2.244,00</td>
+                    </tr>
+                </table>
+            </div>
+            <div style="width: 35%;">
+                <h2>Data Final de Entrega</h2>
+                <table>
+                    <tr>
+                        <td>15/01/2024</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h2>CARACTERÍSTICAS TÉCNICAS DA OBRA (Escopo da Contratação)</h2>
+        <table>
+            <tr>
+                <td>Corte de vão e requadramento com cantoneira de acabamento + Pintura por conta do fornecedor</td>
+            </tr>
+        </table>
+
+        <h2>RESPONSABILIDADE DA CONTRATADA</h2>
+        <table>
+            <tr>
+                <td>
+                    <ul>
+                        <li>Conduzir e executar os Serviços de acordo com as normas da Associação Brasileira de Normas Técnicas</li>
+                        <li>Cumprir o disposto em leis, regulamentos e normas que regulam os serviços</li>
+                        <li>Prestar esclarecimentos, comprovantes e informações sobre o andamento dos serviços</li>
+                        <li>Fornecer à equipe transporte e alojamento</li>
+                        <li>Fornecimento de consumíveis e insumos</li>
+                        <li>Fornecimento dos materiais</li>
+                        <li>Fornecimento de almoço e café da manhã à equipe da contratada</li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
+
+        <h2>RESPONSABILIDADES DA CONTRATANTE</h2>
+        <table>
+            <tr>
+                <td>
+                    <ul>
+                        <li>Fornecer todas as informações e dados necessários à execução dos serviços</li>
+                        <li>Permitir acesso ao local da execução dos serviços a todos os funcionários indicados pela contratada</li>
+                        <li>Efetuar o pagamento dos valores contratados na forma e prazo estabelecidos neste Instrumento</li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
+
+        <h2>MEDIÇÕES</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>As medições serão feitas mensalmente conforme descrito:</p>
+                    <ul>
+                        <li>Medições após a finalização do serviço: pagamento 20DDL</li>
+                        <li>Pagamento de 20% do contrato no ato de aprovação desse pedido</li>
+                    </ul>
+                    <p>Os boletins de medição deverão ser enviados aos e-mails indicados:</p>
+                    <ul>
+                        <li>erick.santos@hdsservico.com.br</li>
+                        <li>contato@hdsservico.com.br</li>
+                        <li>thais.oliveira@hdsservico.com.br</li>
+                        <li>jenyffer.cristina@hdsservico.com.br</li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
+
+        <h2>REGIME DE CONTRATAÇÃO</h2>
+        <table>
+            <tr>
+                <td>Os preços da Planilha de Serviços - Anexo I deste contrato, são apenas referenciais, onde o regime desta contratação é PREÇO GLOBAL</td>
+            </tr>
+        </table>
+
+        <h2>REAJUSTES</h2>
+        <table>
+            <tr>
+                <td>Os preços são fixos e irreajustáveis durante o prazo de vigência deste contrato. Caso a vigência do contrato ultrapasse o período de 12 (doze) meses, os preços deverão ser reajustados com base no valor de mercado, mediante aditamento contratual.</td>
+            </tr>
+        </table>
+
+        <h2>PAGAMENTOS</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>Os faturamentos mensais da CONTRATADA serão autorizados pela CONTRATANTE e o pagamento será feito 10 dias após a data de emissão da Nota Fiscal.</p>
+                    <p>Os pagamentos de serviços serão efetuados através de depósito bancário e ou boleto na conta bancária de titularidade da CONTRATADA, conforme DADOS ADCIONAIS</p>
+                </td>
+            </tr>
+        </table>
+
+        <h2>MULTAS APLICÁVEIS</h2>
+        <table>
+            <tr>
+                <td>
+                    <p><strong>Multa por atraso:</strong> No caso de descumprimento dos prazos aqui indicados, e/ou na conclusão prevista para os serviços, estabelecidos nesse contrato, a CONTRATADA incorrerá em multa diária correspondente a 1% (um por cento) do Valor Total do contrato, de maneira cumulativa, até que o prazo seja cumprido.</p>
+                    <p><strong>Multa por infração:</strong> No caso de descumprimento de qualquer obrigação deste contrato, a Parte infratora incorrerá em multa de 10% (dez por cento) do Valor Total do contrato, para cada infração devidamente comprovada.</p>
+                </td>
+            </tr>
+        </table>
+
+        <h2>RESCISÃO CONTRATUAL</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>O inadimplemento total ou parcial deste Contrato poderá dar ensejo a sua imediata rescisão, mediante comunicado escrito à outra Parte, garantindo a esta o prazo de 5 (cinco) dias para sanar a sua falta contratual, sem o que o Contrato poderá ser rescindido de pleno direito.</p>
+                    <p>Além das hipóteses legais, este Contrato ficará resolvido de pleno direito, independentemente de notificação judicial ou extrajudicial nas hipóteses de falência, pedido de recuperação judicial ou extrajudicial ou insolvência de qualquer das Partes.</p>
+                </td>
+            </tr>
+        </table>
+
+        <h2>GARANTIA</h2>
+        <table>
+            <tr>
+                <td>A CONTRATADA deverá garantir a solidez, segurança, vícios e defeitos dos serviços que executar, pelo mesmo prazo estabelecido entre a CONTRATANTE ou o cliente final.</td>
+            </tr>
+        </table>
+
+        <h2>OBEDIÊNCIA AS NORMAS</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis, relativamente à segurança, higiene e medicina do trabalho, especialmente a norma regulamentadora NR 18, do Ministério do Trabalho, bem como as normas internas expedidas pela CONTRATANTE.</p>
+                    <p>No caso de desobediência, as consequências, inclusive multas aplicadas pelos órgãos públicos, serão suportadas pelo FORNECEDOR, mesmo que lançadas contra a CONTRATANTE ou terceiros. Neste caso, ainda que passíveis de defesa, o valor respectivo será caucionado pela CONTRATANTE, que poderá descontá-los dos haveres do FORNECEDOR, sendo certo que o FORNECEDOR também estará sujeito a uma multa de R$ 200,00 por infração de cada funcionário</p>
+                </td>
+            </tr>
+        </table>
+
+        <h2>CLÁUSULAS CONTRATUAIS</h2>
+        <table>
+            <tr>
+                <td>Não Vinculação com Clientes: A Contratada se compromete, durante a vigência deste contrato e pelo período de 5 (cinco) anos após o seu término, a não criar qualquer tipo de vínculo ou relacionamento comercial com os clientes da Contratante atraves do servico prestado na obra, salvo mediante autorização expressa e por escrito da Contratante.</td>
+            </tr>
+        </table>
+
+        <h2>COMPLIANCE, INTEGRIDADE E LEIS ANTICORRUPÇÃO</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>As Partes se obrigam, sob as penas previstas neste instrumento e na legislação aplicável, a observar e cumprir rigorosamente todas as leis e atos normativos a que estão submetidas, nacionais ou internacionais, que disponham contra a prática de atos de corrupção e lavagem de dinheiro (em conjunto "Leis Anticorrupção"), assim como as normas e exigências constantes de suas políticas internas quando existentes ("Política Anticorrupção").</p>
+                </td>
+            </tr>
+        </table>
+
+        <h2>APRESENTAÇÃO DE DOCUMENTOS</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>Para assinatura deste contrato deverão ser apresentados os seguintes documentos:</p>
+                    <ol>
+                        <li>Contrato Social da Empresa e Ultima Alteração</li>
+                        <li>Cartão CNPJ</li>
+                        <li>Inscrição Estadual (se houver)</li>
+                        <li>Certidão Negativa de Débitos Estaduais</li>
+                        <li>Comprovante de Registro no Cadastro de Contribuinte Municipal no Município onde está Constituída (CCM)</li>
+                        <li>Certidão Negativa de Débitos Municipais no Município onde está Constituída</li>
+                        <li>Certidão Negativa de Tributos Federais</li>
+                        <li>Declaração Emitida em Papel Timbrado Demonstrando a Contabilidade Regular</li>
+                        <li>Certidão de Registro junto ao CREA</li>
+                        <li>CND (Certidão Negativa de Débitos - INSS / Previdência Social)</li>
+                        <li>CRF (Certificado de Regularidade do FGTS)</li>
+                        <li>Certidão Negativa de Ações Trabalhistas</li>
+                        <li>Modelo de Nota Fiscal do Fornecedor</li>
+                    </ol>
+                </td>
+            </tr>
+        </table>
+
+        <h2>DO SIGILO E CONFIDENCIALIDADE</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>Todas as informações, documentos, desenhos e dados fornecidos pela CONTRATANTE, relacionados ao objeto do presente Contrato, incluindo os documentos técnicos, deverão ser tratados com o mais absoluto sigilo e a mais rigorosa confidencialidade.</p>
+                </td>
+            </tr>
+        </table>
+
+        <h2>ASSINATURAS</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>As Partes desde já acordam, que o presente Contrato, bem como demais documentos correlatos, poderão ser assinados eletronicamente, caso em que todos os signatários deverão assinar pela plataforma a ser informada pela CONTRATANTE, nos termos da Lei nº 14.063 de 2020 e demais alterações posteriores.</p>
+                </td>
+            </tr>
+        </table>
+
+        <div style="margin-top: 30px;">
+            <p>Taubaté-SP, ___/___/____</p>
+            
+            <div class="assinaturas">
+                <div>
+                    <p>Assinatura do Fornecedor</p>
+                    <div class="signature-line"></div>
+                    <p>Nome: _______________________</p>
+                </div>
+
+                <div>
+                    <p>Assinatura da Contratante</p>
+                    <div class="signature-line"></div>
+                    <p>Comprador: _______________________</p>
+                    <div class="signature-line"></div>
+                    <p>Autorização: _______________________</p>
+                </div>
+
+                <div>
+                    <p>Testemunhas:</p>
+                    <div class="signature-line"></div>
+                    <p>1. _______________________</p>
+                    <div class="signature-line"></div>
+                    <p>2. _______________________</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

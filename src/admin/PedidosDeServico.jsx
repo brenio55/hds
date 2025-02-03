@@ -259,7 +259,7 @@ function PedidosDeServico() {
                 reader.readAsDataURL(logoBlob);
             });
 
-            const response = await fetch('/docs/admin/pedidoDeCompraTemplateCode.html');
+            const response = await fetch('/docs/admin/pedidoDeServicoTemplateCode.html');
             let templateHtml = await response.text();
 
             // Substitui a referência da imagem no template com a versão base64
@@ -350,6 +350,53 @@ function PedidosDeServico() {
                 /Frete \(  \) CIF     \(   \) FOB/,
                 `Frete (${dadosPedido.frete === 'CIF' ? 'X' : '  '}) CIF     (${dadosPedido.frete === 'FOB' ? 'X' : '  '}) FOB`
             );
+
+            // ===== NOVOS CAMPOS =====
+            // Atualiza a seção de Escopo da Contratação
+            templateHtml = templateHtml.replace(
+                /<h2>CARACTERÍSTICAS TÉCNICAS DA OBRA \(Escopo da Contratação\)<\/h2>\s*<table>[\s\S]*?<\/table>/,
+                `<h2>CARACTERÍSTICAS TÉCNICAS DA OBRA (Escopo da Contratação)</h2>
+                <table>
+                    <tr>
+                        <td>${document.querySelector('[name="escopoContratacao"]').value || ''}</td>
+                    </tr>
+                </table>`
+            );
+
+            // Atualiza a seção de Responsabilidade da Contratada
+            const respContratadaInput = document.querySelector('[name="respContratada"]').value || '';
+            const respContratadaList = respContratadaInput.split(/\r?\n/).map(item => `<li>${item}</li>`).join('');
+            templateHtml = templateHtml.replace(
+                /<h2>RESPONSABILIDADE DA CONTRATADA<\/h2>\s*<table>[\s\S]*?<\/table>/,
+                `<h2>RESPONSABILIDADE DA CONTRATADA</h2>
+                <table>
+                    <tr>
+                        <td>
+                            <ul>
+                                ${respContratadaList}
+                            </ul>
+                        </td>
+                    </tr>
+                </table>`
+            );
+
+            // Atualiza a seção de Responsabilidades da Contratante
+            const respContratanteInput = document.querySelector('[name="respContratante"]').value || '';
+            const respContratanteList = respContratanteInput.split(/\r?\n/).map(item => `<li>${item}</li>`).join('');
+            templateHtml = templateHtml.replace(
+                /<h2>RESPONSABILIDADES DA CONTRATANTE<\/h2>\s*<table>[\s\S]*?<\/table>/,
+                `<h2>RESPONSABILIDADES DA CONTRATANTE</h2>
+                <table>
+                    <tr>
+                        <td>
+                            <ul>
+                                ${respContratanteList}
+                            </ul>
+                        </td>
+                    </tr>
+                </table>`
+            );
+            // ==========================
 
             // Criar o Blob e abrir em nova janela
             const blob = new Blob([templateHtml], { type: 'text/html' });
