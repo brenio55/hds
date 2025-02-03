@@ -19,14 +19,13 @@ function Dashboard(){
                     <div className="service-section">
                         <h2>Propostas e Centros de Custo</h2>
                         <div className="service-buttons">
-                            <div className="serviceButton">Gerar Proposta (Centro de Custo)</div>
+                            <div className="serviceButton" onClick={() => handleNavigation('/gerarPropostas')}>Gerar Proposta (Centro de Custo)</div>
                             <div className="serviceButton">Consultar Propostas (Centro de Custo)</div>
                         </div>
                     </div>
                     <div className="service-section">
                         <h2>Geração e Consulta de Pedidos</h2>
                         <div className="service-buttons"> 
-                            {/* <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeCompra')}>Gerar Pedido de Compra</div> */}
                             <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeMaterial')}>Gerar Pedido de Compra de Material</div>
                             <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeLocacao')}>Gerar Pedido de Locação</div>
                             <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeServico')}>Gerar Pedido de Serviço</div>
@@ -38,9 +37,7 @@ function Dashboard(){
                     <div className="service-section">
                         <h2>Financeiro - Registro e Consulta</h2>
                         <div className="service-buttons"> 
-                            <div className="serviceButton">Relatório Geral de Centros de Custo
-                                
-                            </div>
+                            <div className="serviceButton">Relatório Geral de Centros de Custo</div>
                             <div className="serviceButton">Consultar Custo de Obra de Centro de Custo</div>
                             <div className="serviceButton">RC - Aluguel de Casas</div>
                             <div className="serviceButton">RC - Reembolso Funcionário</div>
@@ -49,7 +46,6 @@ function Dashboard(){
                 </div>
             </div>
         </>
-        
     );
 };
 
