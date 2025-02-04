@@ -1,0 +1,4 @@
+# ... outras entradas ...
+uploads/pdfs/*
+!uploads/pdfs/.gitkeep 
+.env
