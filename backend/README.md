@@ -300,16 +300,15 @@ curl -X POST http://localhost:3000/api/propostas \
     "descricao": "Proposta de desenvolvimento web",
     "data_emissao": "2024-03-20",
     "client_info": {
-      "nome": "Cliente A",
+      "nome": "Cliente Abilio joao",
       "email": "cliente@email.com",
       "telefone": "11999999999",
-      "empresa": "Empresa A",
+      "empresa": "Empresa Jorge materiais",
       "cnpj": "12345678000199",
-      "endereco": "Rua A, 123"
+      "endereco": "Rua Aderbal lino, 123"
     },
     "versao": "1.0",
-    "documento_text": "Texto do documento em formato JSON",
-    "especificacoes_html": "<p>Especificações em HTML</p>",
+    "documento_text": {"a":"Poste telecônico Reto Flangeado, construido em aço 1010/1020. Diâmetro do tubo da base 101,60mm e diâmetro do topo 60,30mm, h = 7.85 metros. Fornecido em 2 lances. Galvanizado à fogo","b":"Instalação do poste fornecido no item A"},
     "afazer_hds": [
       "Desenvolvimento do frontend",
       "Desenvolvimento do backend",
@@ -327,7 +326,7 @@ curl -X POST http://localhost:3000/api/propostas \
     ],
     "valor_final": "10000,50"
   }'
-```
+  ```
 
 ### Consultar uma Proposta
 ```http
