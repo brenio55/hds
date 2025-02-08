@@ -1238,7 +1238,7 @@ button:hover {
     padding: 0;
   }
 }
-~ .excel-preview {
+.excel-preview {
   width: 210mm;
   min-height: 297mm;
   padding: 20mm;
