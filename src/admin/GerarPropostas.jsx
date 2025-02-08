@@ -4,11 +4,42 @@ import './GerarPropostas.scss';
 import { propostasService } from '../services/ApiService';
 import { useAdmin } from '../contexts/AdminContext';
 
+// Componente do Popup
+const SuccessPopup = ({ onClose, propostaData }) => {
+    const handleDownloadPDF = async () => {
+        try {
+            await propostasService.downloadPdf(propostaData.id, propostaData.versao);
+        } catch (error) {
+            alert('Erro ao baixar PDF: ' + error.message);
+        }
+    };
+
+    return (
+        <div className="popup-overlay">
+            <div className="popup-content">
+                <h2>Proposta Gerada com Sucesso!</h2>
+                <div className="proposta-info">
+                    <p><strong>ID da Proposta:</strong> {propostaData.id}</p>
+                    <p><strong>Versão:</strong> {propostaData.versao}</p>
+                    <p><strong>Hash do PDF:</strong> {propostaData.pdf_versions[propostaData.versao]}</p>
+                </div>
+                <div className="popup-buttons">
+                    <button onClick={onClose} className="btn-ok">OK</button>
+                    <button onClick={handleDownloadPDF} className="btn-view-pdf">
+                        Download do PDF Gerado
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 function GerarPropostas() {
     const { adminUser: user } = useAdmin();
     const [showClientSearch, setShowClientSearch] = useState(false);
     const [showImageUpload, setShowImageUpload] = useState(false);
     const [showPreviousItems, setShowPreviousItems] = useState(false);
+    const [successData, setSuccessData] = useState(null);
     const [formData, setFormData] = useState({
         descricao: '',
         data_emissao: new Date().toISOString().split('T')[0],
@@ -64,8 +95,7 @@ function GerarPropostas() {
             };
             
             const response = await propostasService.criarProposta(dadosProposta);
-            alert('Proposta gerada com sucesso!');
-            // Limpar formulário ou redirecionar
+            setSuccessData(response); // Armazena os dados da proposta para o popup
         } catch (error) {
             alert('Erro ao gerar proposta: ' + error.message);
         }
@@ -328,6 +358,13 @@ function GerarPropostas() {
                     </div>
                 )}
             </div>
+
+            {successData && (
+                <SuccessPopup 
+                    onClose={() => setSuccessData(null)}
+                    propostaData={successData}
+                />
+            )}
         </div>
     );
 }

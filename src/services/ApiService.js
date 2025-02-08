@@ -307,5 +307,46 @@ export const propostasService = {
             console.error('Erro ao buscar propostas:', error);
             throw error;
         }
+    },
+
+    async downloadPdf(id, version) {
+        try {
+            const response = await fetch(
+                `${API_URL}/api/propostas/${id}/pdf/download${version ? `?version=${version}` : ''}`,
+                {
+                    headers: createAuthHeaders()
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Erro ao baixar PDF');
+            }
+
+            // Obtém o nome do arquivo do header Content-Disposition
+            const contentDisposition = response.headers.get('content-disposition');
+            let filename = 'proposta.pdf';
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            // Converte a resposta para blob e cria URL para download
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            return true;
+        } catch (error) {
+            console.error('Erro ao baixar PDF:', error);
+            throw error;
+        }
     }
 }; 
