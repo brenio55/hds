@@ -205,7 +205,8 @@ function PedidosDeMaterial() {
                 previsaoEntrega: new Date().toISOString().split('T')[0]
             };
 
-            const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
+            // const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
+            const numeroPedido = '123456789';
 
             const formatarValorMonetario = (valor) => {
                 if (!valor) return '0,00';

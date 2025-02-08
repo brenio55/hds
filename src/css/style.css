@@ -1311,7 +1311,7 @@ button:hover {
   color: white;
 }
 
-.services h2 {
+.admin-container .services h2 {
   padding: 15px 30px;
   background: red;
   color: white;
