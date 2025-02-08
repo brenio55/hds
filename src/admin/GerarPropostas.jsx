@@ -1,42 +1,73 @@
 import React, { useState } from 'react';
 import HeaderAdmin from './HeaderAdmin';
 import './GerarPropostas.scss';
-import axios from 'axios';
+import { propostasService } from '../services/ApiService';
+import { useAdmin } from '../contexts/AdminContext';
 
 function GerarPropostas() {
+    const { adminUser: user } = useAdmin();
     const [showClientSearch, setShowClientSearch] = useState(false);
     const [showImageUpload, setShowImageUpload] = useState(false);
     const [showPreviousItems, setShowPreviousItems] = useState(false);
     const [formData, setFormData] = useState({
-        cliente: '',
-        titulo: '',
-        escopoTecnico: '',
-        descricaoItens: '',
-        fornecimentoHds: '',
-        fornecimentoCliente: '',
-        itensNaoInclusos: '',
-        valores: '',
-        condicoesPagamento: ''
+        descricao: '',
+        data_emissao: new Date().toISOString().split('T')[0],
+        client_info: {
+            nome: '',
+            cnpj: '',
+            endereco: '',
+            contato: ''
+        },
+        versao: '1.0',
+        documento_text: '',
+        especificacoes_html: '',
+        afazer_hds: [],
+        afazer_contratante: [],
+        naofazer_hds: [],
+        valor_final: ''
     });
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value
+        if (name.includes('client_info.')) {
+            const field = name.split('.')[1];
+            setFormData(prev => ({
+                ...prev,
+                client_info: {
+                    ...prev.client_info,
+                    [field]: value
+                }
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+    };
+
+    const handleArrayInputChange = (e, field) => {
+        const { value } = e.target;
+        const items = value.split('\n').filter(item => item.trim());
+        setFormData(prev => ({
+            ...prev,
+            [field]: items
         }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/propo`, formData);
-            if (response.status === 200) {
-                alert('Proposta gerada com sucesso!');
-            }
+            const dadosProposta = {
+                ...formData,
+                user_id: user.id
+            };
+            
+            const response = await propostasService.criarProposta(dadosProposta);
+            alert('Proposta gerada com sucesso!');
+            // Limpar formulário ou redirecionar
         } catch (error) {
-            console.error('Erro ao gerar proposta:', error);
-            alert('Erro ao gerar proposta. Por favor, tente novamente.');
+            alert('Erro ao gerar proposta: ' + error.message);
         }
     };
 
@@ -63,10 +94,11 @@ function GerarPropostas() {
                                     <div className="search-group">
                                         <input
                                             type="text"
-                                            name="cliente"
-                                            value={formData.cliente}
+                                            name="client_info.nome"
+                                            value={formData.client_info.nome}
                                             onChange={handleInputChange}
-                                            placeholder="Buscar cliente..."
+                                            placeholder="Nome do cliente..."
+                                            required
                                         />
                                         <button
                                             type="button"
@@ -78,18 +110,34 @@ function GerarPropostas() {
                                     </div>
                                     <input
                                         type="text"
-                                        name="titulo"
-                                        value={formData.titulo}
+                                        name="descricao"
+                                        value={formData.descricao}
                                         onChange={handleInputChange}
-                                        placeholder="Título da proposta"
+                                        placeholder="Descrição da proposta"
                                         className="full-width"
+                                        required
+                                    />
+                                    <input
+                                        type="date"
+                                        name="data_emissao"
+                                        value={formData.data_emissao}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                    <input
+                                        type="text"
+                                        name="versao"
+                                        value={formData.versao}
+                                        onChange={handleInputChange}
+                                        placeholder="Versão"
+                                        required
                                     />
                                 </div>
                             </div>
 
                             <div className="form-section">
                                 <div className="section-header">
-                                    <h2>Escopo Técnico</h2>
+                                    <h2>Documento</h2>
                                     <button
                                         type="button"
                                         onClick={() => setShowImageUpload(!showImageUpload)}
@@ -99,24 +147,25 @@ function GerarPropostas() {
                                     </button>
                                 </div>
                                 <textarea
-                                    name="escopoTecnico"
-                                    value={formData.escopoTecnico}
+                                    name="documento_text"
+                                    value={formData.documento_text}
                                     onChange={handleInputChange}
-                                    placeholder="Descreva o escopo técnico do projeto..."
+                                    placeholder="Texto do documento..."
                                     rows="6"
                                 />
                             </div>
 
                             <div className="form-section">
                                 <div className="section-header">
-                                    <h2>Descrição dos Itens</h2>
+                                    <h2>Especificações HTML</h2>
                                 </div>
                                 <textarea
-                                    name="descricaoItens"
-                                    value={formData.descricaoItens}
+                                    name="especificacoes_html"
+                                    value={formData.especificacoes_html}
                                     onChange={handleInputChange}
-                                    placeholder="Liste os itens (A, B, C...)"
+                                    placeholder="Especificações em HTML..."
                                     rows="6"
+                                    required
                                 />
                             </div>
                         </div>
@@ -125,38 +174,69 @@ function GerarPropostas() {
                         <div className="right-column">
                             <div className="form-section">
                                 <div className="section-header">
+                                    <h2>Informações do Cliente</h2>
+                                </div>
+                                <div className="client-info-grid">
+                                    <input
+                                        type="text"
+                                        name="client_info.cnpj"
+                                        value={formData.client_info.cnpj}
+                                        onChange={handleInputChange}
+                                        placeholder="CNPJ"
+                                        required
+                                    />
+                                    <input
+                                        type="text"
+                                        name="client_info.endereco"
+                                        value={formData.client_info.endereco}
+                                        onChange={handleInputChange}
+                                        placeholder="Endereço"
+                                        required
+                                    />
+                                    <input
+                                        type="text"
+                                        name="client_info.contato"
+                                        value={formData.client_info.contato}
+                                        onChange={handleInputChange}
+                                        placeholder="Contato"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-section">
+                                <div className="section-header">
                                     <h2>Fornecimentos</h2>
                                 </div>
                                 <div className="fornecimentos-grid">
                                     <div className="fornecimento-group">
-                                        <label>HDS</label>
+                                        <label>A fazer HDS</label>
                                         <textarea
-                                            name="fornecimentoHds"
-                                            value={formData.fornecimentoHds}
-                                            onChange={handleInputChange}
-                                            placeholder="Fornecimentos HDS"
+                                            value={formData.afazer_hds.join('\n')}
+                                            onChange={(e) => handleArrayInputChange(e, 'afazer_hds')}
+                                            placeholder="Um item por linha..."
                                             rows="4"
+                                            required
                                         />
                                     </div>
                                     <div className="fornecimento-group">
-                                        <label>Cliente</label>
+                                        <label>A fazer Contratante</label>
                                         <div className="fornecimento-cliente">
                                             <textarea
-                                                name="fornecimentoCliente"
-                                                value={formData.fornecimentoCliente}
-                                                onChange={handleInputChange}
-                                                placeholder="Fornecimentos do cliente"
+                                                value={formData.afazer_contratante.join('\n')}
+                                                onChange={(e) => handleArrayInputChange(e, 'afazer_contratante')}
+                                                placeholder="Um item por linha..."
                                                 rows="4"
+                                                required
                                             />
-                                           
                                         </div>
                                         <button
-                                                type="button"
-                                                onClick={() => setShowPreviousItems(!showPreviousItems)}
-                                                className="icon-button"
-                                            >
-                                                Buscar Itens Cadastrados Previamente 📋
-                                            </button>
+                                            type="button"
+                                            onClick={() => setShowPreviousItems(!showPreviousItems)}
+                                            className="icon-button"
+                                        >
+                                            Buscar Itens Cadastrados Previamente 📋
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -166,32 +246,26 @@ function GerarPropostas() {
                                     <h2>Itens Não Inclusos</h2>
                                 </div>
                                 <textarea
-                                    name="itensNaoInclusos"
-                                    value={formData.itensNaoInclusos}
-                                    onChange={handleInputChange}
-                                    placeholder="Liste os itens não inclusos"
+                                    value={formData.naofazer_hds.join('\n')}
+                                    onChange={(e) => handleArrayInputChange(e, 'naofazer_hds')}
+                                    placeholder="Um item por linha..."
                                     rows="4"
+                                    required
                                 />
                             </div>
 
                             <div className="form-section">
                                 <div className="section-header">
-                                    <h2>Valores e Pagamento</h2>
+                                    <h2>Valor Final</h2>
                                 </div>
-                                <textarea
-                                    name="valores"
-                                    value={formData.valores}
-                                    onChange={handleInputChange}
-                                    placeholder="Especifique os valores"
-                                    rows="3"
-                                />
                                 <input
                                     type="text"
-                                    name="condicoesPagamento"
-                                    value={formData.condicoesPagamento}
+                                    name="valor_final"
+                                    value={formData.valor_final}
                                     onChange={handleInputChange}
-                                    placeholder="Condições de pagamento"
+                                    placeholder="Valor final da proposta"
                                     className="full-width"
+                                    required
                                 />
                             </div>
                         </div>

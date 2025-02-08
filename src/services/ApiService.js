@@ -238,6 +238,24 @@ export const userService = {
 
     logout() {
         removeStoredToken();
+    },
+
+    async getProfile() {
+        try {
+            const response = await fetch(`${API_URL}/auth/profile`, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao buscar perfil do usuário');
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Erro ao buscar perfil do usuário:', error);
+            throw error;
+        }
     }
 };
 
@@ -248,5 +266,46 @@ const getServiceOrderTemplate = async (serviceOrder) => {
     } catch (error) {
         console.error('Erro ao obter template do pedido de serviço:', error);
         throw error;
+    }
+};
+
+// Funções relacionadas a Propostas
+export const propostasService = {
+    async criarProposta(dadosProposta) {
+        try {
+            const response = await fetch(`${API_URL}/api/propostas`, {
+                method: 'POST',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosProposta)
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao criar proposta');
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Erro ao criar proposta:', error);
+            throw error;
+        }
+    },
+
+    async buscarPropostas() {
+        try {
+            const response = await fetch(`${API_URL}/api/propostas`, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao buscar propostas');
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Erro ao buscar propostas:', error);
+            throw error;
+        }
     }
 }; 

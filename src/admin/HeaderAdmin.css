@@ -17,29 +17,29 @@
     transform: scale(1.05);
 }
 
-.headerAdmin .user-info {
+.user-info {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.headerAdmin .user-info span {
+.user-info span {
+    font-size: 1rem;
     color: #333;
     font-weight: 500;
 }
 
-.headerAdmin .user-info button {
+.user-info button {
     padding: 0.5rem 1rem;
-    background-color: transparent;
-    border: 1px solid #666;
+    background-color: #dc3545;
+    color: white;
+    border: none;
     border-radius: 4px;
-    color: #666;
     cursor: pointer;
-    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
 }
 
-.headerAdmin .user-info button:hover {
-    background-color: #f5f5f5;
-    border-color: #333;
-    color: #333;
+.user-info button:hover {
+    background-color: #c82333;
 } 
