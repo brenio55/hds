@@ -100,6 +100,32 @@ Para endpoints protegidos, inclua o token JWT no header:
 Authorization: Bearer seu_token_jwt
 ```
 
+### Obter Perfil do Usuário
+```http
+GET /auth/profile
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "id": "1",
+  "username": "usuario",
+  "role": "admin",
+  "created_at": "2024-03-21T10:00:00Z"
+}
+```
+
+**Exemplo de Uso:**
+```bash
+curl -X GET http://localhost:3000/auth/profile \
+  -H "Authorization: Bearer seu_token"
+```
+
 ## 🔒 Roles e Permissões
 
 O sistema possui dois níveis de acesso:
@@ -162,6 +188,110 @@ curl -X POST http://localhost:3000/auth/login \
 ```
 
 ### Criar uma Proposta
+```http
+POST /api/propostas
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+Content-Type: application/json
+```
+
+**Corpo da Requisição:**
+```json
+{
+  "descricao": "Proposta de desenvolvimento web",
+  "data_emissao": "2024-03-20",
+  "client_info": {
+    "nome": "Cliente A",
+    "email": "cliente@email.com",
+    "telefone": "11999999999",
+    "empresa": "Empresa A",
+    "cnpj": "12345678000199",
+    "endereco": "Rua A, 123"
+  },
+  "versao": "1.0",
+  "documento_text": "Texto do documento em formato JSON",
+  "especificacoes_html": "<p>Especificações em HTML</p>",
+  "afazer_hds": [
+    "Desenvolvimento do frontend",
+    "Desenvolvimento do backend",
+    "Configuração do servidor"
+  ],
+  "afazer_contratante": [
+    "Fornecer conteúdo",
+    "Validar layouts",
+    "Homologar entregas"
+  ],
+  "naofazer_hds": [
+    "Criação de conteúdo",
+    "Hospedagem",
+    "Manutenção após entrega"
+  ],
+  "valor_final": "10000,50"
+}
+```
+
+**Descrição dos Campos:**
+- `descricao`: String (obrigatório) - Descrição detalhada da proposta
+- `data_emissao`: String (YYYY-MM-DD) - Data de emissão da proposta
+- `client_info`: Objeto (obrigatório) - Informações do cliente
+  - `nome`: String - Nome do cliente
+  - `email`: String - Email do cliente
+  - `telefone`: String - Telefone do cliente
+  - `empresa`: String - Nome da empresa
+  - `cnpj`: String - CNPJ da empresa
+  - `endereco`: String - Endereço completo
+- `versao`: String - Versão da proposta (ex: "1.0")
+- `documento_text`: String/JSON - Texto do documento em formato JSON
+- `especificacoes_html`: String - Especificações em formato HTML
+- `afazer_hds`: Array - Lista de tarefas a serem realizadas pela HDS
+- `afazer_contratante`: Array - Lista de tarefas a serem realizadas pelo contratante
+- `naofazer_hds`: Array - Lista de itens fora do escopo
+- `valor_final`: String - Valor final da proposta (formato: "10000,50" ou "10.000,50")
+
+**Resposta de Sucesso:**
+```json
+{
+  "id": "123",
+  "descricao": "Proposta de desenvolvimento web",
+  "data_emissao": "2024-03-20",
+  "client_info": {
+    "nome": "Cliente A",
+    "email": "cliente@email.com",
+    "telefone": "11999999999",
+    "empresa": "Empresa A",
+    "cnpj": "12345678000199",
+    "endereco": "Rua A, 123"
+  },
+  "versao": "1.0",
+  "documento_text": "Texto do documento em formato JSON",
+  "especificacoes_html": "<p>Especificações em HTML</p>",
+  "afazer_hds": [
+    "Desenvolvimento do frontend",
+    "Desenvolvimento do backend",
+    "Configuração do servidor"
+  ],
+  "afazer_contratante": [
+    "Fornecer conteúdo",
+    "Validar layouts",
+    "Homologar entregas"
+  ],
+  "naofazer_hds": [
+    "Criação de conteúdo",
+    "Hospedagem",
+    "Manutenção após entrega"
+  ],
+  "valor_final": "10000,50",
+  "created_at": "2024-03-21T10:00:00Z",
+  "pdf_versions": {
+    "1.0": "uuid-do-pdf"
+  }
+}
+```
+
+**Exemplo de Uso:**
 ```bash
 curl -X POST http://localhost:3000/api/propostas \
   -H "Authorization: Bearer seu_token" \
@@ -169,11 +299,34 @@ curl -X POST http://localhost:3000/api/propostas \
   -d '{
     "descricao": "Proposta de desenvolvimento web",
     "data_emissao": "2024-03-20",
-    "client_info": {"nome": "Cliente A", "email": "cliente@email.com"},
-    "valor_final": "10.000,50",
-    "versao": "1.0"
+    "client_info": {
+      "nome": "Cliente Abilio joao",
+      "email": "cliente@email.com",
+      "telefone": "11999999999",
+      "empresa": "Empresa Jorge materiais",
+      "cnpj": "12345678000199",
+      "endereco": "Rua Aderbal lino, 123"
+    },
+    "versao": "1.0",
+    "documento_text": {"a":"Poste telecônico Reto Flangeado, construido em aço 1010/1020. Diâmetro do tubo da base 101,60mm e diâmetro do topo 60,30mm, h = 7.85 metros. Fornecido em 2 lances. Galvanizado à fogo","b":"Instalação do poste fornecido no item A"},
+    "afazer_hds": [
+      "Desenvolvimento do frontend",
+      "Desenvolvimento do backend",
+      "Configuração do servidor"
+    ],
+    "afazer_contratante": [
+      "Fornecer conteúdo",
+      "Validar layouts",
+      "Homologar entregas"
+    ],
+    "naofazer_hds": [
+      "Criação de conteúdo",
+      "Hospedagem",
+      "Manutenção após entrega"
+    ],
+    "valor_final": "10000,50"
   }'
-```
+  ```
 
 ### Consultar uma Proposta
 ```http
