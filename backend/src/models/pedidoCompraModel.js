@@ -90,6 +90,45 @@ class PedidoCompraModel {
     const result = await db.query(query, values);
     return result.rows[0];
   }
+
+  static async findByField(campo, valor) {
+    try {
+      let query = `
+        SELECT pc.*, f.razao_social as fornecedor_nome
+        FROM pedido_compra pc
+        LEFT JOIN fornecedores f ON pc.fornecedores_id = f.id
+      `;
+
+      // Tratamento especial para campos que são JSON
+      if (campo === 'materiais' || campo === 'frete') {
+        query += `WHERE pc.${campo}::text ILIKE $1`;
+        const result = await db.query(query, [`%${valor}%`]);
+        return result.rows;
+      }
+
+      // Tratamento para campos de data
+      if (campo === 'data_vencimento' || campo === 'created_at') {
+        query += `WHERE pc.${campo}::text LIKE $1`;
+        const result = await db.query(query, [`%${valor}%`]);
+        return result.rows;
+      }
+
+      // Busca case-insensitive para campos de texto
+      if (typeof valor === 'string') {
+        query += `WHERE CAST(pc.${campo} AS TEXT) ILIKE $1`;
+        const result = await db.query(query, [`%${valor}%`]);
+        return result.rows;
+      }
+
+      // Busca exata para números e outros tipos
+      query += `WHERE pc.${campo} = $1`;
+      const result = await db.query(query, [valor]);
+      return result.rows;
+    } catch (error) {
+      console.error('Erro ao buscar pedidos por campo:', error);
+      throw new Error(`Erro ao buscar pedidos por ${campo}: ${error.message}`);
+    }
+  }
 }
 
 module.exports = PedidoCompraModel; 
