@@ -42,6 +42,63 @@ class UserModel {
     const result = await db.query(query, [id]);
     return result.rows[0];
   }
+
+  static async ensureUpdatedAtExists() {
+    try {
+      const checkQuery = `
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'updated_at'
+      `;
+      const result = await db.query(checkQuery);
+      
+      if (result.rows.length === 0) {
+        const alterQuery = `
+          ALTER TABLE users 
+          ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        `;
+        await db.query(alterQuery);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar/criar coluna updated_at:', error);
+    }
+  }
+
+  static async update(id, data) {
+    // Garante que a coluna updated_at existe
+    await this.ensureUpdatedAtExists();
+
+    const fields = [];
+    const values = [];
+    let paramCount = 1;
+
+    // Constrói a query dinamicamente baseada nos campos fornecidos
+    Object.keys(data).forEach(key => {
+      if (data[key] !== undefined) {
+        fields.push(`${key} = $${paramCount}`);
+        values.push(data[key]);
+        paramCount++;
+      }
+    });
+
+    if (fields.length === 0) return null;
+
+    values.push(id);
+    const query = `
+      UPDATE users 
+      SET ${fields.join(', ')}, 
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${paramCount}
+      RETURNING id, username, role, created_at, updated_at
+    `;
+
+    try {
+      const result = await db.query(query, values);
+      return result.rows[0];
+    } catch (error) {
+      throw new Error(`Erro ao atualizar usuário: ${error.message}`);
+    }
+  }
 }
 
 module.exports = UserModel; 

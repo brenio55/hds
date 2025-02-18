@@ -64,6 +64,42 @@ class AuthController {
       res.status(400).json({ error: error.message });
     }
   }
+
+  static async updateUser(req, res) {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+
+      // Verifica se o usuário tem permissão (admin ou dono da conta)
+      if (req.user.role !== 'admin' && req.user.id !== parseInt(id)) {
+        return res.status(403).json({ 
+          error: 'Sem permissão para atualizar este usuário' 
+        });
+      }
+
+      // Remove campos não permitidos
+      const allowedFields = ['username', 'password', 'role'];
+      Object.keys(updateData).forEach(key => {
+        if (!allowedFields.includes(key)) {
+          delete updateData[key];
+        }
+      });
+
+      // Apenas admin pode alterar role
+      if (req.user.role !== 'admin') {
+        delete updateData.role;
+      }
+
+      const updatedUser = await AuthService.updateUser(id, updateData);
+      
+      // Remove a senha do retorno
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json(userWithoutPassword);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = AuthController; 

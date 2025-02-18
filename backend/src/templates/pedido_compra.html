@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Pedido de Compra</title>
+    <style>
+        @page {
+            margin: 20mm;
+            size: A4;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .capa {
+            position: relative;
+            padding: 20px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .logo {
+            width: 200px;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+        }
+        .titulo-principal {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .titulo-principal h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .codigo-proposta {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        .descricao-servico {
+            font-size: 18px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 100px;
+        }
+        .data-local {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        .pagina-conteudo {
+            padding: 20px;
+            padding-bottom: 60px;
+        }
+        .header-conteudo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ccc;
+            padding: 20px 0 10px 0;
+            background-color: white;
+            page-break-before: always;
+            page-break-after: avoid;
+        }
+        .logo-horizontal {
+            height: 40px;
+            width: auto;
+        }
+        .secao {
+            margin-bottom: 30px;
+        }
+        .secao-titulo {
+            background-color: #333;
+            color: white;
+            padding: 8px 15px;
+            margin: 25px 0 15px 0;
+            font-weight: bold;
+        }
+        .tabela-materiais {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .tabela-materiais th, .tabela-materiais td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        .tabela-materiais th {
+            background-color: #f5f5f5;
+        }
+        .tabela-valores {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .tabela-valores th, .tabela-valores td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        .tabela-valores th {
+            background-color: #f5f5f5;
+        }
+        .footer-pagina {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            border-top: 1px solid #ccc;
+            font-size: 12px;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Capa -->
+    <div class="capa">
+        <img src="{{logoSrc}}" alt="Logo" class="logo">
+        <div class="titulo-principal">
+            <h1>PEDIDO DE COMPRA</h1>
+            <div class="descricao-servico">
+                {{descricao}} - <span class="codigo-proposta">{{id}}/{{ano}}</span>
+            </div>
+        </div>
+        <div class="data-local">
+            Taubaté, {{dataEmissao}}
+        </div>
+    </div>
+
+    <!-- Conteúdo -->
+    <div class="pagina-conteudo">
+        <div class="header-conteudo">
+            <img src="{{logoHorizontalSrc}}" alt="Logo" class="logo-horizontal">
+            <div>
+                <div>PEDIDO DE COMPRA</div>
+                <div>Emitido por: HDS SERVIÇOS LTDA</div>
+                <div>Data: {{dataEmissao}}</div>
+            </div>
+        </div>
+
+        <!-- Seção Contratante -->
+        <div class="secao">
+            <div class="secao-titulo">DADOS DO CONTRATANTE</div>
+            <div><strong>Empresa:</strong> Hds Serviço Ltda</div>
+            <div><strong>CNPJ:</strong> 40.931.075/0001-00</div>
+            <div><strong>Inscrição Estadual:</strong> 688.578.880.111</div>
+            <div><strong>Inscrição Municipal:</strong> 000000000091587</div>
+            <div><strong>Endereço:</strong> Av Dom Pedro I, 242</div>
+            <div><strong>Bairro:</strong> Campos Eliseos</div>
+            <div><strong>Cidade:</strong> Taubaté</div>
+            <div><strong>UF:</strong> SP</div>
+        </div>
+
+        <!-- Seção Contratada -->
+        <div class="secao">
+            <div class="secao-titulo">DADOS DO CONTRATADA</div>
+            <div><strong>Razão Social:</strong> {{fornecedor.razao_social}}</div>
+            <div><strong>Endereço:</strong> {{fornecedor.endereco}}</div>
+            <div><strong>CNPJ:</strong> {{fornecedor.cnpj}}</div>
+            <div><strong>Telefone:</strong> {{fornecedor.telefone}}</div>
+            <div><strong>Email:</strong> {{fornecedor.email}}</div>
+        </div>
+
+        <!-- Seção Faturamento -->
+        <div class="secao">
+            <div class="secao-titulo">FATURAMENTO</div>
+            <div><strong>Empresa:</strong> Hds Serviço Ltda</div>
+            <div><strong>CNPJ:</strong> 40.931.075/0001-00</div>
+            <div><strong>Inscrição Estadual:</strong> 688.578.880.111</div>
+            <div><strong>Inscrição Municipal:</strong> 000000000091587</div>
+            <div><strong>Endereço:</strong> Rua João Scarpa, 18</div>
+            <div><strong>Bairro:</strong> Chacara São Silvestre</div>
+            <div><strong>Cidade:</strong> Taubaté</div>
+            <div><strong>UF:</strong> SP</div>
+            <div><strong>Condição de Pagamento:</strong> {{ddl}} dias</div>
+            <div><strong>Data de Vencimento:</strong> {{formatDate data_vencimento}}</div>
+            <div><strong>Centro de Custo:</strong> {{descricao}}</div>
+        </div>
+
+        <!-- Tabela de Produtos -->
+        <div class="secao">
+            <div class="secao-titulo">PRODUTOS SOLICITADOS</div>
+            <table class="tabela-materiais">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Descrição</th>
+                        <th>Quantidade</th>
+                        <th>Valor Unitário</th>
+                        <th>Valor Total</th>
+                        <th>Data de Entrega</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each materiais}}
+                    <tr>
+                        <td>{{this.item}}</td>
+                        <td>{{this.descricao}}</td>
+                        <td>{{this.quantidade}} {{this.uni}}</td>
+                        <td>R$ {{this.valor_unit}}</td>
+                        <td>R$ {{this.valor_total}}</td>
+                        <td>{{this.data_entrega}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tabela de Valores -->
+        <div class="secao">
+            <div class="secao-titulo">VALOR TOTAL DOS ITENS</div>
+            <table class="tabela-valores">
+                <tr>
+                    <th>Total Bruto</th>
+                    <td>R$ {{totalBruto}}</td>
+                </tr>
+                <tr>
+                    <th>Desconto</th>
+                    <td>R$ {{desconto}}</td>
+                </tr>
+                <tr>
+                    <th>Frete</th>
+                    <td>R$ {{frete.valor}}</td>
+                </tr>
+                <tr>
+                    <th>Outras Despesas</th>
+                    <td>R$ {{despesas_adicionais}}</td>
+                </tr>
+                <tr>
+                    <th>Total Final</th>
+                    <td>R$ {{totalFinal}}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Prazo Final -->
+        <div class="secao">
+            <div class="secao-titulo">PRAZO FINAL</div>
+            <div>{{formatDate dataEntregaMaisDistante}}</div>
+        </div>
+    </div>
+</body>
+</html>
