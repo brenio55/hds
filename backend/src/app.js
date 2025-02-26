@@ -6,6 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const propostaRoutes = require('./routes/propostaRoutes');
 const fornecedorRoutes = require('./routes/fornecedorRoutes');
 const pedidoCompraRoutes = require('./routes/pedidoCompraRoutes');
+const funcionarioRoutes = require('./routes/funcionarioRoutes');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/auth', authRoutes);
 app.use('/api/propostas', propostaRoutes);
 app.use('/api/fornecedores', fornecedorRoutes);
 app.use('/api/pedidos-compra', pedidoCompraRoutes);
+app.use('/api/funcionarios', funcionarioRoutes);
 
 // Tratamento de erros
 app.use((err, req, res, next) => {
