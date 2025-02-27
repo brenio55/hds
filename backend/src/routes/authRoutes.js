@@ -103,4 +103,35 @@ router.post('/logout', validateLogout, AuthController.logout);
  */
 router.get('/profile', authMiddleware, AuthController.getProfile);
 
+/**
+ * @swagger
+ * /auth/user/{id}:
+ *   put:
+ *     summary: Atualiza dados do usuário
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [admin, user]
+ */
+router.put('/user/:id', authMiddleware, AuthController.updateUser);
+
 module.exports = router; 

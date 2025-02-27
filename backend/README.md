@@ -448,3 +448,148 @@ A API retorna os seguintes códigos de status HTTP:
 - `401`: Não autorizado
 - `500`: Erro interno do servidor
 
+### Fornecedores
+
+#### Criar Fornecedor
+```http
+POST /api/fornecedores
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+Content-Type: application/json
+```
+
+**Corpo da Requisição:**
+```json
+{
+  "razao_social": "Empresa LTDA",
+  "cnpj": "12345678000199",
+  "inscricao_estadual": "123456789",
+  "inscricao_municipal": "987654321",
+  "telefone": "1122334455",
+  "celular": "11999887766",
+  "endereco": "Rua Exemplo, 123",
+  "cep": "12345678",
+  "municipio_uf": "São Paulo/SP",
+  "email": "contato@empresa.com",
+  "contato": "João Silva",
+  "obs": "Observações importantes"
+}
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "id": 1,
+  "razao_social": "Empresa LTDA",
+  "cnpj": "12345678000199",
+  "inscricao_estadual": "123456789",
+  "inscricao_municipal": "987654321",
+  "telefone": "1122334455",
+  "celular": "11999887766",
+  "endereco": "Rua Exemplo, 123",
+  "cep": "12345678",
+  "municipio_uf": "São Paulo/SP",
+  "email": "contato@empresa.com",
+  "contato": "João Silva",
+  "obs": "Observações importantes",
+  "created_at": "2024-03-21T10:00:00Z"
+}
+```
+
+#### Listar Fornecedores
+```http
+GET /api/fornecedores
+```
+
+#### Buscar Fornecedor por ID
+```http
+GET /api/fornecedores/{id}
+```
+
+#### Atualizar Fornecedor
+```http
+PUT /api/fornecedores/{id}
+```
+
+### Pedidos de Compra
+
+#### Criar Pedido de Compra
+```http
+POST /api/pedidos-compra
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+Content-Type: application/json
+```
+
+**Corpo da Requisição:**
+```json
+{
+  "clientinfo_id": 1,
+  "fornecedores_id": 1,
+  "ddl": 30,
+  "data_vencimento": "2024-04-21",
+  "proposta_id": 1,
+  "materiais": [
+    {
+      "item": 1,
+      "descricao": "Material A",
+      "uni": "pç",
+      "quantidade": 10,
+      "ipi": 5,
+      "valor_unit": 100.00,
+      "valor_total": 1000.00,
+      "porcentagem": 10,
+      "data_entrega": "2024-04-01"
+    }
+  ],
+  "desconto": 5.00,
+  "valor_frete": 150.00,
+  "despesas_adicionais": 50.00,
+  "dados_adicionais": "Informações adicionais",
+  "frete": {
+    "tipo": "CIF",
+    "valor": 150.00
+  }
+}
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "id": 1,
+  "clientinfo_id": 1,
+  "fornecedores_id": 1,
+  "ddl": 30,
+  "data_vencimento": "2024-04-21",
+  "proposta_id": 1,
+  "materiais": [...],
+  "desconto": 5.00,
+  "valor_frete": 150.00,
+  "despesas_adicionais": 50.00,
+  "dados_adicionais": "Informações adicionais",
+  "frete": {...},
+  "created_at": "2024-03-21T10:00:00Z"
+}
+```
+
+#### Listar Pedidos de Compra
+```http
+GET /api/pedidos-compra
+```
+
+#### Buscar Pedido de Compra por ID
+```http
+GET /api/pedidos-compra/{id}
+```
+
+#### Atualizar Pedido de Compra
+```http
+PUT /api/pedidos-compra/{id}
+```
+
