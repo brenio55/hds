@@ -205,7 +205,8 @@ function PedidosDeMaterial() {
                 previsaoEntrega: new Date().toISOString().split('T')[0]
             };
 
-            const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
+            // const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
+            const numeroPedido = '123456789';
 
             const formatarValorMonetario = (valor) => {
                 if (!valor) return '0,00';
@@ -308,7 +309,7 @@ function PedidosDeMaterial() {
                 `<h2>Dados Adicionais</h2>
                 <table>
                     <tr>
-                        <td>${dadosPedido.informacoesImportantes || 'Nenhuma informação adicional'}</td>
+                        <td>${(dadosPedido.informacoesImportantes || 'Nenhuma informação adicional').replace(/\n/g, '<br>')}</td>
                     </tr>
                 </table>`
             );

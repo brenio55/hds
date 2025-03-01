@@ -12,8 +12,15 @@ const dividaRoutes = require('./routes/dividaRoutes');
 
 const app = express();
 
-// Middlewares
-app.use(cors());
+// Configuração do CORS
+app.use(cors({
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // URLs do frontend Vite
+    credentials: true, // Permite credenciais (cookies, headers de autenticação)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    accessControlAllowOrigin: ['http://localhost:5173', 'http://127.0.0.1:5173']
+}));
+
 app.use(express.json());
 
 // Documentação Swagger

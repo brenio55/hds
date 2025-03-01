@@ -1,46 +1,30 @@
-import $ from 'jquery';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '../contexts/AdminContext';
+import './HeaderAdmin.css';
 
-function HeaderAdmin(){
+function HeaderAdmin() {
+    const navigate = useNavigate();
     const { adminUser, logout } = useAdmin();
-
-    function clickMenu(){
-        $('nav').toggleClass('show');
-    }
 
     const handleLogout = () => {
         logout();
+        navigate('/');
     };
 
     return (
-        <>
-            <header className="flex headerAdmin">
-                <div className="flex logoMenu">
-                    <div className="logo">
-                        <Link to="/dashboard"><img src="/img/LOGO.png" alt="" className="logo" /></Link>
-                    </div>
-                    <span className="menuSpan" onClick={clickMenu}><img src="/img/menu.webp" alt="menu" /></span>
-                </div>
-                
-                <nav>
-                    <ul>
-                        <Link to="/dashboard"><li>Dashboard</li></Link>
-                        <Link to="/pedidosDeCompra"><li>Pedidos</li></Link>
-                        {adminUser ? (
-                            <li className="loginLi">
-                                <span>{adminUser.userName}</span>
-                                <button onClick={handleLogout}>Sair</button>
-                            </li>
-                        ) : (
-                            <Link to="/login"><li className="loginLi">
-                                <img src="/img/login/login.png" alt="" /> Login
-                            </li></Link>
-                        )}
-                    </ul>
-                </nav>
-            </header>
-        </>
+        <header className="headerAdmin">
+            <div className="logo">
+                <img src="/img/LOGO.png" alt="Logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }} />
+            </div>
+            <div className="user-info">
+                {adminUser && (
+                    <>
+                        <span>Olá, {adminUser.username}</span>
+                        <button onClick={handleLogout}>Sair</button>
+                    </>
+                )}
+            </div>
+        </header>
     );
 }
 

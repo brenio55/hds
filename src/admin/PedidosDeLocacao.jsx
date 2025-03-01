@@ -216,10 +216,18 @@ function PedidosDeLocacao() {
 
     const handleGerarPedido = async () => {
         try {
+            const formatarValorMonetario = (valor) => {
+                if (!valor) return '0,00';
+                return typeof valor === 'string' ? valor : valor.toString().replace('.', ',');
+            };
+
+            // Calcular todos os totais uma única vez no início
             const totalBruto = calcularTotalBruto();
             const ipiTotal = calcularTotalIPI();
             const totalDescontos = calcularTotalDescontos();
             const totalFinal = calcularTotalFinal();
+            const valorFrete = formatarValorMonetario(dadosPedido.valorFrete);
+            const outrasDespesas = formatarValorMonetario(dadosPedido.outrasDespesas);
 
             const pedidoParaSalvar = {
                 codigo: document.querySelector('[name="codigo"]').value,
@@ -237,18 +245,9 @@ function PedidosDeLocacao() {
                 previsaoEntrega: new Date().toISOString().split('T')[0]
             };
 
-            const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
-
-            const formatarValorMonetario = (valor) => {
-                if (!valor) return '0,00';
-                return typeof valor === 'string' ? valor : valor.toString().replace('.', ',');
-            };
-
-            const formatarData = (data) => {
-                if (!data) return '';
-                const [ano, mes, dia] = data.split('-');
-                return `${dia}/${mes}/${ano}`;
-            };
+            // const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
+            const numeroPedido = '1234567890';
+            // alterar depois quando o back estiver fazendo
 
             // Carregar a imagem como base64
             const logoResponse = await fetch('/docs/admin/LOGO.png');
@@ -269,7 +268,7 @@ function PedidosDeLocacao() {
             );
 
             // Substituir "Pedido de Compra" por "Pedido de Locação"
-            templateHtml = templateHtml.replace(/PEDIDO DE COMPRA/g, 'PEDIDO DE LOCAÇÃO');
+            templateHtml = templateHtml.replace(/PEDIDO DE COMPRA DE MATERIAL/g, 'PEDIDO DE LOCAÇÃO');
 
             // Atualizar a tabela de detalhes do pedido
             const hoje = new Date();
@@ -299,15 +298,38 @@ function PedidosDeLocacao() {
                 <td>${document.querySelector('[name="centroCusto"]')?.value || 'N/A'}</td>`
             );
 
-            // Atualizar totais
-            templateHtml = templateHtml.replace(
-                /<td>R\$ 100,00<\/td>[\s\S]*?<td>R\$ 50,00<\/td>[\s\S]*?<td>R\$ 30,00<\/td>[\s\S]*?<td>R\$ 1\.100,00<\/td>[\s\S]*?<td>R\$ 1\.080,00<\/td>/,
-                `<td>R$ ${formatarValorMonetario(totalDescontos)}</td>
-                <td>R$ ${formatarValorMonetario(dadosPedido.valorFrete)}</td>
-                <td>R$ ${formatarValorMonetario(dadosPedido.outrasDespesas)}</td>
-                <td>R$ ${formatarValorMonetario(totalBruto)}</td>
-                <td>R$ ${formatarValorMonetario(totalFinal)}</td>`
-            );
+            // Substituir a tabela de totais
+            const totaisPattern = /<table class="totals-table">[\s\S]*?<\/table>/;
+            const novaTabelaTotais = `
+                <table class="totals-table">
+                    <tr>
+                        <th>Total Bruto</th>
+                        <td>R$ ${totalBruto}</td>
+                    </tr>
+                    <tr>
+                        <th>(+) IPI</th>
+                        <td>R$ ${ipiTotal}</td>
+                    </tr>
+                    <tr>
+                        <th>(+) Frete</th>
+                        <td>R$ ${valorFrete}</td>
+                    </tr>
+                    <tr>
+                        <th>(+) Outras despesas</th>
+                        <td>R$ ${outrasDespesas}</td>
+                    </tr>
+                    <tr>
+                        <th>(-) Desconto</th>
+                        <td>R$ ${totalDescontos}</td>
+                    </tr>
+                    <tr>
+                        <th>(=) Total Final</th>
+                        <td>R$ ${totalFinal}</td>
+                    </tr>
+                </table>
+            `;
+
+            templateHtml = templateHtml.replace(totaisPattern, novaTabelaTotais);
 
             // Atualizar data final de entrega
             templateHtml = templateHtml.replace(
@@ -315,8 +337,8 @@ function PedidosDeLocacao() {
                 `<td>${dadosPedido.prazoEntrega || 'A combinar'}</td>`
             );
 
-            // Limpar a tabela de materiais existente e adicionar os novos itens
-            const tabelaMateriais = itens.map((item, index) => `
+            // Atualizar a tabela de itens
+            const tabelaItens = itens.map((item, index) => `
                 <tr>
                     <td>${index + 1}</td>
                     <td>${item.descricao}</td>
@@ -329,27 +351,77 @@ function PedidosDeLocacao() {
                 </tr>
             `).join('');
 
+            // Substituir a tabela de itens
+            const materiaisPattern = /<tr>\s*<td>1<\/td>[\s\S]*?<td>Material A<\/td>[\s\S]*?<td>Material B<\/td>[\s\S]*?<\/tr>/;
+            templateHtml = templateHtml.replace(materiaisPattern, tabelaItens);
+
+            // Atualizar os totais
             templateHtml = templateHtml.replace(
-                /<tr>\s*<td>1<\/td>[\s\S]*?<\/tr>\s*<tr>\s*<td>2<\/td>[\s\S]*?<\/tr>/,
-                tabelaMateriais
+                /<th>Total Bruto<\/th>\s*<td>R\$ 2\.144,00<\/td>/,
+                `<th>Total Bruto</th><td>R$ ${totalBruto}</td>`
             );
 
-            // Atualizar dados adicionais
+            templateHtml = templateHtml.replace(
+                /<th>\(\+\) IPI<\/th>\s*<td>R\$ -<\/td>/,
+                `<th>(+) IPI</th><td>R$ ${ipiTotal}</td>`
+            );
+
+            templateHtml = templateHtml.replace(
+                /<th>\(\+\) Frete<\/th>\s*<td>R\$ 100,00<\/td>/,
+                `<th>(+) Frete</th><td>R$ ${valorFrete}</td>`
+            );
+
+            templateHtml = templateHtml.replace(
+                /<th>\(\+\) Outras despesas<\/th>\s*<td>R\$ -<\/td>/,
+                `<th>(+) Outras despesas</th><td>R$ ${outrasDespesas}</td>`
+            );
+
+            templateHtml = templateHtml.replace(
+                /<th>\(-\) Desconto<\/th>\s*<td>R\$ -<\/td>/,
+                `<th>(-) Desconto</th><td>R$ ${totalDescontos}</td>`
+            );
+
+            templateHtml = templateHtml.replace(
+                /<th>\(=\) Total Final<\/th>\s*<td>R\$ 2\.244,00<\/td>/,
+                `<th>(=) Total Final</th><td>R$ ${totalFinal}</td>`
+            );
+
+            // Atualizar Dados Adicionais
+            const dadosAdicionaisText = `Pedido ${numeroPedido}
+Obra: ${document.querySelector('[name="centroCusto"]')?.value || 'N/A'}
+${dadosPedido.informacoesImportantes || ''}`;
+
             templateHtml = templateHtml.replace(
                 /<h2>Dados Adicionais<\/h2>\s*<table>\s*<tr>\s*<td><\/td>\s*<\/tr>\s*<\/table>/,
                 `<h2>Dados Adicionais</h2>
                 <table>
                     <tr>
-                        <td>${dadosPedido.informacoesImportantes || 'Nenhuma informação adicional'}</td>
+                        <td>${dadosAdicionaisText.replace(/\n/g, '<br>')}</td>
                     </tr>
                 </table>`
             );
 
-            // Atualizar informações de frete
-            templateHtml = templateHtml.replace(
-                /Frete \(  \) CIF     \(   \) FOB/,
-                `Frete (${dadosPedido.frete === 'CIF' ? 'X' : '  '}) CIF     (${dadosPedido.frete === 'FOB' ? 'X' : '  '}) FOB`
-            );
+            // Atualizar os textos das seções
+            const sections = {
+                'Informações Importantes': 'Frete: (${dadosPedido.frete === "CIF" ? "X" : "  "}) CIF     (${dadosPedido.frete === "FOB" ? "X" : "  "}) FOB',
+                'Os Preços': 'Incluso nos preços todas as taxas, tributos e impostos pertencentes a aquisição',
+                'Prazo de Entrega': 'Material somente poderá ser entregue de acordo com programação da obra e caso o fornecedor não atenda esta programação, fica a CONTRATANTE autorizada a comprar o material de outros fornecedores e proceder o desconto da diferença do FORNECEDOR',
+                'EPIS': 'O FORNECEDOR terá que munir seus funcionários com os EPIs adequados a entrega e/ou descarga, conforme OSMA 024',
+                'Pagamento': 'Somente serão consideradas para efeito de pagamento, as quantidades aceitas durante a entrega na obra. Quando for o caso, somente serão consideradas as pesagens que forem efetuadas na balança da CONTRATANTE ou em outra indicada pela mesma. Serão consideradas a cubicagem efetuada pelo apontador da CONTRATANTE, devidamente anotada no canhoto da Nota Fiscal. Para efeito de pagamento, o prazo fixado no presente pedido de fornecimento será contado da data de entrega da mercadoria, incluindo-se nesta contagem o dia de emissão da respectiva Nota Fiscal. Todavia, caso o material solicitado não seja entregue na data da emissão da Nota Fiscal, o prazo para pagamento aqui estabelecido ficará prorrogado por tantos dias quantos forem os de atraso, sem quaisquer õnus para a CONTRATANTE. O FORNECEDOR deverá discriminar no corpo da Nota Fiscal o endereço da obra. Caso as faturas sejam emitidas com incorreções ou encaminhadas para o endereço diferente do indicado, as mesmas serão devolvidas e o prazo de pagamento passará a ser contado a partir da reapresentação das notas devidamente corrigidas no protocolo da CONTRATANTE.',
+                // ... continuar com as outras seções ...
+            };
+
+            Object.entries(sections).forEach(([title, content]) => {
+                templateHtml = templateHtml.replace(
+                    new RegExp(`<h2>${title}</h2>[\\s\\S]*?<\\/table>`),
+                    `<h2>${title}</h2>
+                    <table>
+                        <tr>
+                            <td>${content}</td>
+                        </tr>
+                    </table>`
+                );
+            });
 
             // Criar o Blob e abrir em nova janela
             const blob = new Blob([templateHtml], { type: 'text/html' });

@@ -47,6 +47,7 @@ button {
   font-weight: 700;
   font-size: 24px;
   transition: all 0.1s;
+  margin: 2px;
 }
 button:hover {
   transition: all 0.2s;
@@ -1237,7 +1238,7 @@ button:hover {
     padding: 0;
   }
 }
-~ .excel-preview {
+.excel-preview {
   width: 210mm;
   min-height: 297mm;
   padding: 20mm;
@@ -1310,7 +1311,7 @@ button:hover {
   color: white;
 }
 
-.services h2 {
+.admin-container .services h2 {
   padding: 15px 30px;
   background: red;
   color: white;
