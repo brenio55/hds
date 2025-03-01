@@ -593,3 +593,164 @@ GET /api/pedidos-compra/{id}
 PUT /api/pedidos-compra/{id}
 ```
 
+### Dívidas
+
+#### Criar Dívida
+```http
+POST /api/dividas
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+Content-Type: application/json
+```
+
+**Corpo da Requisição:**
+```json
+{
+  "valor": 1500.50,
+  "detalhes": {
+    "credor": "Banco XYZ",
+    "vencimento": "2024-04-15",
+    "parcelas": 12,
+    "observacoes": "Empréstimo pessoal"
+  }
+}
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "id": 1,
+  "valor": "1500.50",
+  "detalhes": {
+    "credor": "Banco XYZ",
+    "vencimento": "2024-04-15",
+    "parcelas": 12,
+    "observacoes": "Empréstimo pessoal"
+  },
+  "created_at": "2024-03-21T10:00:00Z"
+}
+```
+
+#### Atualizar Dívida
+```http
+PUT /api/dividas/{id}
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+Content-Type: application/json
+```
+
+**Corpo da Requisição:**
+```json
+{
+  "valor": 1600.00,
+  "detalhes": {
+    "credor": "Banco XYZ",
+    "vencimento": "2024-05-15",
+    "parcelas": 12,
+    "observacoes": "Valor atualizado"
+  }
+}
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "id": 1,
+  "valor": "1600.00",
+  "detalhes": {
+    "credor": "Banco XYZ",
+    "vencimento": "2024-05-15",
+    "parcelas": 12,
+    "observacoes": "Valor atualizado"
+  },
+  "created_at": "2024-03-21T10:00:00Z"
+}
+```
+
+#### Listar/Buscar Dívidas
+```http
+GET /api/dividas
+GET /api/dividas?campo={campo}&valor={valor}
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Parâmetros de Consulta:**
+- `campo`: Campo para filtrar (opcional)
+  - Valores permitidos: `id`, `valor`, `detalhes`, `created_at`
+- `valor`: Valor para filtrar (opcional)
+
+**Resposta de Sucesso:**
+```json
+[
+  {
+    "id": 1,
+    "valor": "1600.00",
+    "detalhes": {
+      "credor": "Banco XYZ",
+      "vencimento": "2024-05-15",
+      "parcelas": 12,
+      "observacoes": "Valor atualizado"
+    },
+    "created_at": "2024-03-21T10:00:00Z"
+  }
+]
+```
+
+**Exemplos de Uso:**
+```bash
+# Criar dívida
+curl -X POST http://localhost:3000/api/dividas \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "valor": 1500.50,
+    "detalhes": {
+      "credor": "Banco XYZ",
+      "vencimento": "2024-04-15",
+      "parcelas": 12,
+      "observacoes": "Empréstimo pessoal"
+    }
+  }'
+
+# Atualizar dívida
+curl -X PUT http://localhost:3000/api/dividas/1 \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "valor": 1600.00,
+    "detalhes": {
+      "credor": "Banco XYZ",
+      "vencimento": "2024-05-15"
+    }
+  }'
+
+# Listar todas as dívidas
+curl http://localhost:3000/api/dividas \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por valor específico
+curl "http://localhost:3000/api/dividas?campo=valor&valor=1500.50" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por texto nos detalhes
+curl "http://localhost:3000/api/dividas?campo=detalhes&valor=Banco" \
+  -H "Authorization: Bearer seu_token"
+```
+
+**Observações:**
+- O campo `detalhes` é flexível e aceita qualquer estrutura JSON válida
+- Valores monetários são armazenados com 2 casas decimais
+- Buscas em `detalhes` são case-insensitive e parciais
+- Buscas por `valor` são exatas
+- Datas são retornadas no formato ISO 8601
+
