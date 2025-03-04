@@ -588,10 +588,109 @@ GET /api/pedidos-compra
 GET /api/pedidos-compra/{id}
 ```
 
+#### Gerar/Baixar PDF do Pedido
+```http
+GET /api/pedidos-compra/{id}/pdf/download
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Resposta:**
+- Content-Type: application/pdf
+- O arquivo PDF será baixado automaticamente
+
+**Exemplo de Uso:**
+```bash
+# Baixar PDF do pedido
+curl -O -J -L http://localhost:3000/api/pedidos-compra/1/pdf/download \
+  -H "Authorization: Bearer seu_token"
+```
+
+#### Visualizar PDF do Pedido
+```http
+GET /api/pedidos-compra/{id}/pdf
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Resposta:**
+- Content-Type: application/pdf
+- O PDF será exibido no navegador
+
+**Exemplo de Uso:**
+```bash
+curl http://localhost:3000/api/pedidos-compra/1/pdf \
+  -H "Authorization: Bearer seu_token"
+```
+
 #### Atualizar Pedido de Compra
 ```http
 PUT /api/pedidos-compra/{id}
 ```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+Content-Type: application/json
+```
+
+**Corpo da Requisição:**
+```json
+{
+  "clientinfo_id": 1,
+  "fornecedores_id": 1,
+  "ddl": 30,
+  "data_vencimento": "2024-04-21",
+  "proposta_id": 1,
+  "materiais": [
+    {
+      "item": 1,
+      "descricao": "Material A",
+      "uni": "pç",
+      "quantidade": 10,
+      "ipi": 5,
+      "valor_unit": 100.00,
+      "valor_total": 1000.00,
+      "porcentagem": 10,
+      "data_entrega": "2024-04-01"
+    }
+  ],
+  "desconto": 5.00,
+  "valor_frete": 150.00,
+  "despesas_adicionais": 50.00,
+  "dados_adicionais": "Informações adicionais",
+  "frete": {
+    "tipo": "CIF",
+    "valor": 150.00
+  }
+}
+```
+
+**Exemplo de Uso:**
+```bash
+curl -X PUT http://localhost:3000/api/pedidos-compra/1 \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientinfo_id": 1,
+    "fornecedores_id": 1,
+    "ddl": 30,
+    "data_vencimento": "2024-04-21",
+    ...
+  }'
+```
+
+**Observações:**
+- O endpoint de PDF (/pdf/download) retorna o arquivo para download
+- O endpoint /pdf exibe o PDF diretamente no navegador
+- Ambos os endpoints de PDF geram o arquivo automaticamente se não existir
+- O PDF é gerado com base no template definido em src/templates/pedido_compra1.html
 
 ### Dívidas
 
