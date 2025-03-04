@@ -20,12 +20,21 @@ function ConsultarPropostas() {
         buscarTodasPropostas();
     }, []);
 
+    const ordenarPropostasPorData = (propostas) => {
+        return [...propostas].sort((a, b) => {
+            const dataA = new Date(a.data_criacao);
+            const dataB = new Date(b.data_criacao);
+            return dataB - dataA; // Ordem decrescente (mais recente primeiro)
+        });
+    };
+
     const buscarTodasPropostas = async () => {
         setLoading(true);
         setError(null);
         try {
             const data = await propostasService.buscarPropostas();
-            setPropostas(data.propostas || []);
+            const propostasOrdenadas = ordenarPropostasPorData(data.propostas || []);
+            setPropostas(propostasOrdenadas);
         } catch (error) {
             setError('Erro ao carregar propostas. Por favor, tente novamente.');
             console.error('Erro ao buscar propostas:', error);
@@ -44,7 +53,8 @@ function ConsultarPropostas() {
                 Object.entries(filtros).filter(([_, value]) => value !== '')
             );
             const data = await propostasService.buscarPropostas(filtrosValidos);
-            setPropostas(data.propostas || []);
+            const propostasOrdenadas = ordenarPropostasPorData(data.propostas || []);
+            setPropostas(propostasOrdenadas);
         } catch (error) {
             setError('Erro ao buscar propostas. Por favor, tente novamente.');
             console.error('Erro na busca:', error);
@@ -164,22 +174,12 @@ function ConsultarPropostas() {
                                             <td>{formatarValor(proposta.valor_final)}</td>
                                             <td>{formatarData(proposta.data_criacao)}</td>
                                             <td>
-                                                <div className="acoes-container">
-                                                    <button 
-                                                        className="view-button"
-                                                        onClick={() => handleVisualizarProposta(proposta.id)}
-                                                    >
-                                                        Visualizar
-                                                    </button>
-                                                    {proposta.pdf_versions && Object.keys(proposta.pdf_versions).length > 0 && (
-                                                        <button 
-                                                            className="download-button"
-                                                            onClick={() => propostasService.downloadPdf(proposta.id, proposta.versao)}
-                                                        >
-                                                            PDF
-                                                        </button>
-                                                    )}
-                                                </div>
+                                                <button 
+                                                    className="view-button"
+                                                    onClick={() => handleVisualizarProposta(proposta.id)}
+                                                >
+                                                    Visualizar
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
