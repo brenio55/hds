@@ -30,7 +30,7 @@ function Dashboard(){
                             <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeLocacao')}>Gerar Pedido de Locação</div>
                             <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeServico')}>Gerar Pedido de Serviço</div>
                             <div className="serviceButton">Faturar Pedido de Compra</div>
-                            <div className="serviceButton">Consultar Pedidos C-M-L-S e Faturamentos</div>
+                            <div className="serviceButton" onClick={() => handleNavigation('/consultarPedidos')}>Consultar Pedidos C-M-L-S e Faturamentos</div>
                             <div className="serviceButton">HH</div>
                         </div>
                     </div>

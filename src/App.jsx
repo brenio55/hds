@@ -11,6 +11,7 @@ import PedidosDeLocacao from './admin/PedidosDeLocacao';
 import PedidosDeServico from './admin/PedidosDeServico';
 import GerarPropostas from './admin/GerarPropostas';
 import ConsultarPropostas from './admin/ConsultarPropostas';
+import ConsultarPedidos from './admin/ConsultarPedidos';
 import { AdminProvider } from './contexts/AdminContext';
 
 
@@ -29,6 +30,7 @@ function App() {
           <Route path="/pedidosDeServico" element={<PedidosDeServico />} />
           <Route path="/gerarPropostas" element={<GerarPropostas />} />
           <Route path="/consultarPropostas" element={<ConsultarPropostas />} />
+          <Route path="/consultarPedidos" element={<ConsultarPedidos />} />
         </Routes>
       </BrowserRouter>
     </AdminProvider>

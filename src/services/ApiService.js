@@ -322,6 +322,46 @@ class ApiService {
             throw error;
         }
     }
+
+    // Métodos relacionados a Pedidos de Compra
+    static async buscarPedidosCompra(filtros = {}) {
+        try {
+            const queryParams = new URLSearchParams(filtros).toString();
+            const url = `${API_URL}/api/pedidos-compra${queryParams ? `?${queryParams}` : ''}`;
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao buscar pedidos de compra');
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Erro ao buscar pedidos de compra:', error);
+            throw error;
+        }
+    }
+
+    static async buscarPedidoCompraPorId(id) {
+        try {
+            const response = await fetch(`${API_URL}/api/pedidos-compra/${id}`, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao buscar pedido de compra');
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Erro ao buscar pedido de compra:', error);
+            throw error;
+        }
+    }
 }
 
 export default ApiService; 
