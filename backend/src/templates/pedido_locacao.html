@@ -5,212 +5,296 @@
     <title>Pedido de Locação</title>
     <style>
         @page {
-            margin: 20mm;
-            size: A4;
+            margin: 0;
+            size: A3;
         }
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            margin: 0;
+            margin: 20px;
             padding: 0;
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: top;
-            margin-bottom: 50px;
+        .header-table {
+            width: 100%;
+            margin-bottom: 30px;
+            border-collapse: collapse;
+        }
+        .header-table td {
+            border: none;
+            padding: 10px;
+            vertical-align: middle;
+        }
+        .logo-cell {
+            width: 25%;
+        }
+        .title-cell {
+            width: 50%;
+            text-align: center;
+        }
+        .info-cell {
+            width: 25%;
         }
         .logo-horizontal {
-            height: 40px;
+            height: 50px;
             width: auto;
         }
-        .titulo-principal {
+        h1 {
+            font-size: 18px;
+            margin: 0;
             text-align: center;
-            margin-top: 30px;
-            margin-bottom: 30px;
         }
-        .titulo-principal h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
+        h2 {
+            font-size: 14px;
+            background-color: #ff0000;
+            color: white;
+            padding: 5px 10px;
+            margin: 20px 0 10px 0;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            border: 1px solid #000;
         }
-        th {
-            background-color: #333;
-            color: white;
+        th, td {
             padding: 8px;
+            border: 1px solid #000;
             text-align: left;
         }
-        td {
-            padding: 8px;
-            border: 1px solid #ddd;
-        }
-        .secao {
-            margin-bottom: 30px;
-        }
-        .secao-titulo {
-            background-color: #333;
+        th {
+            background-color: #ff0000;
             color: white;
-            padding: 8px 15px;
-            margin: 25px 0 15px 0;
+            border: 1px solid #ff0000;
+        }
+        .totals-table {
+            width: 100%;
+            border: 1px solid #000;
+        }
+        .totals-table th,
+        .totals-table td {
+            padding: 8px;
+            border: 1px solid #000;
+        }
+        .totals-table th {
+            background-color: #f5f5f5;
             font-weight: bold;
+            color: #333;
         }
-        .totais {
-            width: 300px;
-            margin-left: auto;
-            margin-bottom: 20px;
+        .info-section {
+            margin: 20px 0;
         }
-        .assinaturas {
+        .info-section h3 {
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .info-section p {
+            margin: 5px 0;
+            color: #000;
+        }
+        .signatures {
+            display: flex;
+            justify-content: space-between;
             margin-top: 50px;
+        }
+        .signature {
+            width: 45%;
+            text-align: center;
+            border-top: 1px solid #000;
+            padding-top: 10px;
+        }
+        .pedidoTd {
+            border-right: unset;
+        }
+        .pedidoInfoTop1, .pedidoInfoTop1 table {   
+            padding: 0;
+            border-left: unset;
+        }
+        .flex-container {
             display: flex;
             justify-content: space-between;
         }
-        .assinatura {
-            text-align: center;
-            width: 45%;
+        .info-table {
+            width: 100%;
+            border: none;
+            margin: 0;
         }
-        .linha-assinatura {
-            border-top: 1px solid #000;
-            margin-top: 50px;
-            padding-top: 10px;
+        .info-table td {
+            border: none;
+            padding: 2px;
+            font-size: 12px;
+        }
+        .info-label {
+            font-weight: bold;
+            padding-right: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="{{logoHorizontalSrc}}" alt="Logo" class="logo-horizontal">
-        <div>
-            <div>PEDIDO DE LOCAÇÃO</div>
-            <div>Nº {{id}}</div>
-            <div>Data: {{formatDate created_at}}</div>
+    <table class="header-table">
+        <tr>
+            <td class="logo-cell">
+                <img src="{{logoHorizontalSrc}}" alt="Logo" class="logo-horizontal">
+            </td>
+            <td class="title-cell">
+                <h1>PEDIDO DE LOCAÇÃO DE MATERIAL</h1>
+            </td>
+            <td class="info-cell">
+                <table class="info-table">
+                    <tr>
+                        <td class="info-label">Pedido:</td>
+                        <td>{{id}}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">Data:</td>
+                        <td>{{formatDate created_at}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <h2>DADOS DO FORNECEDOR</h2>
+    <table class="info-table">
+        <tr>
+            <td class="label">Razão Social:</td>
+            <td>{{fornecedor.razao_social}}</td>
+            <td class="label">CNPJ:</td>
+            <td>{{fornecedor.cnpj}}</td>
+        </tr>
+        <tr>
+            <td class="label">Inscrição Estadual:</td>
+            <td>{{fornecedor.inscricao_estadual}}</td>
+            <td class="label">Inscrição Municipal:</td>
+            <td>{{fornecedor.inscricao_municipal}}</td>
+        </tr>
+        <tr>
+            <td class="label">Endereço:</td>
+            <td>{{fornecedor.endereco}}</td>
+            <td class="label">CEP:</td>
+            <td>{{fornecedor.cep}}</td>
+        </tr>
+        <tr>
+            <td class="label">Município/UF:</td>
+            <td>{{fornecedor.municipio_uf}}</td>
+            <td class="label">Contato:</td>
+            <td>{{fornecedor.contato}}</td>
+        </tr>
+    </table>
+
+    <h2>ITENS DO PEDIDO</h2>
+    <table class="details-table">
+        <tr>
+            <th>#</th>
+            <th>Descrição</th>
+            <th>Un.</th>
+            <th>Qtde</th>
+            <th>IPI %</th>
+            <th>Valor Unit.</th>
+            <th>Valor Total</th>
+            <th>Prev. Entrega</th>
+        </tr>
+        {{#each itens}}
+        <tr>
+            <td>{{@index}}</td>
+            <td>{{descricao}}</td>
+            <td>{{unidade}}</td>
+            <td>{{quantidade}}</td>
+            <td>{{ipi}}</td>
+            <td>R$ {{valor_unitario}}</td>
+            <td>R$ {{valor_total}}</td>
+            <td>{{formatDate previsao_entrega}}</td>
+        </tr>
+        {{/each}}
+    </table>
+
+    <div class="flex-container">
+        <div style="width: 60%;">
+            <h2>VALORES</h2>
+            <table class="totals-table">
+                <tr>
+                    <th>Total Bruto</th>
+                    <td>R$ {{total_bruto}}</td>
+                </tr>
+                <tr>
+                    <th>(+) IPI</th>
+                    <td>R$ {{total_ipi}}</td>
+                </tr>
+                <tr>
+                    <th>(+) Frete</th>
+                    <td>R$ {{valor_frete}}</td>
+                </tr>
+                <tr>
+                    <th>(+) Outras despesas</th>
+                    <td>R$ {{outras_despesas}}</td>
+                </tr>
+                <tr>
+                    <th>(-) Desconto</th>
+                    <td>R$ {{total_descontos}}</td>
+                </tr>
+                <tr>
+                    <th>(=) Total Final</th>
+                    <td>R$ {{total_final}}</td>
+                </tr>
+            </table>
+        </div>
+        <div style="width: 35%;">
+            <h2>CONDIÇÕES GERAIS</h2>
+            <table>
+                <tr>
+                    <td><strong>Condição de Pagamento:</strong></td>
+                    <td>{{cond_pagto}}</td>
+                </tr>
+                <tr>
+                    <td><strong>Prazo de Entrega:</strong></td>
+                    <td>{{formatDate prazo_entrega}}</td>
+                </tr>
+            </table>
         </div>
     </div>
 
-    <div class="secao">
-        <div class="secao-titulo">DADOS DO FORNECEDOR</div>
-        <table>
-            <tr>
-                <td><strong>Razão Social:</strong></td>
-                <td>{{fornecedor.razao_social}}</td>
-                <td><strong>CNPJ:</strong></td>
-                <td>{{fornecedor.cnpj}}</td>
-            </tr>
-            <tr>
-                <td><strong>Inscrição Estadual:</strong></td>
-                <td>{{fornecedor.inscricao_estadual}}</td>
-                <td><strong>Inscrição Municipal:</strong></td>
-                <td>{{fornecedor.inscricao_municipal}}</td>
-            </tr>
-            <tr>
-                <td><strong>Endereço:</strong></td>
-                <td>{{fornecedor.endereco}}</td>
-                <td><strong>CEP:</strong></td>
-                <td>{{fornecedor.cep}}</td>
-            </tr>
-            <tr>
-                <td><strong>Município/UF:</strong></td>
-                <td>{{fornecedor.municipio_uf}}</td>
-                <td><strong>Contato:</strong></td>
-                <td>{{fornecedor.contato}}</td>
-            </tr>
-            <tr>
-                <td><strong>Telefone:</strong></td>
-                <td>{{fornecedor.telefone}}</td>
-                <td><strong>Email:</strong></td>
-                <td>{{fornecedor.email}}</td>
-            </tr>
-        </table>
+    <div class="info-section">
+        <h2>INFORMAÇÕES IMPORTANTES PARA O FORNECEDOR</h2>
+
+        <h3>Os Preços:</h3>
+        <p>Inclusos nos preços todas as taxas, tributos e impostos pertencentes à aquisição.</p>
+
+        <h3>Prazo de Entrega:</h3>
+        <p>O material somente poderá ser entregue de acordo com a programação da obra. Caso o fornecedor não atenda a essa programação, a CONTRATANTE está autorizada a comprar o material de outros fornecedores e proceder ao desconto da diferença do FORNECEDOR.</p>
+
+        <h3>EPIs:</h3>
+        <p>O FORNECEDOR deverá munir seus funcionários com os EPIs adequados para a entrega e/ou descarga, conforme OSMA 024.</p>
+
+        <h3>Venda Mercantil:</h3>
+        <p>Todas as Notas Fiscais de Venda Mercantil deverão constar obrigatoriamente a correta identificação da Nomenclatura Comum do MERCOSUL (NCM), conforme estabelece a legislação fiscal vigente. Não serão aceitas, em hipótese alguma, Notas Fiscais de Venda Mercantil sem a correta identificação de NCM. Toda e qualquer mercadoria fornecida para a CONTRATANTE deverá ser acompanhada da Nota Fiscal devida. Quando acordado com a CONTRATANTE a realização de pagamento mediante a emissão de Nota Fiscal de Simples Faturamento, tal ato será mera liberalidade da CONTRATANTE, sendo obrigação do FORNECEDOR entregar o material à CONTRATANTE acompanhado da devida Nota Fiscal.</p>
+
+        <h3>Pagamento:</h3>
+        <p>Somente serão consideradas para efeito de pagamento as quantidades aceitas durante a entrega na obra. Quando for o caso, somente serão consideradas as pesagens que forem efetuadas na balança da CONTRATANTE ou em outra indicada pela mesma. Serão consideradas a cubicagem efetuada pelo apontador da CONTRATANTE, devidamente anotada no canhoto da Nota Fiscal. Para efeito de pagamento, o prazo fixado no presente pedido de fornecimento será contado da data de entrega da mercadoria, incluindo-se nesta contagem o dia de emissão da respectiva Nota Fiscal. Todavia, caso o material solicitado não seja entregue na data da emissão da Nota Fiscal, o prazo para pagamento aqui estabelecido ficará prorrogado por tantos dias quantos forem os de atraso, sem quaisquer ônus para a CONTRATANTE. O FORNECEDOR deverá discriminar no corpo da Nota Fiscal o endereço da obra. Caso as faturas sejam emitidas com incorreções ou encaminhadas para o endereço diferente do indicado, as mesmas serão devolvidas e o prazo de pagamento passará a ser contado a partir da reapresentação das notas devidamente corrigidas no protocolo da CONTRATANTE.</p>
+
+        <h3>Defeitos ou Acidentes:</h3>
+        <p>No caso de defeito de fabricação ou danos pelo transporte, o FORNECEDOR deverá substituir o produto sem qualquer ônus para a CONTRATANTE, no prazo máximo de 48 horas. Em caso de acidente, o FORNECEDOR deverá enviar um relato do acidente, bem como o número do lote do material, promovendo a substituição do produto eventualmente danificado nas mesmas condições ora descritas.</p>
+
+        <h3>Tributos e Contribuições:</h3>
+        <p>Correrão por conta exclusiva do FORNECEDOR todos os tributos e contribuições que incidam ou venham a incidir sobre o presente pedido de fornecimento.</p>
+
+        <h3>Responsabilidade Social:</h3>
+        <p>O FORNECEDOR se obriga a não empregar menores de 18 anos em atividades noturnas, perigosas ou insalubres e menores de 16 anos em qualquer trabalho, exceto na condição de aprendizes, a partir de 14 anos, bem como não utilizar qualquer forma de trabalho escravo ou análogo, devendo ainda incluir em todos os seus contratos com seus fornecedores, dispositivo vedando que os mesmos o façam.</p>
+
+        <h3>Obediência às Normas:</h3>
+        <p>O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis, relativamente à segurança, higiene e medicina do trabalho, especialmente a norma regulamentadora NR 18, do Ministério do Trabalho, bem como as normas internas expedidas pela CONTRATANTE. No caso de desobediência, as consequências, inclusive multas aplicadas pelos órgãos públicos, serão suportadas pelo FORNECEDOR, mesmo que lançadas contra a CONTRATANTE ou terceiros. Neste caso, ainda que passíveis de defesa, o valor respectivo será caucionado pela CONTRATANTE, que poderá descontá-los dos haveres do FORNECEDOR, sendo certo que o FORNECEDOR também estará sujeito a uma multa de R$ 200,00 por infração de cada funcionário.</p>
+
+        <h3>Multas e Penalidades:</h3>
+        <p>Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento, em favor do CONTRATANTE, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE. Em caso de atraso na data de entrega pactuada, o FORNECEDOR ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa moratória diária no valor correspondente a 1,0% (um por cento) do valor total deste pedido de compra, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE. A aplicação das multas previstas nesse contrato está limitada a 30% (trinta por cento) do valor total desse pedido de compra. Não serão deduzidos desse montante os valores diretamente pagos pelas seguradoras em decorrência dos seguros previstos neste contrato. As multas previstas neste contrato não excluem quaisquer outras penalidades previstas em lei.</p>
     </div>
 
-    <div class="secao">
-        <div class="secao-titulo">ITENS DO PEDIDO</div>
-        <table>
-            <tr>
-                <th>#</th>
-                <th>Descrição</th>
-                <th>Un.</th>
-                <th>Qtde</th>
-                <th>IPI %</th>
-                <th>Valor Unit.</th>
-                <th>Valor Total</th>
-                <th>Prev. Entrega</th>
-            </tr>
-            {{#each itens}}
-            <tr>
-                <td>{{@index}}</td>
-                <td>{{descricao}}</td>
-                <td>{{unidade}}</td>
-                <td>{{quantidade}}</td>
-                <td>{{ipi}}</td>
-                <td>R$ {{valor_unitario}}</td>
-                <td>R$ {{valor_total}}</td>
-                <td>{{previsao_entrega}}</td>
-            </tr>
-            {{/each}}
-        </table>
-    </div>
-
-    <div class="secao">
-        <div class="secao-titulo">TOTAIS</div>
-        <table class="totais">
-            <tr>
-                <td><strong>Total Bruto:</strong></td>
-                <td>R$ {{total_bruto}}</td>
-            </tr>
-            <tr>
-                <td><strong>Total IPI:</strong></td>
-                <td>R$ {{total_ipi}}</td>
-            </tr>
-            <tr>
-                <td><strong>Descontos:</strong></td>
-                <td>R$ {{total_descontos}}</td>
-            </tr>
-            <tr>
-                <td><strong>Frete:</strong></td>
-                <td>R$ {{valor_frete}}</td>
-            </tr>
-            <tr>
-                <td><strong>Outras Despesas:</strong></td>
-                <td>R$ {{outras_despesas}}</td>
-            </tr>
-            <tr>
-                <td><strong>Total Final:</strong></td>
-                <td>R$ {{total_final}}</td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="secao">
-        <div class="secao-titulo">CONDIÇÕES GERAIS</div>
-        <table>
-            <tr>
-                <td><strong>Condição de Pagamento:</strong></td>
-                <td>{{cond_pagto}}</td>
-            </tr>
-            <tr>
-                <td><strong>Prazo de Entrega:</strong></td>
-                <td>{{formatDate prazo_entrega}}</td>
-            </tr>
-        </table>
-    </div>
-
-    {{#if informacoes_importantes}}
-    <div class="secao">
-        <div class="secao-titulo">INFORMAÇÕES IMPORTANTES</div>
-        <p>{{informacoes_importantes}}</p>
-    </div>
-    {{/if}}
-
-    <div class="assinaturas">
-        <div class="assinatura">
-            <div class="linha-assinatura">CONTRATANTE</div>
+    <div class="signatures">
+        <div class="signature">
+            <p>CONTRATANTE</p>
+            <p>HDS SERVIÇO LTDA</p>
         </div>
-        <div class="assinatura">
-            <div class="linha-assinatura">FORNECEDOR</div>
-            <div>{{fornecedor_nome}}</div>
+        <div class="signature">
+            <p>FORNECEDOR</p>
+            <p>{{fornecedor.razao_social}}</p>
         </div>
     </div>
 </body>

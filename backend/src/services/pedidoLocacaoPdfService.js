@@ -28,11 +28,8 @@ class PedidoLocacaoPdfService {
       const templatePath = path.join(__dirname, '../templates/pedido_locacao.html');
       const templateContent = await fs.readFile(templatePath, 'utf8');
 
-      // Prepara as imagens
-      const logoPath = path.join(__dirname, '../imgs/logo.png');
+      // Prepara a imagem
       const logoHorizontalPath = path.join(__dirname, '../imgs/logo_horizontal.png');
-      
-      const logoSrc = await this.imageToBase64(logoPath);
       const logoHorizontalSrc = await this.imageToBase64(logoHorizontalPath);
 
       // Registra helper para formatar data
@@ -49,7 +46,6 @@ class PedidoLocacaoPdfService {
       const data = {
         ...pedido,
         fornecedor,
-        logoSrc,
         logoHorizontalSrc,
         dataEmissao: new Date().toLocaleDateString('pt-BR'),
         ano: new Date().getFullYear(),
@@ -65,6 +61,14 @@ class PedidoLocacaoPdfService {
         args: ['--no-sandbox']
       });
       const page = await browser.newPage();
+
+      // Define o viewport para A3 com largura maior
+      await page.setViewport({
+        width: 1754,  // A3 width em pixels (297mm)
+        height: 2481, // A3 height em pixels (420mm)
+        deviceScaleFactor: 1
+      });
+
       await page.setContent(html);
 
       // Gera um UID único para o arquivo
@@ -75,15 +79,15 @@ class PedidoLocacaoPdfService {
       const pdfDir = path.dirname(pdfPath);
       await fs.mkdir(pdfDir, { recursive: true });
 
-      // Gera o PDF
+      // Gera o PDF com margens
       await page.pdf({
         path: pdfPath,
-        format: 'A4',
+        format: 'A3',
         margin: {
-          top: '20mm',
-          right: '20mm',
-          bottom: '20mm',
-          left: '20mm'
+          top: '20px',
+          right: '20px',
+          bottom: '20px',
+          left: '20px'
         },
         printBackground: true
       });
