@@ -252,12 +252,18 @@ function PedidosDeLocacao() {
             try {
                 const fornecedor = await ApiService.buscarFornecedorPorId(id);
                 
-                // Preencher os campos com os dados do fornecedor
-                setFornecedorNome(fornecedor.razao_social || '');
-                setCnpj(formatCNPJ(fornecedor.cnpj || ''));
-                setEndereco(fornecedor.endereco || '');
-                setCep(formatCEP(fornecedor.cep || ''));
-                setContato(formatTelefone(fornecedor.telefone || fornecedor.celular || ''));
+                // Verificar se o fornecedor foi encontrado
+                if (fornecedor && fornecedor.id) {
+                    // Preencher os campos com os dados do fornecedor
+                    setFornecedorNome(fornecedor.razao_social || '');
+                    setCnpj(formatCNPJ(fornecedor.cnpj || ''));
+                    setEndereco(fornecedor.endereco || '');
+                    setCep(formatCEP(fornecedor.cep || ''));
+                    setContato(formatTelefone(fornecedor.telefone || fornecedor.celular || ''));
+                    setErrorFornecedor(''); // Garantir que não há mensagem de erro
+                } else {
+                    throw new Error('Fornecedor não encontrado');
+                }
                 
             } catch (error) {
                 console.error('Erro ao buscar fornecedor:', error);
@@ -279,6 +285,7 @@ function PedidosDeLocacao() {
             setEndereco('');
             setCep('');
             setContato('');
+            setErrorFornecedor('');
         }
     };
 

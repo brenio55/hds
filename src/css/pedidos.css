@@ -100,6 +100,10 @@
   color: #e74c3c;
   margin-left: 5px;
   font-weight: bold;
+  background-color: rgba(231, 76, 60, 0.1);
+  padding: 2px 5px;
+  border-radius: 3px;
+  display: inline-block;
 }
 .pedidos-container .items-section, .pedidos-container .totals-section, .pedidos-container .additional-info {
   background: #f8f9fa;
