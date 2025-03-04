@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ConsultarPropostas.css';
 import HeaderAdmin from './HeaderAdmin';
-import { propostasService } from '../services/ApiService';
+import ApiService from '../services/ApiService';
 
 function ConsultarPropostas() {
     const navigate = useNavigate();
@@ -33,7 +33,7 @@ function ConsultarPropostas() {
         setLoading(true);
         setError(null);
         try {
-            const data = await propostasService.buscarPropostas();
+            const data = await ApiService.buscarPropostas();
             const propostasOrdenadas = ordenarPropostasPorData(data.propostas || []);
             setPropostas(propostasOrdenadas);
         } catch (error) {
@@ -53,7 +53,7 @@ function ConsultarPropostas() {
             const filtrosValidos = Object.fromEntries(
                 Object.entries(filtros).filter(([_, value]) => value !== '')
             );
-            const data = await propostasService.buscarPropostas(filtrosValidos);
+            const data = await ApiService.buscarPropostas(filtrosValidos);
             const propostasOrdenadas = ordenarPropostasPorData(data.propostas || []);
             setPropostas(propostasOrdenadas);
         } catch (error) {
@@ -75,7 +75,7 @@ function ConsultarPropostas() {
     const handleVisualizarProposta = async (id, versao) => {
         try {
             setDownloadingId(id);
-            await propostasService.downloadPdf(id, versao);
+            await ApiService.downloadPdf(id, versao);
         } catch (error) {
             console.error('Erro ao baixar PDF:', error);
             alert('Erro ao baixar o PDF. Por favor, tente novamente.');

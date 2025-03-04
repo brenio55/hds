@@ -8,9 +8,19 @@ const getStoredToken = () => localStorage.getItem('authToken');
 const setStoredToken = (token) => localStorage.setItem('authToken', token);
 const removeStoredToken = () => localStorage.removeItem('authToken');
 
-// Funções relacionadas a Pedidos
-export const pedidosService = {
-    async gerarNumeroPedido() {
+// Função para criar headers com autenticação
+const createAuthHeaders = () => {
+    const token = getStoredToken();
+    return {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+};
+
+// Classe ApiService
+class ApiService {
+    // Métodos relacionados a Pedidos
+    static async gerarNumeroPedido() {
         try {
             const response = await fetch(`${API_URL}/pedidos/proximo-numero`, {
                 headers: createAuthHeaders()
@@ -26,51 +36,59 @@ export const pedidosService = {
             console.error('Erro ao gerar número do pedido:', error);
             throw error;
         }
-    },
+    }
 
-    async criarPedido(dadosPedido) {
+    static async criarPedido(dadosPedido, itens) {
         try {
-            const response = await fetch(`${API_URL}/pedidos`, {
+            // Transformar os dados para o novo formato
+            const pedidoFormatado = {
+                clientinfo_id: parseInt(dadosPedido.codigo) || 1,
+                fornecedores_id: parseInt(dadosPedido.fornecedor_id) || 1,
+                ddl: parseInt(dadosPedido.condPagto) || 30,
+                data_vencimento: dadosPedido.dataVencto,
+                proposta_id: parseInt(dadosPedido.proposta_id) || 1,
+                materiais: itens.map((item, index) => ({
+                    item: index + 1,
+                    descricao: item.descricao,
+                    uni: item.unidade,
+                    quantidade: parseFloat(item.quantidade.replace(',', '.')) || 0,
+                    ipi: parseFloat(item.ipi.replace(',', '.')) || 0,
+                    valor_unit: parseFloat(item.valorUnitario.replace(',', '.')) || 0,
+                    valor_total: parseFloat(item.valorTotal.replace(',', '.')) || 0,
+                    porcentagem: parseFloat(item.desconto.replace(',', '.')) || 0,
+                    data_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+                })),
+                desconto: parseFloat(dadosPedido.totalDescontos?.replace(',', '.')) || 0,
+                valor_frete: parseFloat(dadosPedido.valorFrete?.replace(',', '.')) || 0,
+                despesas_adicionais: parseFloat(dadosPedido.outrasDespesas?.replace(',', '.')) || 0,
+                dados_adicionais: dadosPedido.informacoesImportantes || '',
+                frete: {
+                    tipo: dadosPedido.frete || 'CIF',
+                    valor: parseFloat(dadosPedido.valorFrete?.replace(',', '.')) || 0
+                }
+            };
+    
+            // Enviar para a API
+            const response = await fetch(`${API_URL}/api/pedidos-compra`, {
                 method: 'POST',
                 headers: createAuthHeaders(),
-                body: JSON.stringify(dadosPedido)
+                body: JSON.stringify(pedidoFormatado)
             });
-
+    
             if (!response.ok) {
                 throw new Error('Erro ao criar pedido');
             }
-
+    
             const data = await response.json();
             return data;
         } catch (error) {
-            console.error('Erro ao criar pedido:', error);
-            throw error;
-        }
-    },
-
-    async inserirItensPedido(pedidoId, itens) {
-        try {
-            const response = await fetch(`${API_URL}/pedidos/${pedidoId}/itens`, {
-                method: 'POST',
-                headers: createAuthHeaders(),
-                body: JSON.stringify({ itens })
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao inserir itens do pedido');
-            }
-
-            return true;
-        } catch (error) {
-            console.error('Erro ao inserir itens do pedido:', error);
+            console.error('Erro ao salvar pedido completo:', error);
             throw error;
         }
     }
-};
 
-// Funções relacionadas a Clientes
-export const clientesService = {
-    async atualizarOuCriarCliente(dadosCliente) {
+    // Métodos relacionados a Clientes
+    static async atualizarOuCriarCliente(dadosCliente) {
         try {
             const response = await fetch(`${API_URL}/clientes`, {
                 method: 'POST',
@@ -89,45 +107,9 @@ export const clientesService = {
             throw error;
         }
     }
-};
 
-// Função para criar headers com autenticação
-const createAuthHeaders = () => {
-    const token = getStoredToken();
-    return {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-    };
-};
-
-// Função para salvar pedido completo
-export const salvarPedidoCompleto = async (dadosPedido, itens) => {
-    try {
-        // 1. Atualizar ou criar cliente
-        await clientesService.atualizarOuCriarCliente({
-            codigo: dadosPedido.codigo,
-            fornecedor: dadosPedido.fornecedor,
-            cnpj: dadosPedido.cnpj,
-            endereco: dadosPedido.endereco,
-            contato: dadosPedido.contato
-        });
-
-        // 2. Criar pedido
-        const { numeroPedido } = await pedidosService.criarPedido(dadosPedido);
-
-        // 3. Inserir itens do pedido
-        await pedidosService.inserirItensPedido(numeroPedido, itens);
-
-        return { success: true, numeroPedido };
-    } catch (error) {
-        console.error('Erro ao salvar pedido completo:', error);
-        throw error;
-    }
-};
-
-// Funções relacionadas a Usuários
-export const userService = {
-    async registerUser(userData, authorizationCode) {
+    // Métodos relacionados a Usuários
+    static async registerUser(userData, authorizationCode) {
         try {
             const requestData = {
                 username: userData.userName,
@@ -178,9 +160,9 @@ export const userService = {
             console.error('Erro ao registrar usuário:', error);
             throw error;
         }
-    },
+    }
 
-    async login(username, password) {
+    static async login(username, password) {
         try {
             const requestData = {
                 username,
@@ -234,13 +216,13 @@ export const userService = {
             console.error('Erro ao fazer login:', error);
             throw error;
         }
-    },
+    }
 
-    logout() {
+    static logout() {
         removeStoredToken();
-    },
+    }
 
-    async getProfile() {
+    static async getProfile() {
         try {
             const response = await fetch(`${API_URL}/auth/profile`, {
                 headers: createAuthHeaders()
@@ -257,21 +239,9 @@ export const userService = {
             throw error;
         }
     }
-};
 
-const getServiceOrderTemplate = async (serviceOrder) => {
-    try {
-        const response = await api.post('/service-orders/template', serviceOrder);
-        return response.data;
-    } catch (error) {
-        console.error('Erro ao obter template do pedido de serviço:', error);
-        throw error;
-    }
-};
-
-// Funções relacionadas a Propostas
-export const propostasService = {
-    async criarProposta(dadosProposta) {
+    // Métodos relacionados a Propostas
+    static async criarProposta(dadosProposta) {
         try {
             const response = await fetch(`${API_URL}/api/propostas`, {
                 method: 'POST',
@@ -289,9 +259,9 @@ export const propostasService = {
             console.error('Erro ao criar proposta:', error);
             throw error;
         }
-    },
+    }
 
-    async buscarPropostas(filtros = {}) {
+    static async buscarPropostas(filtros = {}) {
         try {
             const queryParams = new URLSearchParams(filtros).toString();
             const url = `${API_URL}/api/propostas/search${queryParams ? `?${queryParams}` : ''}`;
@@ -310,9 +280,9 @@ export const propostasService = {
             console.error('Erro ao buscar propostas:', error);
             throw error;
         }
-    },
+    }
 
-    async downloadPdf(id, version) {
+    static async downloadPdf(id, version) {
         try {
             const response = await fetch(
                 `${API_URL}/api/propostas/${id}/pdf/download/`,
@@ -352,4 +322,6 @@ export const propostasService = {
             throw error;
         }
     }
-}; 
+}
+
+export default ApiService; 

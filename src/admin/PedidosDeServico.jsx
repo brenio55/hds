@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { formatCNPJ, formatCEP, formatTelefone } from '../utils/formatters';
 import HeaderAdmin from './HeaderAdmin';
 import './pedidos.scss';
-import { salvarPedidoCompleto } from '../services/ApiService';
+import ApiService from '../services/ApiService';
 
 function PedidosDeServico() {
     const [itens, setItens] = useState([]);
@@ -237,8 +237,8 @@ function PedidosDeServico() {
                 previsaoEntrega: new Date().toISOString().split('T')[0]
             };
 
-            // const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
-            const numeroPedido = '1234567890';
+            const { numeroPedido } = await ApiService.criarPedido(pedidoParaSalvar, itens);
+            // const numeroPedido = '1234567890';
             // alterar depois quando o back estiver fazendo
 
             const formatarValorMonetario = (valor) => {

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { userService } from '../services/ApiService';
+import ApiService from '../services/ApiService';
 
 const AdminContext = createContext();
 
@@ -18,12 +18,12 @@ export function AdminProvider({ children }) {
                     return;
                 }
 
-                const userData = await userService.getProfile();
+                const userData = await ApiService.getProfile();
                 setAdminUser(userData);
             } catch (error) {
                 console.error('Erro ao carregar perfil:', error);
                 // Se houver erro, remove o token inválido
-                userService.logout();
+                ApiService.logout();
             } finally {
                 setLoading(false);
             }
@@ -36,7 +36,7 @@ export function AdminProvider({ children }) {
         setAdminUser(userData);
         try {
             // Após o login, carrega o perfil completo
-            const profileData = await userService.getProfile();
+            const profileData = await ApiService.getProfile();
             setAdminUser(profileData);
         } catch (error) {
             console.error('Erro ao carregar perfil após login:', error);
@@ -44,7 +44,7 @@ export function AdminProvider({ children }) {
     };
 
     const logout = () => {
-        userService.logout();
+        ApiService.logout();
         setAdminUser(null);
     };
 

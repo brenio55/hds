@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import Header from "../commonComponents/Header";
 import { useAdmin } from "../contexts/AdminContext";
-import { userService } from "../services/ApiService";
+import ApiService from "../services/ApiService";
 import "./Login.css";
 
 // Senha de autorização para registro (temporária)
@@ -53,7 +53,7 @@ function Login() {
     }
 
     try {
-      const result = await userService.registerUser(
+      const result = await ApiService.registerUser(
         { userName: user.trim(), password: password.trim() }
       );
       console.log('Resultado do registro:', result);
@@ -75,7 +75,7 @@ function Login() {
 
     try {
       console.log('Tentando login com:', { username: user.trim(), password: password.trim() });
-      const userData = await userService.login(user.trim(), password.trim());
+      const userData = await ApiService.login(user.trim(), password.trim());
       console.log('Resultado do login:', userData);
       
       setLoggedUser(userData.user);
