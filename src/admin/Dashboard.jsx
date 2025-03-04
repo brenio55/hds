@@ -20,7 +20,7 @@ function Dashboard(){
                         <h2>Propostas e Centros de Custo</h2>
                         <div className="service-buttons">
                             <div className="serviceButton" onClick={() => handleNavigation('/gerarPropostas')}>Gerar Proposta (Centro de Custo)</div>
-                            <div className="serviceButton">Consultar Propostas (Centro de Custo)</div>
+                            <div className="serviceButton" onClick={() => handleNavigation('/consultarPropostas')}>Consultar Propostas (Centro de Custo)</div>
                         </div>
                     </div>
                     <div className="service-section">
