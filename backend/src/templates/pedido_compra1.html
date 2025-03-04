@@ -278,33 +278,33 @@
         <table class="header-table">
             <tr>
                 <td class="logo-cell">
-                    <img src="{{logoSrc}}" alt="Logo" class="logo" />
+            <img src="{{logoSrc}}" alt="Logo" class="logo" />
                 </td>
                 <td class="title-cell">
-                    <h1>PEDIDO DE COMPRA DE MATERIAL</h1>
+            <h1>PEDIDO DE COMPRA DE MATERIAL</h1>
                 </td>
                 <td class="info-cell">
                     <div class="pedido-info">
-                        <table>
-                            <tr>    
-                                <td>Pedido:</td>
+                <table>
+                    <tr>    
+                        <td>Pedido:</td>
                                 <td>{{pedidoData.id}}</td>
                             </tr>
                             <tr>
-                                <td>Data:</td>
+                        <td>Data:</td>
                                 <td>{{formatDate pedidoData.created_at}}</td>
-                            </tr>
-                            <tr>
+                    </tr>
+                    <tr>
                                 <td>Revisão:</td>
-                                <td>{{pedidoData.revisao}}</td>
-                            </tr>
-                        </table>
-                    </div>
+                        <td>{{pedidoData.revisao}}</td>
+                    </tr>
+                </table>
+            </div>
                 </td>
             </tr>
         </table>
-
-        <h2>DADOS DO CONTRATANTE</h2>
+        
+            <h2>DADOS DO CONTRATANTE</h2>
         <table class="info-table">
             <tr>
                 <td class="label">Empresa:</td>
@@ -315,8 +315,8 @@
                 <td>688.578.880.111</td>
                 <td class="label">Inscrição Municipal:</td>
                 <td>000000000091587</td>
-            </tr>
-            <tr>
+                </tr>
+                <tr>
                 <td class="label">Endereço:</td>
                 <td>Av Dom Pedro I, 242</td>
                 <td class="label">Bairro:</td>
@@ -325,31 +325,31 @@
                 <td>Taubaté</td>
                 <td class="label">UF:</td>
                 <td>SP</td>
-            </tr>
-        </table>
+                </tr>
+            </table>
 
-        <h2>DADOS DO FORNECEDOR</h2>
+            <h2>DADOS DO FORNECEDOR</h2>
         <table class="info-table">
-            <tr>
+                <tr>
                 <td class="label">Empresa:</td>
-                <td>{{fornecedor.nome}}</td>
+                    <td>{{fornecedor.nome}}</td>
                 <td class="label">CNPJ:</td>
-                <td>{{fornecedor.cnpj}}</td>
+                    <td>{{fornecedor.cnpj}}</td>
                 <td class="label">Inscrição Estadual:</td>
-                <td>{{fornecedor.inscricao_estadual}}</td>
+                    <td>{{fornecedor.inscricao_estadual}}</td>
                 <td class="label">Inscrição Municipal:</td>
                 <td>{{fornecedor.inscricao_municipal}}</td>
-            </tr>
-            <tr>
+                </tr>
+                <tr>
                 <td class="label">Endereço:</td>
-                <td>{{fornecedor.endereco}}</td>
+                    <td>{{fornecedor.endereco}}</td>
                 <td class="label">Bairro:</td>
                 <td>{{fornecedor.bairro}}</td>
                 <td class="label">Cidade:</td>
                 <td>{{fornecedor.cidade}}</td>
                 <td class="label">UF:</td>
                 <td>{{fornecedor.uf}}</td>
-            </tr>
+                </tr>
         </table>
 
         <h2>DADOS DE FATURAMENTO</h2>
@@ -363,8 +363,8 @@
                 <td>688.578.880.111</td>
                 <td class="label">Inscrição Municipal:</td>
                 <td>000000000091587</td>
-            </tr>
-            <tr>
+                </tr>
+                <tr>
                 <td class="label">Endereço:</td>
                 <td>Av Dom Pedro I, 242</td>
                 <td class="label">Bairro:</td>
@@ -373,7 +373,7 @@
                 <td>Taubaté</td>
                 <td class="label">UF:</td>
                 <td>SP</td>
-            </tr>
+                </tr>
         </table>
 
         <table class="pagamento-table">
@@ -382,8 +382,8 @@
                 <td>Med. Mensais pagamento 40DDL</td>
                 <td class="label">Data Vencimento:</td>
                 <td>{{formatDate pedidoData.data_vencimento}}</td>
-            </tr>
-        </table>
+                </tr>
+            </table>
 
         <h2>Detalhes do Pedido</h2>
         <table class="details-table">

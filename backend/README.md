@@ -853,3 +853,95 @@ curl "http://localhost:3000/api/dividas?campo=detalhes&valor=Banco" \
 - Buscas por `valor` são exatas
 - Datas são retornadas no formato ISO 8601
 
+### Pedidos de Locação
+
+#### Criar Pedido de Locação
+```http
+POST /api/pedidos-locacao
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+Content-Type: application/json
+```
+
+**Corpo da Requisição:**
+```json
+{
+  "fornecedor_id": 1,  // ID válido da tabela fornecedores
+  "itens": [
+    {
+      "descricao": "Item A",
+      "unidade": "un",
+      "quantidade": 10,
+      "ipi": 5,
+      "valor_unitario": 100.00,
+      "valor_total": 1000.00,
+      "desconto": 50.00,
+      "previsao_entrega": "2024-04-15"
+    }
+  ],
+  "total_bruto": 1000.00,
+  "total_ipi": 50.00,
+  "total_descontos": 50.00,
+  "valor_frete": 100.00,
+  "outras_despesas": 30.00,
+  "total_final": 1130.00,
+  "informacoes_importantes": "Observações importantes...",
+  "cond_pagto": "30/60/90 dias",
+  "prazo_entrega": "2024-04-15",
+  "frete": 100.00
+}
+```
+
+**Observações Importantes:**
+- `fornecedor_id`: Deve ser um ID válido existente na tabela `fornecedores`
+- Os valores monetários devem ser enviados com 2 casas decimais
+- As datas devem estar no formato YYYY-MM-DD
+- O campo `itens` aceita um array de objetos com os detalhes dos itens
+- O PDF é gerado automaticamente na criação/atualização do pedido
+
+#### Atualizar Pedido de Locação
+```http
+PUT /api/pedidos-locacao/{id}
+```
+
+#### Listar Pedidos de Locação
+```http
+GET /api/pedidos-locacao
+```
+
+#### Buscar Pedido de Locação por ID
+```http
+GET /api/pedidos-locacao/{id}
+```
+
+#### Download do PDF
+```http
+GET /api/pedidos-locacao/{id}/pdf/download
+```
+
+**Exemplos de Uso:**
+```bash
+# Criar pedido
+curl -X POST http://localhost:3000/api/pedidos-locacao \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fornecedor_id": 1,
+    "itens": [...],
+    "total_bruto": 1000.00,
+    ...
+  }'
+
+# Baixar PDF
+curl -O -J -L http://localhost:3000/api/pedidos-locacao/1/pdf/download \
+  -H "Authorization: Bearer seu_token"
+```
+
+**Relacionamentos:**
+- `fornecedor_id`: Referencia a tabela `fornecedores` através do campo `id`
+- O sistema validará se o fornecedor existe antes de criar/atualizar o pedido
+- Caso o fornecedor não exista, a requisição retornará erro 400
+
