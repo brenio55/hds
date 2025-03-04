@@ -99,31 +99,10 @@ router.post('/:id/pdf', authMiddleware, PropostaController.generatePdf);
  * @swagger
  * /propostas/{id}/pdf/download:
  *   get:
- *     summary: Faz download do PDF de uma proposta
+ *     summary: Download do PDF da proposta
  *     tags: [Propostas]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID da proposta
- *       - in: query
- *         name: version
- *         required: false
- *         schema:
- *           type: string
- *         description: Versão específica do PDF (opcional)
- *     responses:
- *       200:
- *         description: PDF enviado com sucesso
- *         content:
- *           application/pdf:
- *             schema:
- *               type: string
- *               format: binary
  */
 router.get('/:id/pdf/download', authMiddleware, PropostaController.downloadPdf);
 

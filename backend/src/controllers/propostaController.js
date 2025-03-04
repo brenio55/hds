@@ -2,7 +2,7 @@ const PropostaService = require('../services/propostaService');
 const { validationResult } = require('express-validator');
 const PropostaModel = require('../models/propostaModel');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs').promises;
 
 class PropostaController {
   static async create(req, res) {
@@ -66,36 +66,33 @@ class PropostaController {
   static async downloadPdf(req, res) {
     try {
       const { id } = req.params;
-      const { version } = req.query;
+
+      // Busca ou gera o PDF
+      const result = await PropostaService.generatePdf(id);
       
-      // Busca a proposta
-      const proposta = await PropostaModel.findById(id);
-      if (!proposta) {
-        return res.status(404).json({ error: 'Proposta não encontrada' });
-      }
-
-      // Verifica se existe PDF para a versão
-      const pdfVersions = proposta.pdf_versions || {};
-      const pdfUid = version ? pdfVersions[version] : pdfVersions[proposta.versao];
-
-      if (!pdfUid) {
+      if (!result || !result.pdf_uid) {
         return res.status(404).json({ error: 'PDF não encontrado' });
       }
 
-      // Caminho do arquivo
-      const pdfPath = path.join(__dirname, `../../uploads/pdfs/${pdfUid}.pdf`);
+      // Constrói o caminho do arquivo
+      const pdfPath = path.join(__dirname, `../../uploads/pdfs/${result.pdf_uid}.pdf`);
 
-      // Verifica se o arquivo existe
       try {
+        // Verifica se o arquivo existe
         await fs.access(pdfPath);
-      } catch {
-        return res.status(404).json({ error: 'Arquivo PDF não encontrado' });
+        
+        // Lê e envia o arquivo
+        const fileBuffer = await fs.readFile(pdfPath);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=proposta-${id}.pdf`);
+        res.send(fileBuffer);
+      } catch (error) {
+        console.error('Erro ao acessar arquivo:', error);
+        res.status(404).json({ error: 'Arquivo PDF não encontrado' });
       }
-
-      // Envia o arquivo
-      res.download(pdfPath, `proposta-${id}-v${version || proposta.versao}.pdf`);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      console.error('Erro ao baixar PDF:', error);
+      res.status(500).json({ error: error.message });
     }
   }
 }
