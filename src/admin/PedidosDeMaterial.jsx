@@ -159,9 +159,11 @@ function PedidosDeMaterial() {
             const quantidade = parseFloat(novoItem.quantidade.toString().replace(',', '.')) || 0;
             const valorUnitario = parseFloat(novoItem.valorUnitario.toString().replace(',', '.')) || 0;
             novoItem.valorTotal = (quantidade * valorUnitario).toFixed(2).toString();
+            novoItem.item = (itens.length + 1).toString();
             setItens(prev => [...prev, novoItem]);
         } else {
-            setItens(prev => [...prev, itemAtual]);
+            const novoItem = { ...itemAtual, item: (itens.length + 1).toString() };
+            setItens(prev => [...prev, novoItem]);
         }
         
         setItemAtual({
@@ -237,13 +239,12 @@ function PedidosDeMaterial() {
 
             // Preparar os dados do pedido no formato esperado
             const pedidoParaSalvar = {
-                codigo: document.querySelector('[name="codigo"]').value,
-                fornecedor_id: document.querySelector('[name="fornecedor"]').value,
+                codigo: document.querySelector('[name="codigo"]')?.value || '',
+                fornecedor_id: fornecedorId,
                 cnpj: cnpj,
-                endereco: document.querySelector('[name="endereco"]').value,
+                endereco: endereco,
                 contato: contato,
-                pedido: document.querySelector('[name="pedido"]').value,
-                dataVencto: document.querySelector('[name="dataVencto"]').value,
+                dataVencto: document.querySelector('[name="dataVencto"]')?.value || '',
                 condPagto: dadosPedido.condPagto || '30',
                 frete: dadosPedido.frete || 'CIF',
                 totalBruto,
@@ -252,20 +253,35 @@ function PedidosDeMaterial() {
                 outrasDespesas: dadosPedido.outrasDespesas,
                 informacoesImportantes: dadosPedido.informacoesImportantes,
                 totalFinal,
-                proposta_id: document.querySelector('[name="centroCusto"]').value
+                proposta_id: centroCusto
             };
 
             // Preparar os itens no formato esperado
-            const itensFormatados = itens.map(item => ({
+            const itensFormatados = itens.map((item, index) => ({
                 ...item,
+                item: index + 1,
                 previsaoEntrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
             }));
 
             // Chamar a função de salvar pedido completo
             const resultado = await ApiService.criarPedido(pedidoParaSalvar, itensFormatados);
             
-            // Exibir mensagem de sucesso
-            alert(`Pedido criado com sucesso! ID: ${resultado.id || 'N/A'}`);
+            // Exibir popup de sucesso
+            const successPopup = document.createElement('div');
+            successPopup.className = 'success-popup';
+            successPopup.innerHTML = `
+                <div class="success-popup-content">
+                    <h3>Pedido Gerado com Sucesso!</h3>
+                    <p>O pedido foi criado com o ID: ${resultado.id || 'N/A'}</p>
+                    <button id="closeSuccessPopup">Fechar</button>
+                </div>
+            `;
+            document.body.appendChild(successPopup);
+            
+            // Adicionar evento para fechar o popup
+            document.getElementById('closeSuccessPopup').addEventListener('click', () => {
+                document.body.removeChild(successPopup);
+            });
             
             // Limpar o formulário ou redirecionar
             // window.location.href = '/pedidosDeCompra';
@@ -480,10 +496,6 @@ function PedidosDeMaterial() {
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Pedido:</label>
-                            <input type="text" name="pedido" defaultValue={devMode ? dadosTeste.pedido : ''} />
-                        </div>
-                        <div className="form-group">
                             <label>Data Vencto:</label>
                             <input
                                 type="date"
@@ -584,6 +596,8 @@ function PedidosDeMaterial() {
                                     name="item"
                                     value={itemAtual.item}
                                     onChange={handleInputChange}
+                                    readOnly
+                                    placeholder="Automático"
                                 />
                             </div>
                             <div className="form-group">

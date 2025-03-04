@@ -159,9 +159,11 @@ function PedidosDeServico() {
             const quantidade = parseFloat(novoItem.quantidade.toString().replace(',', '.')) || 0;
             const valorUnitario = parseFloat(novoItem.valorUnitario.toString().replace(',', '.')) || 0;
             novoItem.valorTotal = (quantidade * valorUnitario).toFixed(2).toString();
+            novoItem.item = (itens.length + 1).toString();
             setItens(prev => [...prev, novoItem]);
         } else {
-            setItens(prev => [...prev, itemAtual]);
+            const novoItem = { ...itemAtual, item: (itens.length + 1).toString() };
+            setItens(prev => [...prev, novoItem]);
         }
         
         setItemAtual({
@@ -346,24 +348,49 @@ function PedidosDeServico() {
             const totalFinal = calcularTotalFinal();
 
             const pedidoParaSalvar = {
-                codigo: document.querySelector('[name="codigo"]').value,
-                fornecedor: document.querySelector('[name="fornecedor"]').value,
+                codigo: document.querySelector('[name="codigo"]')?.value || '',
+                fornecedor_id: fornecedorId,
                 cnpj: cnpj,
-                endereco: document.querySelector('[name="endereco"]').value,
+                endereco: endereco,
                 contato: contato,
-                pedido: document.querySelector('[name="pedido"]').value,
-                dataVencto: document.querySelector('[name="dataVencto"]').value,
+                dataVencto: document.querySelector('[name="dataVencto"]')?.value || '',
+                condPagto: dadosPedido.condPagto || '30',
+                frete: dadosPedido.frete || 'CIF',
                 totalBruto,
                 totalDescontos,
                 valorFrete: dadosPedido.valorFrete,
                 outrasDespesas: dadosPedido.outrasDespesas,
+                informacoesImportantes: dadosPedido.informacoesImportantes,
                 totalFinal,
+                proposta_id: centroCusto,
                 previsaoEntrega: new Date().toISOString().split('T')[0]
             };
 
-            const { numeroPedido } = await ApiService.criarPedido(pedidoParaSalvar, itens);
-            // const numeroPedido = '1234567890';
-            // alterar depois quando o back estiver fazendo
+            // Preparar os itens no formato esperado
+            const itensFormatados = itens.map((item, index) => ({
+                ...item,
+                item: index + 1, // Garantir que os itens estão numerados sequencialmente
+                previsaoEntrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+            }));
+
+            const resultado = await ApiService.criarPedido(pedidoParaSalvar, itensFormatados);
+            
+            // Exibir popup de sucesso
+            const successPopup = document.createElement('div');
+            successPopup.className = 'success-popup';
+            successPopup.innerHTML = `
+                <div class="success-popup-content">
+                    <h3>Pedido Gerado com Sucesso!</h3>
+                    <p>O pedido foi criado com o ID: ${resultado.id || 'N/A'}</p>
+                    <button id="closeSuccessPopup">Fechar</button>
+                </div>
+            `;
+            document.body.appendChild(successPopup);
+            
+            // Adicionar evento para fechar o popup
+            document.getElementById('closeSuccessPopup').addEventListener('click', () => {
+                document.body.removeChild(successPopup);
+            });
 
             const formatarValorMonetario = (valor) => {
                 if (!valor) return '0,00';
@@ -391,7 +418,7 @@ function PedidosDeServico() {
             
             templateHtml = templateHtml.replace(
                 /<td>20000001<\/td>\s*<td>12\/12\/2024<\/td>\s*<td>1<\/td>/,
-                `<td>${numeroPedido}</td><td>${dataFormatada}</td><td>1</td>`
+                `<td>${resultado.id}</td><td>${dataFormatada}</td><td>1</td>`
             );
 
             templateHtml = templateHtml.replace(
@@ -638,10 +665,6 @@ function PedidosDeServico() {
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Pedido:</label>
-                            <input type="text" name="pedido" defaultValue={devMode ? dadosTeste.pedido : ''} />
-                        </div>
-                        <div className="form-group">
                             <label>Data Vencto:</label>
                             <input
                                 type="date"
@@ -704,6 +727,8 @@ function PedidosDeServico() {
                                     name="item"
                                     value={itemAtual.item}
                                     onChange={handleInputChange}
+                                    readOnly
+                                    placeholder="Automático"
                                 />
                             </div>
                             <div className="form-group">

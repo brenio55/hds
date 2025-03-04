@@ -159,9 +159,11 @@ function PedidosDeLocacao() {
             const quantidade = parseFloat(novoItem.quantidade.toString().replace(',', '.')) || 0;
             const valorUnitario = parseFloat(novoItem.valorUnitario.toString().replace(',', '.')) || 0;
             novoItem.valorTotal = (quantidade * valorUnitario).toFixed(2).toString();
+            novoItem.item = (itens.length + 1).toString();
             setItens(prev => [...prev, novoItem]);
         } else {
-            setItens(prev => [...prev, itemAtual]);
+            const novoItem = { ...itemAtual, item: (itens.length + 1).toString() };
+            setItens(prev => [...prev, novoItem]);
         }
         
         setItemAtual({
@@ -341,220 +343,68 @@ function PedidosDeLocacao() {
     const handleGerarPedido = async () => {
         try {
             const formatarValorMonetario = (valor) => {
-                if (!valor) return '0,00';
-                return typeof valor === 'string' ? valor : valor.toString().replace('.', ',');
+                const valorNumerico = parseFloat(valor.replace(',', '.')) || 0;
+                return valorNumerico.toFixed(2).replace('.', ',');
             };
 
-            // Calcular todos os totais uma única vez no início
             const totalBruto = calcularTotalBruto();
-            const ipiTotal = calcularTotalIPI();
+            const totalIPI = calcularTotalIPI();
             const totalDescontos = calcularTotalDescontos();
             const totalFinal = calcularTotalFinal();
             const valorFrete = formatarValorMonetario(dadosPedido.valorFrete);
             const outrasDespesas = formatarValorMonetario(dadosPedido.outrasDespesas);
 
+            // Preparar os dados do pedido no formato esperado
             const pedidoParaSalvar = {
-                codigo: document.querySelector('[name="codigo"]').value,
-                fornecedor: document.querySelector('[name="fornecedor"]').value,
+                codigo: document.querySelector('[name="codigo"]')?.value || '',
+                fornecedor_id: fornecedorId,
                 cnpj: cnpj,
-                endereco: document.querySelector('[name="endereco"]').value,
+                endereco: endereco,
                 contato: contato,
-                pedido: document.querySelector('[name="pedido"]').value,
-                dataVencto: document.querySelector('[name="dataVencto"]').value,
+                dataVencto: document.querySelector('[name="dataVencto"]')?.value || '',
+                condPagto: dadosPedido.condPagto || '30',
+                frete: dadosPedido.frete || 'CIF',
                 totalBruto,
                 totalDescontos,
                 valorFrete: dadosPedido.valorFrete,
                 outrasDespesas: dadosPedido.outrasDespesas,
+                informacoesImportantes: dadosPedido.informacoesImportantes,
                 totalFinal,
-                previsaoEntrega: new Date().toISOString().split('T')[0]
+                proposta_id: centroCusto
             };
 
-            const { numeroPedido } = await ApiService.criarPedido(pedidoParaSalvar, itens);
-            // const numeroPedido = '1234567890';
-            // alterar depois quando o back estiver fazendo
+            // Preparar os itens no formato esperado
+            const itensFormatados = itens.map((item, index) => ({
+                ...item,
+                item: index + 1, // Garantir que os itens estão numerados sequencialmente
+                previsaoEntrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+            }));
 
-            // Carregar a imagem como base64
-            const logoResponse = await fetch('/docs/admin/LOGO.png');
-            const logoBlob = await logoResponse.blob();
-            const logoBase64 = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(logoBlob);
-            });
-
-            const response = await fetch('/docs/admin/pedidoDeCompraTemplateCode.html');
-            let templateHtml = await response.text();
-
-            // Substitui a referência da imagem no template com a versão base64
-            templateHtml = templateHtml.replace(
-                /<img[^>]*>/,
-                `<img src="${logoBase64}" alt="Logo" class="logo" style="height: 80px;">`
-            );
-
-            // Substituir "Pedido de Compra" por "Pedido de Locação"
-            templateHtml = templateHtml.replace(/PEDIDO DE COMPRA DE MATERIAL/g, 'PEDIDO DE LOCAÇÃO');
-
-            // Atualizar a tabela de detalhes do pedido
-            const hoje = new Date();
-            const dataFormatada = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
+            // Chamar a função de salvar pedido completo
+            const resultado = await ApiService.criarPedido(pedidoParaSalvar, itensFormatados);
             
-            // Atualizar informações do cabeçalho
-            templateHtml = templateHtml.replace(/<td>20000001<\/td>\s*<td>12\/12\/2024<\/td>\s*<td>1<\/td>/, 
-                `<td>${numeroPedido}</td><td>${dataFormatada}</td><td>1</td>`);
-
-            // Atualizar detalhes do pedido
-            templateHtml = templateHtml.replace(
-                /<td>12345<\/td>\s*<td>Fornecedor XYZ<\/td>\s*<td>00\.000\.000\/0000-00<\/td>\s*<td>Rua Exemplo, 123<\/td>\s*<td>12000-000<\/td>\s*<td>\(12\) 3456-7890<\/td>/,
-                `<td>${document.querySelector('[name="codigo"]').value}</td>
-                <td>${document.querySelector('[name="fornecedor"]').value}</td>
-                <td>${cnpj}</td>
-                <td>${document.querySelector('[name="endereco"]').value}</td>
-                <td>${cep}</td>
-                <td>${contato}</td>`
-            );
-
-            // Atualizar informações do pedido
-            templateHtml = templateHtml.replace(
-                /<td>001<\/td>\s*<td>01\/01\/2024<\/td>\s*<td>À vista<\/td>\s*<td>Financeiro<\/td>/,
-                `<td>${document.querySelector('[name="pedido"]').value}</td>
-                <td>${formatarData(document.querySelector('[name="dataVencto"]').value)}</td>
-                <td>${dadosPedido.condPagto || 'N/A'}</td>
-                <td>${document.querySelector('[name="centroCusto"]')?.value || 'N/A'}</td>`
-            );
-
-            // Substituir a tabela de totais
-            const totaisPattern = /<table class="totals-table">[\s\S]*?<\/table>/;
-            const novaTabelaTotais = `
-                <table class="totals-table">
-                    <tr>
-                        <th>Total Bruto</th>
-                        <td>R$ ${totalBruto}</td>
-                    </tr>
-                    <tr>
-                        <th>(+) IPI</th>
-                        <td>R$ ${ipiTotal}</td>
-                    </tr>
-                    <tr>
-                        <th>(+) Frete</th>
-                        <td>R$ ${valorFrete}</td>
-                    </tr>
-                    <tr>
-                        <th>(+) Outras despesas</th>
-                        <td>R$ ${outrasDespesas}</td>
-                    </tr>
-                    <tr>
-                        <th>(-) Desconto</th>
-                        <td>R$ ${totalDescontos}</td>
-                    </tr>
-                    <tr>
-                        <th>(=) Total Final</th>
-                        <td>R$ ${totalFinal}</td>
-                    </tr>
-                </table>
+            // Exibir popup de sucesso
+            const successPopup = document.createElement('div');
+            successPopup.className = 'success-popup';
+            successPopup.innerHTML = `
+                <div class="success-popup-content">
+                    <h3>Pedido Gerado com Sucesso!</h3>
+                    <p>O pedido foi criado com o ID: ${resultado.id || 'N/A'}</p>
+                    <button id="closeSuccessPopup">Fechar</button>
+                </div>
             `;
-
-            templateHtml = templateHtml.replace(totaisPattern, novaTabelaTotais);
-
-            // Atualizar data final de entrega
-            templateHtml = templateHtml.replace(
-                /<td>15\/01\/2024<\/td>/,
-                `<td>${dadosPedido.prazoEntrega || 'A combinar'}</td>`
-            );
-
-            // Atualizar a tabela de itens
-            const tabelaItens = itens.map((item, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${item.descricao}</td>
-                    <td>${item.unidade}</td>
-                    <td>${item.quantidade}</td>
-                    <td>R$ ${formatarValorMonetario(item.valorUnitario)}</td>
-                    <td>R$ ${formatarValorMonetario(item.valorTotal)}</td>
-                    <td>${item.ipi}%</td>
-                    <td>${formatarData(item.previsaoEntrega)}</td>
-                </tr>
-            `).join('');
-
-            // Substituir a tabela de itens
-            const materiaisPattern = /<tr>\s*<td>1<\/td>[\s\S]*?<td>Material A<\/td>[\s\S]*?<td>Material B<\/td>[\s\S]*?<\/tr>/;
-            templateHtml = templateHtml.replace(materiaisPattern, tabelaItens);
-
-            // Atualizar os totais
-            templateHtml = templateHtml.replace(
-                /<th>Total Bruto<\/th>\s*<td>R\$ 2\.144,00<\/td>/,
-                `<th>Total Bruto</th><td>R$ ${totalBruto}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<th>\(\+\) IPI<\/th>\s*<td>R\$ -<\/td>/,
-                `<th>(+) IPI</th><td>R$ ${ipiTotal}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<th>\(\+\) Frete<\/th>\s*<td>R\$ 100,00<\/td>/,
-                `<th>(+) Frete</th><td>R$ ${valorFrete}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<th>\(\+\) Outras despesas<\/th>\s*<td>R\$ -<\/td>/,
-                `<th>(+) Outras despesas</th><td>R$ ${outrasDespesas}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<th>\(-\) Desconto<\/th>\s*<td>R\$ -<\/td>/,
-                `<th>(-) Desconto</th><td>R$ ${totalDescontos}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<th>\(=\) Total Final<\/th>\s*<td>R\$ 2\.244,00<\/td>/,
-                `<th>(=) Total Final</th><td>R$ ${totalFinal}</td>`
-            );
-
-            // Atualizar Dados Adicionais
-            const dadosAdicionaisText = `Pedido ${numeroPedido}
-Obra: ${document.querySelector('[name="centroCusto"]')?.value || 'N/A'}
-${dadosPedido.informacoesImportantes || ''}`;
-
-            templateHtml = templateHtml.replace(
-                /<h2>Dados Adicionais<\/h2>\s*<table>\s*<tr>\s*<td><\/td>\s*<\/tr>\s*<\/table>/,
-                `<h2>Dados Adicionais</h2>
-                <table>
-                    <tr>
-                        <td>${dadosAdicionaisText.replace(/\n/g, '<br>')}</td>
-                    </tr>
-                </table>`
-            );
-
-            // Atualizar os textos das seções
-            const sections = {
-                'Informações Importantes': 'Frete: (${dadosPedido.frete === "CIF" ? "X" : "  "}) CIF     (${dadosPedido.frete === "FOB" ? "X" : "  "}) FOB',
-                'Os Preços': 'Incluso nos preços todas as taxas, tributos e impostos pertencentes a aquisição',
-                'Prazo de Entrega': 'Material somente poderá ser entregue de acordo com programação da obra e caso o fornecedor não atenda esta programação, fica a CONTRATANTE autorizada a comprar o material de outros fornecedores e proceder o desconto da diferença do FORNECEDOR',
-                'EPIS': 'O FORNECEDOR terá que munir seus funcionários com os EPIs adequados a entrega e/ou descarga, conforme OSMA 024',
-                'Pagamento': 'Somente serão consideradas para efeito de pagamento, as quantidades aceitas durante a entrega na obra. Quando for o caso, somente serão consideradas as pesagens que forem efetuadas na balança da CONTRATANTE ou em outra indicada pela mesma. Serão consideradas a cubicagem efetuada pelo apontador da CONTRATANTE, devidamente anotada no canhoto da Nota Fiscal. Para efeito de pagamento, o prazo fixado no presente pedido de fornecimento será contado da data de entrega da mercadoria, incluindo-se nesta contagem o dia de emissão da respectiva Nota Fiscal. Todavia, caso o material solicitado não seja entregue na data da emissão da Nota Fiscal, o prazo para pagamento aqui estabelecido ficará prorrogado por tantos dias quantos forem os de atraso, sem quaisquer õnus para a CONTRATANTE. O FORNECEDOR deverá discriminar no corpo da Nota Fiscal o endereço da obra. Caso as faturas sejam emitidas com incorreções ou encaminhadas para o endereço diferente do indicado, as mesmas serão devolvidas e o prazo de pagamento passará a ser contado a partir da reapresentação das notas devidamente corrigidas no protocolo da CONTRATANTE.',
-                // ... continuar com as outras seções ...
-            };
-
-            Object.entries(sections).forEach(([title, content]) => {
-                templateHtml = templateHtml.replace(
-                    new RegExp(`<h2>${title}</h2>[\\s\\S]*?<\\/table>`),
-                    `<h2>${title}</h2>
-                    <table>
-                        <tr>
-                            <td>${content}</td>
-                        </tr>
-                    </table>`
-                );
+            document.body.appendChild(successPopup);
+            
+            // Adicionar evento para fechar o popup
+            document.getElementById('closeSuccessPopup').addEventListener('click', () => {
+                document.body.removeChild(successPopup);
             });
-
-            // Criar o Blob e abrir em nova janela
-            const blob = new Blob([templateHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            URL.revokeObjectURL(url);
+            
+            // Limpar o formulário ou redirecionar
+            // window.location.href = '/pedidosDeCompra';
         } catch (error) {
-            console.error('Erro ao gerar pedido:', error);
-            alert('Erro ao gerar pedido. Por favor, tente novamente.');
+            console.error('Erro ao criar pedido:', error);
+            alert(`Erro ao criar pedido: ${error.message}`);
         }
     };
 
@@ -664,16 +514,22 @@ ${dadosPedido.informacoesImportantes || ''}`;
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Pedido:</label>
-                            <input type="text" name="pedido" defaultValue={devMode ? dadosTeste.pedido : ''} />
-                        </div>
-                        <div className="form-group">
                             <label>Data Vencto:</label>
                             <input
                                 type="date"
                                 name="dataVencto"
                                 min={minDate}
                                 defaultValue={devMode ? dadosTeste.dataVencto : ''}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Condição de Pagamento (DDL):</label>
+                            <input 
+                                type="number" 
+                                name="condPagto" 
+                                value={dadosPedido.condPagto} 
+                                onChange={handleDadosPedidoChange} 
+                                placeholder="30"
                             />
                         </div>
                         <div className="form-group">
@@ -730,6 +586,8 @@ ${dadosPedido.informacoesImportantes || ''}`;
                                     name="item"
                                     value={itemAtual.item}
                                     onChange={handleInputChange}
+                                    readOnly
+                                    placeholder="Automático"
                                 />
                             </div>
                             <div className="form-group">
@@ -905,15 +763,6 @@ ${dadosPedido.informacoesImportantes || ''}`;
                             </div>
                         </div>
                         <div className="form-row">
-                            <div className="form-group">
-                                <label>Cond. Pagto:</label>
-                                <input
-                                    type="text"
-                                    name="condPagto"
-                                    value={dadosPedido.condPagto}
-                                    onChange={handleDadosPedidoChange}
-                                />
-                            </div>
                             <div className="form-group">
                                 <label>Prazo de Entrega:</label>
                                 <input
