@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CadastrarFornecedor.css';
 import HeaderAdmin from './HeaderAdmin';
+import ApiService from '../services/ApiService';
 
 function CadastrarFornecedor() {
     const navigate = useNavigate();
@@ -38,21 +39,7 @@ function CadastrarFornecedor() {
         setSuccess(null);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fornecedores`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erro ao cadastrar fornecedor');
-            }
-
-            const data = await response.json();
+            await ApiService.criarFornecedor(formData);
             setSuccess('Fornecedor cadastrado com sucesso!');
             
             // Limpar o formulário após o sucesso

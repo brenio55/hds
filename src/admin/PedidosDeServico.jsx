@@ -25,6 +25,11 @@ function PedidosDeServico() {
     const [cep, setCep] = useState('');
     const [contato, setContato] = useState('');
     const [devMode, setDevMode] = useState(false);
+    const [fornecedorId, setFornecedorId] = useState('');
+    const [fornecedorNome, setFornecedorNome] = useState('');
+    const [endereco, setEndereco] = useState('');
+    const [loadingFornecedor, setLoadingFornecedor] = useState(false);
+    const [errorFornecedor, setErrorFornecedor] = useState('');
     const [dadosPedido, setDadosPedido] = useState({
         valorFrete: '0,00',
         outrasDespesas: '0,00',
@@ -212,6 +217,47 @@ function PedidosDeServico() {
         if (devMode) return;
         const formatted = formatTelefone(e.target.value);
         setContato(formatted);
+    };
+
+    const handleFornecedorIdChange = async (e) => {
+        const id = e.target.value;
+        setFornecedorId(id);
+        
+        if (id && id.trim() !== '') {
+            setLoadingFornecedor(true);
+            setErrorFornecedor('');
+            
+            try {
+                const fornecedor = await ApiService.buscarFornecedorPorId(id);
+                
+                // Preencher os campos com os dados do fornecedor
+                setFornecedorNome(fornecedor.razao_social || '');
+                setCnpj(formatCNPJ(fornecedor.cnpj || ''));
+                setEndereco(fornecedor.endereco || '');
+                setCep(formatCEP(fornecedor.cep || ''));
+                setContato(formatTelefone(fornecedor.telefone || fornecedor.celular || ''));
+                
+            } catch (error) {
+                console.error('Erro ao buscar fornecedor:', error);
+                setErrorFornecedor('Fornecedor não encontrado');
+                
+                // Limpar os campos em caso de erro
+                setFornecedorNome('');
+                setCnpj('');
+                setEndereco('');
+                setCep('');
+                setContato('');
+            } finally {
+                setLoadingFornecedor(false);
+            }
+        } else {
+            // Limpar os campos se o ID estiver vazio
+            setFornecedorNome('');
+            setCnpj('');
+            setEndereco('');
+            setCep('');
+            setContato('');
+        }
     };
 
     const handleGerarPedido = async () => {
@@ -429,12 +475,25 @@ function PedidosDeServico() {
                 <form onSubmit={handleSubmit}>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Código:</label>
-                            <input type="text" name="codigo" defaultValue={devMode ? dadosTeste.codigo : ''} />
+                            <label>Código do Fornecedor:</label>
+                            <input 
+                                type="text" 
+                                name="fornecedorId" 
+                                value={fornecedorId}
+                                onChange={handleFornecedorIdChange}
+                                placeholder="Digite o ID do fornecedor" 
+                            />
+                            {loadingFornecedor && <span className="loading-text">Carregando...</span>}
+                            {errorFornecedor && <span className="error-text">{errorFornecedor}</span>}
                         </div>
                         <div className="form-group">
                             <label>Fornecedor:</label>
-                            <input type="text" name="fornecedor" defaultValue={devMode ? dadosTeste.fornecedor : ''} />
+                            <input 
+                                type="text" 
+                                name="fornecedor" 
+                                value={fornecedorNome}
+                                readOnly 
+                            />
                         </div>
                         <div className="form-group">
                             <label>CNPJ:</label>
@@ -443,13 +502,19 @@ function PedidosDeServico() {
                                 value={cnpj}
                                 onChange={handleCNPJChange}
                                 maxLength="18"
+                                readOnly
                             />
                         </div>
                     </div>
                     <div className="form-row">
                         <div className="form-group">
                             <label>Endereço:</label>
-                            <input type="text" name="endereco" defaultValue={devMode ? dadosTeste.endereco : ''} />
+                            <input 
+                                type="text" 
+                                name="endereco" 
+                                value={endereco}
+                                readOnly 
+                            />
                         </div>
                         <div className="form-group">
                             <label>CEP:</label>
@@ -458,6 +523,7 @@ function PedidosDeServico() {
                                 value={cep}
                                 onChange={handleCEPChange}
                                 maxLength="9"
+                                readOnly
                             />
                         </div>
                         <div className="form-group">
@@ -467,6 +533,7 @@ function PedidosDeServico() {
                                 value={contato}
                                 onChange={handleContatoChange}
                                 maxLength="15"
+                                readOnly
                             />
                         </div>
                     </div>

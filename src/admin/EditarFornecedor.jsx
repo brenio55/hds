@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './CadastrarFornecedor.css'; // Reutilizamos o mesmo CSS
 import HeaderAdmin from './HeaderAdmin';
+import ApiService from '../services/ApiService';
 
 function EditarFornecedor() {
     const navigate = useNavigate();
@@ -31,18 +32,7 @@ function EditarFornecedor() {
             setError(null);
             
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fornecedores/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar dados do fornecedor');
-                }
-
-                const data = await response.json();
+                const data = await ApiService.buscarFornecedorPorId(id);
                 setFormData(data);
             } catch (error) {
                 console.error('Erro ao buscar fornecedor:', error);
@@ -70,21 +60,7 @@ function EditarFornecedor() {
         setSuccess(null);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fornecedores/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erro ao atualizar fornecedor');
-            }
-
-            const data = await response.json();
+            await ApiService.atualizarFornecedor(id, formData);
             setSuccess('Fornecedor atualizado com sucesso!');
             
             // Redirecionar para a página de consulta após 2 segundos

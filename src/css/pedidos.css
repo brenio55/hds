@@ -70,6 +70,18 @@
   color: #e74c3c;
   margin-left: 4px;
 }
+.pedidos-container form .loading-text {
+  font-size: 0.8rem;
+  color: #3498db;
+  margin-left: 5px;
+  font-style: italic;
+}
+.pedidos-container form .error-text {
+  font-size: 0.8rem;
+  color: #e74c3c;
+  margin-left: 5px;
+  font-weight: bold;
+}
 .pedidos-container .items-section, .pedidos-container .totals-section, .pedidos-container .additional-info {
   background: #f8f9fa;
   padding: 15px;

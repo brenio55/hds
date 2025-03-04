@@ -23,18 +23,7 @@ function ConsultarFornecedores() {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fornecedores`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar fornecedores');
-            }
-
-            const data = await response.json();
+            const data = await ApiService.buscarFornecedores();
             setFornecedores(data);
         } catch (error) {
             console.error('Erro ao buscar fornecedores:', error);
@@ -55,24 +44,7 @@ function ConsultarFornecedores() {
             .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
 
         try {
-            // Construir a URL com os parâmetros de consulta
-            const queryParams = new URLSearchParams();
-            Object.entries(filtrosPreenchidos).forEach(([key, value]) => {
-                queryParams.append(key, value);
-            });
-
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fornecedores?${queryParams}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar fornecedores');
-            }
-
-            const data = await response.json();
+            const data = await ApiService.buscarFornecedores(filtrosPreenchidos);
             setFornecedores(data);
         } catch (error) {
             console.error('Erro ao buscar fornecedores:', error);

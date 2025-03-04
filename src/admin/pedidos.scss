@@ -77,6 +77,20 @@
                 margin-left: 4px;
             }
         }
+
+        .loading-text {
+            font-size: 0.8rem;
+            color: #3498db;
+            margin-left: 5px;
+            font-style: italic;
+        }
+
+        .error-text {
+            font-size: 0.8rem;
+            color: #e74c3c;
+            margin-left: 5px;
+            font-weight: bold;
+        }
     }
 
     .items-section, .totals-section, .additional-info {

@@ -636,6 +636,91 @@ class ApiService {
             }
         ];
     }
+
+    // Métodos relacionados a Fornecedores
+    static async buscarFornecedores(filtros = {}) {
+        try {
+            // Construir a URL com os parâmetros de consulta
+            const queryParams = new URLSearchParams();
+            Object.entries(filtros)
+                .filter(([_, value]) => value && value.trim() !== '')
+                .forEach(([key, value]) => {
+                    queryParams.append(key, value);
+                });
+
+            const url = `${API_URL}/api/fornecedores${queryParams.toString() ? `?${queryParams}` : ''}`;
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao buscar fornecedores');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao buscar fornecedores:', error);
+            throw error;
+        }
+    }
+
+    static async buscarFornecedorPorId(id) {
+        try {
+            const response = await fetch(`${API_URL}/api/fornecedores/${id}`, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao buscar fornecedor');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao buscar fornecedor:', error);
+            throw error;
+        }
+    }
+
+    static async criarFornecedor(dadosFornecedor) {
+        try {
+            const response = await fetch(`${API_URL}/api/fornecedores`, {
+                method: 'POST',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosFornecedor)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao criar fornecedor');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao criar fornecedor:', error);
+            throw error;
+        }
+    }
+
+    static async atualizarFornecedor(id, dadosFornecedor) {
+        try {
+            const response = await fetch(`${API_URL}/api/fornecedores/${id}`, {
+                method: 'PUT',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosFornecedor)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao atualizar fornecedor');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao atualizar fornecedor:', error);
+            throw error;
+        }
+    }
 }
 
 export default ApiService; 

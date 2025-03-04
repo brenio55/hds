@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './VisualizarFornecedor.css';
 import HeaderAdmin from './HeaderAdmin';
+import ApiService from '../services/ApiService';
 
 function VisualizarFornecedor() {
     const navigate = useNavigate();
@@ -16,18 +17,7 @@ function VisualizarFornecedor() {
             setError(null);
             
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fornecedores/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar dados do fornecedor');
-                }
-
-                const data = await response.json();
+                const data = await ApiService.buscarFornecedorPorId(id);
                 setFornecedor(data);
             } catch (error) {
                 console.error('Erro ao buscar fornecedor:', error);
