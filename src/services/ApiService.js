@@ -291,9 +291,12 @@ export const propostasService = {
         }
     },
 
-    async buscarPropostas() {
+    async buscarPropostas(filtros = {}) {
         try {
-            const response = await fetch(`${API_URL}/api/propostas`, {
+            const queryParams = new URLSearchParams(filtros).toString();
+            const url = `${API_URL}/api/propostas/search${queryParams ? `?${queryParams}` : ''}`;
+            
+            const response = await fetch(url, {
                 headers: createAuthHeaders()
             });
 
