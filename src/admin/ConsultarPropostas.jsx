@@ -99,7 +99,13 @@ function ConsultarPropostas() {
 
     const formatarData = (dataString) => {
         if (!dataString) return '';
-        const data = new Date(dataString);
+        
+        // Extrair a data diretamente da string ISO, ignorando o fuso horário
+        const [ano, mes, dia] = dataString.split('T')[0].split('-');
+        
+        // Criar a data usando o fuso horário local, definindo o horário como meio-dia para evitar problemas com DST
+        const data = new Date(ano, mes - 1, dia, 12, 0, 0);
+        
         return data.toLocaleDateString('pt-BR');
     };
 

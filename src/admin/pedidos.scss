@@ -71,7 +71,7 @@
                 }
             }
 
-            select.fornecedor-select {
+            select.fornecedor-select, select.proposta-select {
                 background-color: #f8f9fa;
                 cursor: pointer;
                 
@@ -81,6 +81,16 @@
                 
                 option {
                     padding: 8px;
+                }
+            }
+
+            select.proposta-select {
+                font-size: 0.85rem;
+                
+                option {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
             }
 

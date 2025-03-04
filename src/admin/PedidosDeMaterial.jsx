@@ -40,6 +40,10 @@ function PedidosDeMaterial() {
     });
     const [listaFornecedores, setListaFornecedores] = useState([]);
     const [loadingListaFornecedores, setLoadingListaFornecedores] = useState(false);
+    const [listaPropostas, setListaPropostas] = useState([]);
+    const [loadingPropostas, setLoadingPropostas] = useState(false);
+    const [centroCusto, setCentroCusto] = useState('');
+    const [propostaSelecionada, setPropostaSelecionada] = useState(null);
 
     const dadosTeste = {
         codigo: '001',
@@ -96,6 +100,9 @@ function PedidosDeMaterial() {
         
         // Carregar lista de fornecedores
         carregarFornecedores();
+        
+        // Carregar lista de propostas para o centro de custo
+        carregarPropostas();
     }, []);
 
     const carregarFornecedores = async () => {
@@ -107,6 +114,18 @@ function PedidosDeMaterial() {
             console.error('Erro ao carregar lista de fornecedores:', error);
         } finally {
             setLoadingListaFornecedores(false);
+        }
+    };
+
+    const carregarPropostas = async () => {
+        setLoadingPropostas(true);
+        try {
+            const data = await ApiService.buscarPropostas();
+            setListaPropostas(data.propostas || []);
+        } catch (error) {
+            console.error('Erro ao carregar propostas:', error);
+        } finally {
+            setLoadingPropostas(false);
         }
     };
 
@@ -351,6 +370,18 @@ function PedidosDeMaterial() {
         }
     };
 
+    const handlePropostaChange = (e) => {
+        const propostaId = e.target.value;
+        setCentroCusto(propostaId);
+        
+        if (propostaId) {
+            const proposta = listaPropostas.find(p => p.id === propostaId);
+            setPropostaSelecionada(proposta);
+        } else {
+            setPropostaSelecionada(null);
+        }
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         await handleGerarPedido();
@@ -475,7 +506,34 @@ function PedidosDeMaterial() {
                     <div className="form-row">
                         <div className="form-group">
                             <label>Centro de Custo:</label>
-                            <input type="text" name="centroCusto" defaultValue={devMode ? dadosTeste.centroCusto : ''} />
+                            <div className="input-with-dropdown">
+                                <input 
+                                    type="text" 
+                                    name="centroCusto" 
+                                    value={centroCusto}
+                                    onChange={(e) => setCentroCusto(e.target.value)}
+                                    placeholder="Digite o centro de custo" 
+                                />
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Selecionar Proposta (Centro de Custo):</label>
+                            <select 
+                                onChange={handlePropostaChange}
+                                value={centroCusto || ''}
+                                className="proposta-select"
+                            >
+                                <option value="">Selecione uma proposta</option>
+                                {loadingPropostas ? (
+                                    <option disabled>Carregando propostas...</option>
+                                ) : (
+                                    listaPropostas.map(proposta => (
+                                        <option key={proposta.id} value={proposta.id}>
+                                            {proposta.id} - {proposta.descricao} ({proposta.client_info?.nome || proposta.client_info?.razao_social || 'Cliente'})
+                                        </option>
+                                    ))
+                                )}
+                            </select>
                         </div>
                         <div className="form-group">
                             <label>Tipo de Frete:</label>
@@ -488,6 +546,8 @@ function PedidosDeMaterial() {
                                 <option value="FOB">FOB (Frete por conta do destinatário)</option>
                             </select>
                         </div>
+                    </div>
+                    <div className="form-row">
                         <div className="form-group">
                             <label>Valor do Frete:</label>
                             <input 
@@ -498,8 +558,6 @@ function PedidosDeMaterial() {
                                 placeholder="0,00"
                             />
                         </div>
-                    </div>
-                    <div className="form-row">
                         <div className="form-group">
                             <label>Outras Despesas:</label>
                             <input 
@@ -510,7 +568,6 @@ function PedidosDeMaterial() {
                                 placeholder="0,00"
                             />
                         </div>
-                     
                         <div className="form-group">
                             <label>Total Final:</label>
                             <input type="text" value={calcularTotalFinal()} readOnly />

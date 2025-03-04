@@ -65,15 +65,23 @@
   font-size: 0.8rem;
   margin-top: 4px;
 }
-.pedidos-container form .form-group select.fornecedor-select {
+.pedidos-container form .form-group select.fornecedor-select, .pedidos-container form .form-group select.proposta-select {
   background-color: #f8f9fa;
   cursor: pointer;
 }
-.pedidos-container form .form-group select.fornecedor-select:hover {
+.pedidos-container form .form-group select.fornecedor-select:hover, .pedidos-container form .form-group select.proposta-select:hover {
   background-color: #f1f3f5;
 }
-.pedidos-container form .form-group select.fornecedor-select option {
+.pedidos-container form .form-group select.fornecedor-select option, .pedidos-container form .form-group select.proposta-select option {
   padding: 8px;
+}
+.pedidos-container form .form-group select.proposta-select {
+  font-size: 0.85rem;
+}
+.pedidos-container form .form-group select.proposta-select option {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .pedidos-container form .form-group .input-with-dropdown {
   position: relative;
