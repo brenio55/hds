@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Pedido de Locação</title>
+    <style>
+        @page {
+            margin: 20mm;
+            size: A4;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: top;
+            margin-bottom: 50px;
+        }
+        .logo-horizontal {
+            height: 40px;
+            width: auto;
+        }
+        .titulo-principal {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        .titulo-principal h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th {
+            background-color: #333;
+            color: white;
+            padding: 8px;
+            text-align: left;
+        }
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .secao {
+            margin-bottom: 30px;
+        }
+        .secao-titulo {
+            background-color: #333;
+            color: white;
+            padding: 8px 15px;
+            margin: 25px 0 15px 0;
+            font-weight: bold;
+        }
+        .totais {
+            width: 300px;
+            margin-left: auto;
+            margin-bottom: 20px;
+        }
+        .assinaturas {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .assinatura {
+            text-align: center;
+            width: 45%;
+        }
+        .linha-assinatura {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{logoHorizontalSrc}}" alt="Logo" class="logo-horizontal">
+        <div>
+            <div>PEDIDO DE LOCAÇÃO</div>
+            <div>Nº {{id}}</div>
+            <div>Data: {{formatDate created_at}}</div>
+        </div>
+    </div>
+
+    <div class="secao">
+        <div class="secao-titulo">DADOS DO FORNECEDOR</div>
+        <table>
+            <tr>
+                <td><strong>Razão Social:</strong></td>
+                <td>{{fornecedor.razao_social}}</td>
+                <td><strong>CNPJ:</strong></td>
+                <td>{{fornecedor.cnpj}}</td>
+            </tr>
+            <tr>
+                <td><strong>Inscrição Estadual:</strong></td>
+                <td>{{fornecedor.inscricao_estadual}}</td>
+                <td><strong>Inscrição Municipal:</strong></td>
+                <td>{{fornecedor.inscricao_municipal}}</td>
+            </tr>
+            <tr>
+                <td><strong>Endereço:</strong></td>
+                <td>{{fornecedor.endereco}}</td>
+                <td><strong>CEP:</strong></td>
+                <td>{{fornecedor.cep}}</td>
+            </tr>
+            <tr>
+                <td><strong>Município/UF:</strong></td>
+                <td>{{fornecedor.municipio_uf}}</td>
+                <td><strong>Contato:</strong></td>
+                <td>{{fornecedor.contato}}</td>
+            </tr>
+            <tr>
+                <td><strong>Telefone:</strong></td>
+                <td>{{fornecedor.telefone}}</td>
+                <td><strong>Email:</strong></td>
+                <td>{{fornecedor.email}}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="secao">
+        <div class="secao-titulo">ITENS DO PEDIDO</div>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Descrição</th>
+                <th>Un.</th>
+                <th>Qtde</th>
+                <th>IPI %</th>
+                <th>Valor Unit.</th>
+                <th>Valor Total</th>
+                <th>Prev. Entrega</th>
+            </tr>
+            {{#each itens}}
+            <tr>
+                <td>{{@index}}</td>
+                <td>{{descricao}}</td>
+                <td>{{unidade}}</td>
+                <td>{{quantidade}}</td>
+                <td>{{ipi}}</td>
+                <td>R$ {{valor_unitario}}</td>
+                <td>R$ {{valor_total}}</td>
+                <td>{{previsao_entrega}}</td>
+            </tr>
+            {{/each}}
+        </table>
+    </div>
+
+    <div class="secao">
+        <div class="secao-titulo">TOTAIS</div>
+        <table class="totais">
+            <tr>
+                <td><strong>Total Bruto:</strong></td>
+                <td>R$ {{total_bruto}}</td>
+            </tr>
+            <tr>
+                <td><strong>Total IPI:</strong></td>
+                <td>R$ {{total_ipi}}</td>
+            </tr>
+            <tr>
+                <td><strong>Descontos:</strong></td>
+                <td>R$ {{total_descontos}}</td>
+            </tr>
+            <tr>
+                <td><strong>Frete:</strong></td>
+                <td>R$ {{valor_frete}}</td>
+            </tr>
+            <tr>
+                <td><strong>Outras Despesas:</strong></td>
+                <td>R$ {{outras_despesas}}</td>
+            </tr>
+            <tr>
+                <td><strong>Total Final:</strong></td>
+                <td>R$ {{total_final}}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="secao">
+        <div class="secao-titulo">CONDIÇÕES GERAIS</div>
+        <table>
+            <tr>
+                <td><strong>Condição de Pagamento:</strong></td>
+                <td>{{cond_pagto}}</td>
+            </tr>
+            <tr>
+                <td><strong>Prazo de Entrega:</strong></td>
+                <td>{{formatDate prazo_entrega}}</td>
+            </tr>
+        </table>
+    </div>
+
+    {{#if informacoes_importantes}}
+    <div class="secao">
+        <div class="secao-titulo">INFORMAÇÕES IMPORTANTES</div>
+        <p>{{informacoes_importantes}}</p>
+    </div>
+    {{/if}}
+
+    <div class="assinaturas">
+        <div class="assinatura">
+            <div class="linha-assinatura">CONTRATANTE</div>
+        </div>
+        <div class="assinatura">
+            <div class="linha-assinatura">FORNECEDOR</div>
+            <div>{{fornecedor_nome}}</div>
+        </div>
+    </div>
+</body>
+</html> 
