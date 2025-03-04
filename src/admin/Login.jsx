@@ -19,6 +19,7 @@ function Login() {
   const [authCode, setAuthCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [notification, setNotification] = useState({ message: "", type: "" });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (notification.message) {
@@ -67,9 +68,11 @@ function Login() {
 
   async function requestLogin(event) {
     event.preventDefault();
+    setLoading(true);
 
     if (!user || !password) {
       setNotification({ message: "Usuário e senha são obrigatórios", type: "error" });
+      setLoading(false);
       return;
     }
 
@@ -78,7 +81,24 @@ function Login() {
       const userData = await ApiService.login(user.trim(), password.trim());
       console.log('Resultado do login:', userData);
       
+      // Verificar se a resposta contém os dados necessários
+      if (!userData || !userData.user) {
+        console.error('Resposta de login inválida:', userData);
+        setNotification({ message: "Resposta de login inválida", type: "error" });
+        setLoading(false);
+        return;
+      }
+      
+      // Verificar se o token foi recebido
+      if (!userData.token) {
+        console.warn('Login bem-sucedido, mas sem token:', userData);
+      } else {
+        console.log('Token recebido no componente Login:', userData.token);
+      }
+      
+      // Atualizar o contexto com os dados do usuário
       setLoggedUser(userData.user);
+      
       setNotification({ message: `Bem-vindo, ${userData.user.username}!`, type: "success" });
       setTimeout(() => {
         navigate("/dashboard");
@@ -86,6 +106,8 @@ function Login() {
     } catch (error) {
       console.error('Erro completo:', error);
       setNotification({ message: error.message || "Usuário ou senha inválidos", type: "error" });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -156,7 +178,13 @@ function Login() {
                 )}
                 
                 <br />
-                <button type="submit">{isRegistering ? "Registrar" : "Enviar"}</button>
+                <button 
+                  type="submit" 
+                  className="login-button"
+                  disabled={loading}
+                >
+                  {loading ? 'Carregando...' : 'Entrar'}
+                </button>
                 <button 
                   type="button" 
                   className="toggle-mode"

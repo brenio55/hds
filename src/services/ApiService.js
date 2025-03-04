@@ -3,14 +3,52 @@ import supabase from '../utils/Supabase';
 // URL base da API
 const API_URL = import.meta.env.VITE_API_URL;
 
+// Verificar se o localStorage está disponível
+const isLocalStorageAvailable = () => {
+    try {
+        const testKey = '__test__';
+        localStorage.setItem(testKey, testKey);
+        localStorage.removeItem(testKey);
+        return true;
+    } catch (e) {
+        console.error('localStorage não está disponível:', e);
+        return false;
+    }
+};
+
 // Função para gerenciar o token
-const getStoredToken = () => localStorage.getItem('authToken');
-const setStoredToken = (token) => localStorage.setItem('authToken', token);
-const removeStoredToken = () => localStorage.removeItem('authToken');
+const getStoredToken = () => {
+    if (!isLocalStorageAvailable()) {
+        console.error('Não foi possível recuperar o token: localStorage não disponível');
+        return null;
+    }
+    const token = localStorage.getItem('authToken');
+    console.log('Token recuperado do localStorage:', token);
+    return token;
+};
+
+const setStoredToken = (token) => {
+    if (!isLocalStorageAvailable()) {
+        console.error('Não foi possível armazenar o token: localStorage não disponível');
+        return;
+    }
+    console.log('Armazenando token no localStorage:', token);
+    localStorage.setItem('authToken', token);
+};
+
+const removeStoredToken = () => {
+    if (!isLocalStorageAvailable()) {
+        console.error('Não foi possível remover o token: localStorage não disponível');
+        return;
+    }
+    console.log('Removendo token do localStorage');
+    localStorage.removeItem('authToken');
+};
 
 // Função para criar headers com autenticação
 const createAuthHeaders = () => {
     const token = getStoredToken();
+    console.log('Token usado nos headers:', token);
     return {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -202,8 +240,40 @@ class ApiService {
                     throw new Error(errorMessage);
                 }
                 
+                // Armazenar o token diretamente
                 if (data.token) {
-                    setStoredToken(data.token);
+                    console.log('Token recebido do servidor:', data.token);
+                    
+                    // Validar o token antes de armazenar
+                    if (typeof data.token !== 'string' || data.token.trim() === '') {
+                        console.error('ERRO: Token inválido recebido do servidor:', data.token);
+                    } else {
+                        // Armazenar o token diretamente no localStorage
+                        try {
+                            localStorage.setItem('authToken', data.token);
+                            console.log('Token armazenado diretamente no localStorage');
+                            
+                            // Verificar imediatamente se o token foi armazenado
+                            const storedToken = localStorage.getItem('authToken');
+                            console.log('Token verificado após armazenamento direto:', storedToken);
+                            
+                            if (!storedToken) {
+                                console.error('ERRO: Token não foi armazenado no localStorage mesmo com acesso direto');
+                                
+                                // Tentar uma abordagem alternativa - armazenar em uma variável global
+                                window.authToken = data.token;
+                                console.log('Token armazenado em variável global como fallback');
+                            }
+                        } catch (storageError) {
+                            console.error('Erro ao armazenar token no localStorage:', storageError);
+                            
+                            // Fallback para variável global
+                            window.authToken = data.token;
+                            console.log('Token armazenado em variável global devido a erro no localStorage');
+                        }
+                    }
+                } else {
+                    console.error('ERRO: Resposta de login não contém token');
                 }
 
                 return data;

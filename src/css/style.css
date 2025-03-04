@@ -36,7 +36,7 @@ body {
 
 button {
   box-sizing: border-box;
-  min-width: 286px;
+  min-width: 200px;
   height: 43.26px;
   text-align: center;
   background: #CB272D;

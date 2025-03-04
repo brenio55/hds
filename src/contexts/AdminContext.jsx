@@ -13,16 +13,22 @@ export function AdminProvider({ children }) {
             try {
                 // Verifica se existe um token
                 const token = localStorage.getItem('authToken');
+                console.log('AdminContext - Token encontrado:', token);
+                
                 if (!token) {
+                    console.log('AdminContext - Nenhum token encontrado, usuário não autenticado');
                     setLoading(false);
                     return;
                 }
 
+                console.log('AdminContext - Tentando carregar perfil com token');
                 const userData = await ApiService.getProfile();
+                console.log('AdminContext - Perfil carregado:', userData);
                 setAdminUser(userData);
             } catch (error) {
-                console.error('Erro ao carregar perfil:', error);
+                console.error('AdminContext - Erro ao carregar perfil:', error);
                 // Se houver erro, remove o token inválido
+                console.log('AdminContext - Removendo token inválido');
                 ApiService.logout();
             } finally {
                 setLoading(false);
@@ -33,13 +39,17 @@ export function AdminProvider({ children }) {
     }, []);
 
     const login = async (userData) => {
+        console.log('AdminContext - Login com dados:', userData);
         setAdminUser(userData);
+        
         try {
             // Após o login, carrega o perfil completo
+            console.log('AdminContext - Carregando perfil completo após login');
             const profileData = await ApiService.getProfile();
+            console.log('AdminContext - Perfil completo carregado:', profileData);
             setAdminUser(profileData);
         } catch (error) {
-            console.error('Erro ao carregar perfil após login:', error);
+            console.error('AdminContext - Erro ao carregar perfil após login:', error);
         }
     };
 
