@@ -13,8 +13,12 @@ function HeaderAdmin() {
 
     return (
         <header className="headerAdmin">
-            <div className="logo">
-                <img src="/img/LOGO.png" alt="Logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }} />
+            
+            <div className="flex logo-container">
+                <div className="logo">
+                    <img src="/img/LOGO.png" alt="Logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }} />    
+                </div>
+                <p>ERP - Sistema de Gestão</p>
             </div>
             <div className="user-info">
                 {adminUser && (

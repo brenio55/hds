@@ -13,6 +13,18 @@
     transition: transform 0.2s ease;
 }
 
+.logo-container{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo-container p{
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 12px;
+}
+
 .headerAdmin .logo img:hover {
     transform: scale(1.05);
 }

@@ -12,6 +12,10 @@ import PedidosDeServico from './admin/PedidosDeServico';
 import GerarPropostas from './admin/GerarPropostas';
 import ConsultarPropostas from './admin/ConsultarPropostas';
 import ConsultarPedidos from './admin/ConsultarPedidos';
+import ConsultarFornecedores from './admin/ConsultarFornecedores';
+import CadastrarFornecedor from './admin/CadastrarFornecedor';
+import EditarFornecedor from './admin/EditarFornecedor';
+import VisualizarFornecedor from './admin/VisualizarFornecedor';
 import { AdminProvider } from './contexts/AdminContext';
 
 
@@ -31,6 +35,10 @@ function App() {
           <Route path="/gerarPropostas" element={<GerarPropostas />} />
           <Route path="/consultarPropostas" element={<ConsultarPropostas />} />
           <Route path="/consultarPedidos" element={<ConsultarPedidos />} />
+          <Route path="/consultarFornecedores" element={<ConsultarFornecedores />} />
+          <Route path="/cadastrarFornecedor" element={<CadastrarFornecedor />} />
+          <Route path="/editarFornecedor/:id" element={<EditarFornecedor />} />
+          <Route path="/visualizarFornecedor/:id" element={<VisualizarFornecedor />} />
         </Routes>
       </BrowserRouter>
     </AdminProvider>

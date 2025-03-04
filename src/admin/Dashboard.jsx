@@ -17,10 +17,12 @@ function Dashboard(){
             <div className="admin-container">
                 <div className="services">
                     <div className="service-section">
-                        <h2>Propostas e Centros de Custo</h2>
+                        <h2>Centros de Custo e Fornecedores</h2>
                         <div className="service-buttons">
                             <div className="serviceButton" onClick={() => handleNavigation('/gerarPropostas')}>Gerar Proposta (Centro de Custo)</div>
                             <div className="serviceButton" onClick={() => handleNavigation('/consultarPropostas')}>Consultar Propostas (Centro de Custo)</div>
+                            <div className="serviceButton" onClick={() => handleNavigation('/cadastrarFornecedor')}>Cadastrar Fornecedor</div>
+                            <div className="serviceButton" onClick={() => handleNavigation('/consultarFornecedores')}>Consultar Fornecedores</div>
                         </div>
                     </div>
                     <div className="service-section">
@@ -30,7 +32,7 @@ function Dashboard(){
                             <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeLocacao')}>Gerar Pedido de Locação</div>
                             <div className="serviceButton" onClick={() => handleNavigation('/pedidosDeServico')}>Gerar Pedido de Serviço</div>
                             <div className="serviceButton">Faturar Pedido de Compra</div>
-                            <div className="serviceButton" onClick={() => handleNavigation('/consultarPedidos')}>Consultar Pedidos C-M-L-S e Faturamentos</div>
+                            <div className="serviceButton" onClick={() => handleNavigation('/consultarPedidos')}>Consultar Pedidos C-L-S e Faturamentos</div>
                             <div className="serviceButton">HH</div>
                         </div>
                     </div>
