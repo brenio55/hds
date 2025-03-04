@@ -9,6 +9,7 @@ function ConsultarPropostas() {
     const [propostas, setPropostas] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [downloadingId, setDownloadingId] = useState(null);
     const [filtros, setFiltros] = useState({
         numeroProposta: '',
         cliente: '',
@@ -71,8 +72,16 @@ function ConsultarPropostas() {
         }));
     };
 
-    const handleVisualizarProposta = (id) => {
-        navigate(`/proposta/${id}`);
+    const handleVisualizarProposta = async (id, versao) => {
+        try {
+            setDownloadingId(id);
+            await propostasService.downloadPdf(id, versao);
+        } catch (error) {
+            console.error('Erro ao baixar PDF:', error);
+            alert('Erro ao baixar o PDF. Por favor, tente novamente.');
+        } finally {
+            setDownloadingId(null);
+        }
     };
 
     const formatarData = (dataString) => {
@@ -176,9 +185,10 @@ function ConsultarPropostas() {
                                             <td>
                                                 <button 
                                                     className="view-button"
-                                                    onClick={() => handleVisualizarProposta(proposta.id)}
+                                                    onClick={() => handleVisualizarProposta(proposta.id, proposta.versao)}
+                                                    disabled={downloadingId === proposta.id}
                                                 >
-                                                    Visualizar
+                                                    {downloadingId === proposta.id ? 'Baixando...' : 'Visualizar'}
                                                 </button>
                                             </td>
                                         </tr>

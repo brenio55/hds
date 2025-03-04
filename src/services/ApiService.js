@@ -315,7 +315,7 @@ export const propostasService = {
     async downloadPdf(id, version) {
         try {
             const response = await fetch(
-                `${API_URL}/api/propostas/${id}/pdf/download${version ? `?version=${version}` : ''}`,
+                `${API_URL}/api/propostas/${id}/pdf/download/`,
                 {
                     headers: createAuthHeaders()
                 }

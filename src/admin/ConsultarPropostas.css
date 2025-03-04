@@ -117,6 +117,12 @@ tr:hover {
     background-color: #388e3c;
 }
 
+.view-button:disabled {
+    background-color: #a5d6a7;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
 @media (max-width: 768px) {
     .search-form {
         grid-template-columns: 1fr;

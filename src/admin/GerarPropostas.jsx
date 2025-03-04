@@ -6,11 +6,17 @@ import { useAdmin } from '../contexts/AdminContext';
 
 // Componente do Popup
 const SuccessPopup = ({ onClose, propostaData }) => {
+    const [downloading, setDownloading] = useState(false);
+
     const handleDownloadPDF = async () => {
         try {
+            setDownloading(true);
             await propostasService.downloadPdf(propostaData.id, propostaData.versao);
         } catch (error) {
-            alert('Erro ao baixar PDF: ' + error.message);
+            console.error('Erro ao baixar PDF:', error);
+            alert('Erro ao baixar PDF. Por favor, tente novamente.');
+        } finally {
+            setDownloading(false);
         }
     };
 
@@ -25,8 +31,12 @@ const SuccessPopup = ({ onClose, propostaData }) => {
                 </div>
                 <div className="popup-buttons">
                     <button onClick={onClose} className="btn-ok">OK</button>
-                    <button onClick={handleDownloadPDF} className="btn-view-pdf">
-                        Download do PDF Gerado
+                    <button 
+                        onClick={handleDownloadPDF} 
+                        className="btn-view-pdf"
+                        disabled={downloading}
+                    >
+                        {downloading ? 'Baixando...' : 'Download do PDF Gerado'}
                     </button>
                 </div>
             </div>
