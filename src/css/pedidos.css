@@ -41,7 +41,7 @@
   font-weight: 500;
   font-size: 0.9rem;
 }
-.pedidos-container form .form-group input, .pedidos-container form .form-group textarea {
+.pedidos-container form .form-group input, .pedidos-container form .form-group textarea, .pedidos-container form .form-group select {
   width: 100%;
   padding: 6px 10px;
   border: 1px solid #ddd;
@@ -50,20 +50,39 @@
   transition: all 0.3s ease;
   background-color: #f8f9fa;
 }
-.pedidos-container form .form-group input:focus, .pedidos-container form .form-group textarea:focus {
+.pedidos-container form .form-group input:focus, .pedidos-container form .form-group textarea:focus, .pedidos-container form .form-group select:focus {
   border-color: #e74c3c;
   background-color: #fff;
   box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
   outline: none;
 }
-.pedidos-container form .form-group input:invalid, .pedidos-container form .form-group textarea:invalid {
+.pedidos-container form .form-group input:invalid, .pedidos-container form .form-group textarea:invalid, .pedidos-container form .form-group select:invalid {
   border-color: #e74c3c;
 }
-.pedidos-container form .form-group input:invalid + .error-tooltip, .pedidos-container form .form-group textarea:invalid + .error-tooltip {
+.pedidos-container form .form-group input:invalid + .error-tooltip, .pedidos-container form .form-group textarea:invalid + .error-tooltip, .pedidos-container form .form-group select:invalid + .error-tooltip {
   display: block;
   color: #e74c3c;
   font-size: 0.8rem;
   margin-top: 4px;
+}
+.pedidos-container form .form-group select.fornecedor-select {
+  background-color: #f8f9fa;
+  cursor: pointer;
+}
+.pedidos-container form .form-group select.fornecedor-select:hover {
+  background-color: #f1f3f5;
+}
+.pedidos-container form .form-group select.fornecedor-select option {
+  padding: 8px;
+}
+.pedidos-container form .form-group .input-with-dropdown {
+  position: relative;
+}
+.pedidos-container form .form-group .input-with-dropdown .loading-text, .pedidos-container form .form-group .input-with-dropdown .error-text {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 2px;
 }
 .pedidos-container form .form-group.required label::after {
   content: "*";

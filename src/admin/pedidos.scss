@@ -43,7 +43,7 @@
                 font-size: 0.9rem;
             }
 
-            input, textarea {
+            input, textarea, select {
                 width: 100%;
                 padding: 6px 10px;
                 border: 1px solid #ddd;
@@ -68,6 +68,30 @@
                         font-size: 0.8rem;
                         margin-top: 4px;
                     }
+                }
+            }
+
+            select.fornecedor-select {
+                background-color: #f8f9fa;
+                cursor: pointer;
+                
+                &:hover {
+                    background-color: #f1f3f5;
+                }
+                
+                option {
+                    padding: 8px;
+                }
+            }
+
+            .input-with-dropdown {
+                position: relative;
+                
+                .loading-text, .error-text {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    margin-top: 2px;
                 }
             }
 

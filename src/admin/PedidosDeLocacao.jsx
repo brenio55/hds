@@ -38,6 +38,8 @@ function PedidosDeLocacao() {
         prazoEntrega: '',
         frete: ''
     });
+    const [listaFornecedores, setListaFornecedores] = useState([]);
+    const [loadingListaFornecedores, setLoadingListaFornecedores] = useState(false);
 
     const dadosTeste = {
         codigo: '001',
@@ -87,6 +89,26 @@ function PedidosDeLocacao() {
             });
         }
     }, [devMode]);
+
+    useEffect(() => {
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        
+        // Carregar lista de fornecedores
+        carregarFornecedores();
+    }, []);
+
+    const carregarFornecedores = async () => {
+        setLoadingListaFornecedores(true);
+        try {
+            const fornecedores = await ApiService.buscarFornecedores();
+            setListaFornecedores(fornecedores);
+        } catch (error) {
+            console.error('Erro ao carregar lista de fornecedores:', error);
+        } finally {
+            setLoadingListaFornecedores(false);
+        }
+    };
 
     const handleInputChange = (e) => {
         if (devMode) {
@@ -252,6 +274,24 @@ function PedidosDeLocacao() {
             }
         } else {
             // Limpar os campos se o ID estiver vazio
+            setFornecedorNome('');
+            setCnpj('');
+            setEndereco('');
+            setCep('');
+            setContato('');
+        }
+    };
+
+    const handleFornecedorSelectChange = (e) => {
+        const selectedId = e.target.value;
+        if (selectedId) {
+            setFornecedorId(selectedId);
+            // Acionar a busca de detalhes do fornecedor
+            const event = { target: { value: selectedId } };
+            handleFornecedorIdChange(event);
+        } else {
+            // Limpar os campos se nenhum fornecedor for selecionado
+            setFornecedorId('');
             setFornecedorNome('');
             setCnpj('');
             setEndereco('');
@@ -502,15 +542,36 @@ ${dadosPedido.informacoesImportantes || ''}`;
                     <div className="form-row">
                         <div className="form-group">
                             <label>Código do Fornecedor:</label>
-                            <input 
-                                type="text" 
-                                name="fornecedorId" 
-                                value={fornecedorId}
-                                onChange={handleFornecedorIdChange}
-                                placeholder="Digite o ID do fornecedor" 
-                            />
-                            {loadingFornecedor && <span className="loading-text">Carregando...</span>}
-                            {errorFornecedor && <span className="error-text">{errorFornecedor}</span>}
+                            <div className="input-with-dropdown">
+                                <input 
+                                    type="text" 
+                                    name="fornecedorId" 
+                                    value={fornecedorId}
+                                    onChange={handleFornecedorIdChange}
+                                    placeholder="Digite o ID do fornecedor" 
+                                />
+                                {loadingFornecedor && <span className="loading-text">Carregando...</span>}
+                                {errorFornecedor && <span className="error-text">{errorFornecedor}</span>}
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Selecionar Fornecedor:</label>
+                            <select 
+                                onChange={handleFornecedorSelectChange}
+                                value={fornecedorId || ''}
+                                className="fornecedor-select"
+                            >
+                                <option value="">Selecione um fornecedor</option>
+                                {loadingListaFornecedores ? (
+                                    <option disabled>Carregando fornecedores...</option>
+                                ) : (
+                                    listaFornecedores.map(fornecedor => (
+                                        <option key={fornecedor.id} value={fornecedor.id}>
+                                            {fornecedor.razao_social} (ID: {fornecedor.id})
+                                        </option>
+                                    ))
+                                )}
+                            </select>
                         </div>
                         <div className="form-group">
                             <label>Fornecedor:</label>
