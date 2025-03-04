@@ -9,6 +9,8 @@ function ConsultarPedidos() {
     const [pedidos, setPedidos] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [downloadingId, setDownloadingId] = useState(null);
+    const [visualizandoId, setVisualizandoId] = useState(null);
     const [filtros, setFiltros] = useState({
         id: '',
         tipo: '',
@@ -140,9 +142,28 @@ function ConsultarPedidos() {
         }));
     };
 
-    const handleVisualizarPedido = (id) => {
-        // Implementar visualização do pedido
-        window.open(`/admin/pedidos/${id}/visualizar`, '_blank');
+    const handleVisualizarPedido = async (id) => {
+        try {
+            setVisualizandoId(id);
+            await ApiService.visualizarPedidoPdf(id);
+        } catch (error) {
+            console.error('Erro ao visualizar PDF do pedido:', error);
+            alert('Erro ao visualizar o PDF do pedido. Por favor, tente novamente.');
+        } finally {
+            setVisualizandoId(null);
+        }
+    };
+
+    const handleDownloadPedido = async (id) => {
+        try {
+            setDownloadingId(id);
+            await ApiService.downloadPedidoPdf(id);
+        } catch (error) {
+            console.error('Erro ao baixar PDF do pedido:', error);
+            alert('Erro ao baixar o PDF do pedido. Por favor, tente novamente.');
+        } finally {
+            setDownloadingId(null);
+        }
     };
 
     const handleEditarPedido = (id) => {
@@ -269,24 +290,34 @@ function ConsultarPedidos() {
                                         <tr key={pedido.id}>
                                             <td>{pedido.id}</td>
                                             <td>{getTipoPedido(pedido.tipo)}</td>
-                                            <td>{pedido.fornecedor_nome || `Fornecedor ID: ${pedido.fornecedores_id}` || '-'}</td>
+                                            <td>{pedido.fornecedor_nome || `ID: ${pedido.fornecedores_id}` || '-'}</td>
                                             <td>{pedido.clientinfo_id || '-'}</td>
                                             <td>{pedido.proposta_id || '-'}</td>
                                             <td>{formatarValor(pedido.valor_total)}</td>
                                             <td>{formatarData(pedido.created_at || pedido.data_criacao)}</td>
                                             <td className="actions-column">
-                                                <button 
-                                                    className="view-button"
-                                                    onClick={() => handleVisualizarPedido(pedido.id)}
-                                                >
-                                                    Visualizar
-                                                </button>
-                                                <button 
-                                                    className="edit-button"
-                                                    onClick={() => handleEditarPedido(pedido.id)}
-                                                >
-                                                    Editar
-                                                </button>
+                                                <div className="action-buttons">
+                                                    <button 
+                                                        className="view-button"
+                                                        onClick={() => handleVisualizarPedido(pedido.id)}
+                                                        disabled={visualizandoId === pedido.id}
+                                                    >
+                                                        {visualizandoId === pedido.id ? 'Abrindo...' : 'Visualizar'}
+                                                    </button>
+                                                    <button 
+                                                        className="download-button"
+                                                        onClick={() => handleDownloadPedido(pedido.id)}
+                                                        disabled={downloadingId === pedido.id}
+                                                    >
+                                                        {downloadingId === pedido.id ? 'Baixando...' : 'Download'}
+                                                    </button>
+                                                    <button 
+                                                        className="edit-button"
+                                                        onClick={() => handleEditarPedido(pedido.id)}
+                                                    >
+                                                        Editar
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

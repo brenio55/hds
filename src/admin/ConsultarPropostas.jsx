@@ -10,6 +10,7 @@ function ConsultarPropostas() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [downloadingId, setDownloadingId] = useState(null);
+    const [visualizandoId, setVisualizandoId] = useState(null);
     const [filtros, setFiltros] = useState({
         numeroProposta: '',
         cliente: '',
@@ -73,6 +74,18 @@ function ConsultarPropostas() {
     };
 
     const handleVisualizarProposta = async (id, versao) => {
+        try {
+            setVisualizandoId(id);
+            await ApiService.visualizarPdf(id, versao);
+        } catch (error) {
+            console.error('Erro ao visualizar PDF:', error);
+            alert('Erro ao visualizar o PDF. Por favor, tente novamente.');
+        } finally {
+            setVisualizandoId(null);
+        }
+    };
+
+    const handleDownloadProposta = async (id, versao) => {
         try {
             setDownloadingId(id);
             await ApiService.downloadPdf(id, versao);
@@ -183,13 +196,22 @@ function ConsultarPropostas() {
                                             <td>{formatarValor(proposta.valor_final)}</td>
                                             <td>{formatarData(proposta.data_criacao)}</td>
                                             <td>
-                                                <button 
-                                                    className="view-button"
-                                                    onClick={() => handleVisualizarProposta(proposta.id, proposta.versao)}
-                                                    disabled={downloadingId === proposta.id}
-                                                >
-                                                    {downloadingId === proposta.id ? 'Baixando...' : 'Visualizar'}
-                                                </button>
+                                                <div className="action-buttons">
+                                                    <button 
+                                                        className="view-button"
+                                                        onClick={() => handleVisualizarProposta(proposta.id, proposta.versao)}
+                                                        disabled={visualizandoId === proposta.id}
+                                                    >
+                                                        {visualizandoId === proposta.id ? 'Abrindo...' : 'Visualizar'}
+                                                    </button>
+                                                    <button 
+                                                        className="download-button"
+                                                        onClick={() => handleDownloadProposta(proposta.id, proposta.versao)}
+                                                        disabled={downloadingId === proposta.id}
+                                                    >
+                                                        {downloadingId === proposta.id ? 'Baixando...' : 'Download'}
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

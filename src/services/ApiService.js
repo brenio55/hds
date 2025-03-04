@@ -285,7 +285,7 @@ class ApiService {
     static async downloadPdf(id, version) {
         try {
             const response = await fetch(
-                `${API_URL}/api/propostas/${id}/pdf/download/`,
+                `${API_URL}/api/propostas/${id}/pdf/download`,
                 {
                     headers: createAuthHeaders()
                 }
@@ -319,6 +319,96 @@ class ApiService {
             return true;
         } catch (error) {
             console.error('Erro ao baixar PDF:', error);
+            throw error;
+        }
+    }
+
+    // Método para visualizar o PDF em uma nova guia
+    static async visualizarPdf(id, version) {
+        try {
+            const response = await fetch(
+                `${API_URL}/api/propostas/${id}/pdf/download`,
+                {
+                    headers: createAuthHeaders()
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Erro ao carregar PDF');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('Erro ao visualizar PDF:', error);
+            throw error;
+        }
+    }
+
+    // Método para visualizar o PDF de pedido de compra em uma nova guia
+    static async visualizarPedidoPdf(id) {
+        try {
+            const response = await fetch(
+                `${API_URL}/api/pedidos-compra/${id}/pdf/download`,
+                {
+                    headers: createAuthHeaders()
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Erro ao carregar PDF do pedido');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('Erro ao visualizar PDF do pedido:', error);
+            throw error;
+        }
+    }
+
+    // Método para download do PDF de pedido de compra
+    static async downloadPedidoPdf(id) {
+        try {
+            const response = await fetch(
+                `${API_URL}/api/pedidos-compra/${id}/pdf/download`,
+                {
+                    headers: createAuthHeaders()
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Erro ao baixar PDF do pedido');
+            }
+
+            // Obtém o nome do arquivo do header Content-Disposition
+            const contentDisposition = response.headers.get('content-disposition');
+            let filename = 'pedido.pdf';
+            
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, '');
+                }
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            
+            // Cria um link temporário para download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Limpa após o download
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Erro ao baixar PDF do pedido:', error);
             throw error;
         }
     }
