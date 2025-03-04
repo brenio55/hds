@@ -1,5 +1,7 @@
 const PropostaModel = require('../models/propostaModel');
 const PdfService = require('./pdfService');
+const fs = require('fs').promises;
+const path = require('path');
 
 class PropostaService {
   static async create(propostaData) {
@@ -46,6 +48,14 @@ class PropostaService {
       const proposta = await PropostaModel.findById(id);
       if (!proposta) {
         throw new Error('Proposta não encontrada');
+      }
+
+      // Garante que o diretório de uploads existe
+      const uploadsDir = path.join(__dirname, '../../uploads/pdfs');
+      try {
+        await fs.access(uploadsDir);
+      } catch {
+        await fs.mkdir(uploadsDir, { recursive: true });
       }
 
       // Gera o PDF
