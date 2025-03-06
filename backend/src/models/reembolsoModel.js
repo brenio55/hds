@@ -54,7 +54,11 @@ class ReembolsoModel {
   static async findByField(campo, valor) {
     try {
       let query = `
-        SELECT r.*, f.cargo as funcionario_cargo
+        SELECT 
+            r.*,
+            f.cargo,
+            f.contato,
+            f.dados
         FROM reembolsos r
         LEFT JOIN funcionarios f ON r.id_funcionarios = f.id
       `;
@@ -76,7 +80,24 @@ class ReembolsoModel {
       // Busca exata para números e outros tipos
       query += `WHERE r.${campo} = $1`;
       const result = await db.query(query, [valor]);
-      return result.rows;
+      
+      // Formatar o resultado
+      return result.rows.map(row => {
+        const funcionario = {
+          cargo: row.cargo,
+          contato: row.contato,
+          dados: row.dados
+        };
+        
+        delete row.cargo;
+        delete row.contato;
+        delete row.dados;
+        
+        return {
+          ...row,
+          funcionario
+        };
+      });
     } catch (error) {
       throw new Error(`Erro ao buscar reembolsos por ${campo}: ${error.message}`);
     }
@@ -84,10 +105,14 @@ class ReembolsoModel {
 
   static async findAll() {
     const query = `
-      SELECT r.*, f.cargo as funcionario_cargo
-      FROM reembolsos r
-      LEFT JOIN funcionarios f ON r.id_funcionarios = f.id
-      ORDER BY r.created_at DESC
+        SELECT 
+            r.*,
+            f.cargo as funcionario_cargo,
+            f.contato->>'nome' as funcionario_nome,
+            f.contato->>'email' as funcionario_email
+        FROM reembolsos r
+        LEFT JOIN funcionarios f ON r.id_funcionarios = f.id
+        ORDER BY r.created_at DESC
     `;
     const result = await db.query(query);
     return result.rows;

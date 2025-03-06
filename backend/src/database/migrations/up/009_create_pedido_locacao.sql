@@ -1,6 +1,8 @@
 CREATE TABLE IF NOT EXISTS public.pedido_locacao (
     id SERIAL PRIMARY KEY,
     fornecedor_id INTEGER REFERENCES public.fornecedores(id),
+    clientinfo_id INTEGER REFERENCES public.clientinfo(id),
+    proposta_id INTEGER REFERENCES public.propostas(id),
     itens JSONB,
     total_bruto DECIMAL(15,2),
     total_ipi DECIMAL(15,2),
