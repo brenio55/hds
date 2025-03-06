@@ -13,14 +13,36 @@ const pedidoLocacaoRoutes = require('./routes/pedidoLocacaoRoutes');
 
 const app = express();
 
+// Lista de origens permitidas
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://82.25.71.53',
+    'http://hdsservico.com.br',
+    'https://hdsservico.com.br'
+];
+
 // Configuração do CORS
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // URLs do frontend Vite
-    credentials: true, // Permite credenciais (cookies, headers de autenticação)
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    accessControlAllowOrigin: ['http://localhost:5173', 'http://127.0.0.1:5173']
+    origin: function(origin, callback) {
+        // Permite requisições sem origin (como apps mobile ou ferramentas de API)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Bloqueado pelo CORS'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 }));
+
+// Middleware para tratar preflight requests
+app.options('*', cors());
 
 app.use(express.json());
 
@@ -39,8 +61,8 @@ app.use('/api/pedidos-locacao', pedidoLocacaoRoutes);
 
 // Tratamento de erros
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error(err.stack);
+    res.status(500).json({ error: 'Erro interno do servidor' });
 });
 
 module.exports = app; 
