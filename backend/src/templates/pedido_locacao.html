@@ -1,301 +1,617 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedido de Locação</title>
     <style>
-        @page {
-            margin: 0;
-            size: A3;
-        }
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
             margin: 20px;
-            padding: 0;
+            background-color: #f9f9f9;
         }
-        .header-table {
-            width: 100%;
-            margin-bottom: 30px;
-            border-collapse: collapse;
-        }
-        .header-table td {
-            border: none;
-            padding: 10px;
-            vertical-align: middle;
-        }
-        .logo-cell {
-            width: 25%;
-        }
-        .title-cell {
-            width: 50%;
-            text-align: center;
-        }
-        .info-cell {
-            width: 25%;
-        }
-        .logo-horizontal {
-            height: 50px;
-            width: auto;
-        }
-        h1 {
+        
+        h1:first-child{
             font-size: 18px;
-            margin: 0;
-            text-align: center;
         }
-        h2 {
-            font-size: 14px;
-            background-color: #ff0000;
-            color: white;
-            padding: 5px 10px;
-            margin: 20px 0 10px 0;
+
+        h1, h2, h3, h4, h5 {
+            text-align: left;
+            color: #FF0000;
+            border-bottom: 1px solid #FF0000;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            background-color: transparent;
+        }
+        .container {
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
-            border: 1px solid #000;
         }
         th, td {
-            padding: 8px;
             border: 1px solid #000;
+            padding: 8px;
             text-align: left;
         }
         th {
-            background-color: #ff0000;
+            background-color: #FF0000;
             color: white;
-            border: 1px solid #ff0000;
-        }
-        .totals-table {
-            width: 100%;
-            border: 1px solid #000;
-        }
-        .totals-table th,
-        .totals-table td {
-            padding: 8px;
-            border: 1px solid #000;
-        }
-        .totals-table th {
-            background-color: #f5f5f5;
             font-weight: bold;
-            color: #333;
         }
-        .info-section {
-            margin: 20px 0;
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
-        .info-section h3 {
-            margin-top: 15px;
-            margin-bottom: 5px;
-            color: #333;
+        p {
+            margin: 10px 0;
+            line-height: 1.6;
         }
-        .info-section p {
-            margin: 5px 0;
-            color: #000;
-        }
-        .signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 50px;
-        }
-        .signature {
-            width: 45%;
+        .footer {
+            font-size: 0.9em;
             text-align: center;
-            border-top: 1px solid #000;
-            padding-top: 10px;
+            color: #666;
+            margin-top: 20px;
         }
-        .pedidoTd {
-            border-right: unset;
+        .logo {
+            display: block;
+            margin: 0 auto 20px;
+            height: 50px;
         }
-        .pedidoInfoTop1, .pedidoInfoTop1 table {   
-            padding: 0;
-            border-left: unset;
+        .red {
+            color: red;
+        }
+        .signature-line {
+            border-bottom: 1px solid #000;
+            width: 600px;
+            display: inline-block;
+            margin-top: 20px;
         }
         .flex-container {
             display: flex;
             justify-content: space-between;
         }
-        .info-table {
-            width: 100%;
-            border: none;
-            margin: 0;
+
+        .pedidoTd{
+            border-right: unset;
+        }
+
+        .pedidoInfoTop1, .pedidoInfoTop1 table{   
+                padding: 0;
+                border-left: unset;
+        }
+        .assinaturas{
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            flex-direction: column;
+        }
+        .section-title {
+            color: #FF0000;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #FF0000;
+            padding-bottom: 5px;
         }
         .info-table td {
+            width: 12.5%;  /* 8 colunas iguais */
+            padding: 8px;
+        }
+        .info-table p {
+            margin-bottom: 10px;
+        }
+        .totals-table th,
+        .totals-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .totals-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        .logo-horizontal {
+            height: 40px;
+            width: auto;
+            display: block;
+        }
+        .header-wrapper {
+            border: 1px solid #000;
+            margin-bottom: 20px;
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+        .header-table > tbody > tr > td {
             border: none;
-            padding: 2px;
-            font-size: 12px;
+            vertical-align: middle;
+            padding: 10px;
+            background-color: transparent;
+        }
+        .header-info {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .header-info td {
+            padding: 2px 8px;
+            text-align: left;
+            border: none;
+        }
+        .header-info td:first-child {
+            font-weight: bold;
+            text-align: right;
+            padding-right: 10px;
+        }
+        .header-info td:last-child {
+            text-align: left;
+        }
+        .header-table .titulo-principal {
+            text-align: center;
+            padding: 15px 0;
+        }
+        .header-table .titulo-principal h1 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            border: none;
+            text-transform: uppercase;
+            background-color: transparent;
+        }
+        .info-table-header {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .info-table-header td {
+            border: none !important;
+            padding: 4px 8px;
+            background-color: transparent;
+        }
+        .info-table-header .info-label {
+            font-weight: bold;
+            text-align: right;
+            color: #333;
         }
         .info-label {
             font-weight: bold;
-            padding-right: 10px;
+            background-color: #f5f5f5;
+        }
+        .secao-titulo {
+            color: #FF0000;
+            font-weight: bold;
+            text-align: left;
+            padding: 8px 0;
+            margin: 25px 0 15px 0;
+            border-bottom: 1px solid #FF0000;
+            background-color: transparent;
+        }
+        .header-table td.titulo-principal {
+            background-color: #f2f2f2;
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        .header-table h1 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            border: none;
+            text-transform: uppercase;
+            background-color: transparent;
+        }
+
+        .header-table td h1 {
+            border-bottom: none;
+            color: #333;
+        }
+
+        .header-table td:nth-child(2) h1 {
+            border: none;
+            color: #333;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Ajuste para o logo */
+        .header-table td:first-child {
+            padding: 10px;
+            width: 150px;
+        }
+
+        .logo-horizontal {
+            height: 50px;
+            width: auto;
+            display: block;
+        }
+
+        .info-table-header {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .info-table-header td {
+            border: none !important;  /* Remove todas as bordas */
+            padding: 4px 8px;
+        }
+
+        .info-table-header .info-label {
+            font-weight: bold;
+            background-color: transparent;
+            text-align: right;
         }
     </style>
 </head>
 <body>
-    <table class="header-table">
-        <tr>
-            <td class="logo-cell">
-                <img src="{{logoHorizontalSrc}}" alt="Logo" class="logo-horizontal">
-            </td>
-            <td class="title-cell">
-                <h1>PEDIDO DE LOCAÇÃO DE MATERIAL</h1>
-            </td>
-            <td class="info-cell">
-                <table class="info-table">
+    <div class="container">
+        <div class="header-wrapper">
+            <table class="header-table">
+                <tr>
+                    <td style="width: 25%; text-align: left;">
+                        <img src="{{logoHorizontalSrc}}" alt="Logo" class="logo-horizontal">
+                    </td>
+                    <td style="width: 50%; text-align: center;">
+                        <h1 style="border: none; color: #333;">PEDIDO DE LOCAÇÃO DE MATERIAL</h1>
+                    </td>
+                    <td style="width: 25%;">
+                        <table class="header-info">
+                            <tr>
+                                <td>Pedido:</td>
+                                <td>{{id}}</td>
+                            </tr>
+                            <tr>
+                                <td>Data:</td>
+                                <td>{{formatDate created_at}}</td>
+                            </tr>
+                            <tr>
+                                <td>Revisão:</td>
+                                <td>1.0</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="secao-titulo">DADOS DO CONTRATANTE</div>
+        <table class="info-table">
+            <tr>
+                <td class="info-label">Empresa:</td>
+                <td>Hds Serviço Ltda</td>
+                <td class="info-label">CNPJ:</td>
+                <td>40.931.075/0001-00</td>
+                <td class="info-label">Inscrição Estadual:</td>
+                <td>688.578.880.111</td>
+                <td class="info-label">Inscrição Municipal:</td>
+                <td>000000000091587</td>
+            </tr>
+            <tr>
+                <td class="info-label">Endereço:</td>
+                <td colspan="3">Av Dom Pedro I, 242</td>
+                <td class="info-label">Bairro:</td>
+                <td>Campos Eliseos</td>
+                <td class="info-label">Cidade/UF:</td>
+                <td>Taubaté/SP</td>
+            </tr>
+        </table>
+
+        <div class="secao-titulo">DADOS DO FORNECEDOR</div>
+        <table class="info-table">
+            <tr>
+                <td class="info-label">Razão Social:</td>
+                <td colspan="3">{{fornecedor.razao_social}}</td>
+                <td class="info-label">CNPJ:</td>
+                <td colspan="3">{{fornecedor.cnpj}}</td>
+            </tr>
+            <tr>
+                <td class="info-label">IE:</td>
+                <td>{{fornecedor.inscricao_estadual}}</td>
+                <td class="info-label">IM:</td>
+                <td>{{fornecedor.inscricao_municipal}}</td>
+                <td class="info-label">Contato:</td>
+                <td>{{fornecedor.contato}}</td>
+                <td class="info-label">Telefone:</td>
+                <td>{{fornecedor.telefone}}</td>
+            </tr>
+            <tr>
+                <td class="info-label">Endereço:</td>
+                <td colspan="3">{{fornecedor.endereco}}</td>
+                <td class="info-label">CEP:</td>
+                <td>{{fornecedor.cep}}</td>
+                <td class="info-label">Cidade/UF:</td>
+                <td>{{fornecedor.municipio_uf}}</td>
+            </tr>
+        </table>
+
+        <div class="secao-titulo">MATERIAIS</div>
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Descrição</th>
+                <th>Un</th>
+                <th>Qtde</th>
+                <th>IPI %</th>
+                <th>Valor Unit.</th>
+                <th>Valor Total</th>
+                <th>Desconto</th>
+                <th>Prev. Entrega</th>
+            </tr>
+            {{#each itens}}
+            <tr>
+                <td>{{this.item}}</td>
+                <td>{{this.descricao}}</td>
+                <td>{{this.unidade}}</td>
+                <td>{{this.quantidade}}</td>
+                <td>{{this.ipi}}</td>
+                <td>{{this.valor_unitario}}</td>
+                <td>{{this.valor_total}}</td>
+                <td>{{this.desconto}}</td>
+                <td>{{formatDate this.previsao_entrega}}</td>
+            </tr>
+            {{/each}}
+        </table>
+
+        <div class="flex-container">
+            <div style="width: 60%;">
+                <h2>VALORES</h2>
+                <table>
                     <tr>
-                        <td class="info-label">Pedido:</td>
-                        <td>{{id}}</td>
+                        <th>Total Bruto</th>
+                        <td>{{total_bruto}}</td>
                     </tr>
                     <tr>
-                        <td class="info-label">Data:</td>
-                        <td>{{formatDate created_at}}</td>
+                        <th>Total IPI</th>
+                        <td>{{total_ipi}}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Descontos</th>
+                        <td>{{total_descontos}}</td>
+                    </tr>
+                    <tr>
+                        <th>Frete</th>
+                        <td>{{valor_frete}}</td>
+                    </tr>
+                    <tr>
+                        <th>Outras Despesas</th>
+                        <td>{{outras_despesas}}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Final</th>
+                        <td>{{total_final}}</td>
                     </tr>
                 </table>
-            </td>
-        </tr>
-    </table>
-
-    <h2>DADOS DO FORNECEDOR</h2>
-    <table class="info-table">
-        <tr>
-            <td class="label">Razão Social:</td>
-            <td>{{fornecedor.razao_social}}</td>
-            <td class="label">CNPJ:</td>
-            <td>{{fornecedor.cnpj}}</td>
-        </tr>
-        <tr>
-            <td class="label">Inscrição Estadual:</td>
-            <td>{{fornecedor.inscricao_estadual}}</td>
-            <td class="label">Inscrição Municipal:</td>
-            <td>{{fornecedor.inscricao_municipal}}</td>
-        </tr>
-        <tr>
-            <td class="label">Endereço:</td>
-            <td>{{fornecedor.endereco}}</td>
-            <td class="label">CEP:</td>
-            <td>{{fornecedor.cep}}</td>
-        </tr>
-        <tr>
-            <td class="label">Município/UF:</td>
-            <td>{{fornecedor.municipio_uf}}</td>
-            <td class="label">Contato:</td>
-            <td>{{fornecedor.contato}}</td>
-        </tr>
-    </table>
-
-    <h2>ITENS DO PEDIDO</h2>
-    <table class="details-table">
-        <tr>
-            <th>#</th>
-            <th>Descrição</th>
-            <th>Un.</th>
-            <th>Qtde</th>
-            <th>IPI %</th>
-            <th>Valor Unit.</th>
-            <th>Valor Total</th>
-            <th>Prev. Entrega</th>
-        </tr>
-        {{#each itens}}
-        <tr>
-            <td>{{@index}}</td>
-            <td>{{descricao}}</td>
-            <td>{{unidade}}</td>
-            <td>{{quantidade}}</td>
-            <td>{{ipi}}</td>
-            <td>R$ {{valor_unitario}}</td>
-            <td>R$ {{valor_total}}</td>
-            <td>{{formatDate previsao_entrega}}</td>
-        </tr>
-        {{/each}}
-    </table>
-
-    <div class="flex-container">
-        <div style="width: 60%;">
-            <h2>VALORES</h2>
-            <table class="totals-table">
-                <tr>
-                    <th>Total Bruto</th>
-                    <td>R$ {{total_bruto}}</td>
-                </tr>
-                <tr>
-                    <th>(+) IPI</th>
-                    <td>R$ {{total_ipi}}</td>
-                </tr>
-                <tr>
-                    <th>(+) Frete</th>
-                    <td>R$ {{valor_frete}}</td>
-                </tr>
-                <tr>
-                    <th>(+) Outras despesas</th>
-                    <td>R$ {{outras_despesas}}</td>
-                </tr>
-                <tr>
-                    <th>(-) Desconto</th>
-                    <td>R$ {{total_descontos}}</td>
-                </tr>
-                <tr>
-                    <th>(=) Total Final</th>
-                    <td>R$ {{total_final}}</td>
-                </tr>
-            </table>
+            </div>
+            <div style="width: 35%;">
+                <h2>CONDIÇÕES GERAIS</h2>
+                <table>
+                    <tr>
+                        <td><strong>Condição de Pagamento:</strong> {{cond_pagto}}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Prazo de Entrega:</strong> {{formatDate prazo_entrega}}</td>
+                    </tr>
+                </table>
+            </div>
         </div>
-        <div style="width: 35%;">
-            <h2>CONDIÇÕES GERAIS</h2>
-            <table>
-                <tr>
-                    <td><strong>Condição de Pagamento:</strong></td>
-                    <td>{{cond_pagto}}</td>
-                </tr>
-                <tr>
-                    <td><strong>Prazo de Entrega:</strong></td>
-                    <td>{{formatDate prazo_entrega}}</td>
-                </tr>
-            </table>
-        </div>
-    </div>
 
-    <div class="info-section">
-        <h2>INFORMAÇÕES IMPORTANTES PARA O FORNECEDOR</h2>
+        <h2>ESCOPO DA CONTRATAÇÃO</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>[Descrever aqui o escopo detalhado da locação, incluindo especificações técnicas do equipamento, período de locação, local de utilização, etc.]</p>
+                </td>
+            </tr>
+        </table>
 
-        <h3>Os Preços:</h3>
-        <p>Inclusos nos preços todas as taxas, tributos e impostos pertencentes à aquisição.</p>
+        <h2>RESPONSABILIDADES DA CONTRATADA</h2>
+        <table>
+            <tr>
+                <td>
+                    <ul>
+                        <li>Fornecer o equipamento em perfeitas condições de uso e funcionamento</li>
+                        <li>Realizar manutenção preventiva e corretiva do equipamento</li>
+                        <li>Substituir o equipamento em caso de defeito ou mau funcionamento</li>
+                        <li>Fornecer manual de operação e orientações de uso</li>
+                        <li>Garantir a qualidade e bom funcionamento do equipamento durante todo o período de locação</li>
+                        <li>Realizar treinamento da equipe quando necessário</li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
 
-        <h3>Prazo de Entrega:</h3>
-        <p>O material somente poderá ser entregue de acordo com a programação da obra. Caso o fornecedor não atenda a essa programação, a CONTRATANTE está autorizada a comprar o material de outros fornecedores e proceder ao desconto da diferença do FORNECEDOR.</p>
+        <h2>RESPONSABILIDADES DA CONTRATANTE</h2>
+        <table>
+            <tr>
+                <td>
+                    <ul>
+                        <li>Utilizar o equipamento de acordo com as especificações técnicas e manual de operação</li>
+                        <li>Manter o equipamento em local adequado e seguro</li>
+                        <li>Comunicar imediatamente qualquer defeito ou irregularidade no funcionamento</li>
+                        <li>Não realizar modificações ou adaptações no equipamento sem autorização</li>
+                        <li>Efetuar os pagamentos conforme acordado</li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
 
-        <h3>EPIs:</h3>
-        <p>O FORNECEDOR deverá munir seus funcionários com os EPIs adequados para a entrega e/ou descarga, conforme OSMA 024.</p>
+        <h2>DADOS ADICIONAIS</h2>
+        <table>
+            <tr>
+                <td>{{informacoes_importantes}}</td>
+            </tr>
+        </table>
 
-        <h3>Venda Mercantil:</h3>
-        <p>Todas as Notas Fiscais de Venda Mercantil deverão constar obrigatoriamente a correta identificação da Nomenclatura Comum do MERCOSUL (NCM), conforme estabelece a legislação fiscal vigente. Não serão aceitas, em hipótese alguma, Notas Fiscais de Venda Mercantil sem a correta identificação de NCM. Toda e qualquer mercadoria fornecida para a CONTRATANTE deverá ser acompanhada da Nota Fiscal devida. Quando acordado com a CONTRATANTE a realização de pagamento mediante a emissão de Nota Fiscal de Simples Faturamento, tal ato será mera liberalidade da CONTRATANTE, sendo obrigação do FORNECEDOR entregar o material à CONTRATANTE acompanhado da devida Nota Fiscal.</p>
+        <h2>MEDIÇÕES</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>As medições serão feitas mensalmente conforme descrito:</p>
+                    <ul>
+                        <li>Medições após a finalização do período de locação</li>
+                        <li>Pagamento conforme acordado em contrato</li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
 
-        <h3>Pagamento:</h3>
-        <p>Somente serão consideradas para efeito de pagamento as quantidades aceitas durante a entrega na obra. Quando for o caso, somente serão consideradas as pesagens que forem efetuadas na balança da CONTRATANTE ou em outra indicada pela mesma. Serão consideradas a cubicagem efetuada pelo apontador da CONTRATANTE, devidamente anotada no canhoto da Nota Fiscal. Para efeito de pagamento, o prazo fixado no presente pedido de fornecimento será contado da data de entrega da mercadoria, incluindo-se nesta contagem o dia de emissão da respectiva Nota Fiscal. Todavia, caso o material solicitado não seja entregue na data da emissão da Nota Fiscal, o prazo para pagamento aqui estabelecido ficará prorrogado por tantos dias quantos forem os de atraso, sem quaisquer ônus para a CONTRATANTE. O FORNECEDOR deverá discriminar no corpo da Nota Fiscal o endereço da obra. Caso as faturas sejam emitidas com incorreções ou encaminhadas para o endereço diferente do indicado, as mesmas serão devolvidas e o prazo de pagamento passará a ser contado a partir da reapresentação das notas devidamente corrigidas no protocolo da CONTRATANTE.</p>
+        <h2>REGIME DE CONTRATAÇÃO</h2>
+        <table>
+            <tr>
+                <td>Os preços da Planilha de Locação - Anexo I deste contrato, são apenas referenciais, onde o regime desta contratação é PREÇO GLOBAL</td>
+            </tr>
+        </table>
 
-        <h3>Defeitos ou Acidentes:</h3>
-        <p>No caso de defeito de fabricação ou danos pelo transporte, o FORNECEDOR deverá substituir o produto sem qualquer ônus para a CONTRATANTE, no prazo máximo de 48 horas. Em caso de acidente, o FORNECEDOR deverá enviar um relato do acidente, bem como o número do lote do material, promovendo a substituição do produto eventualmente danificado nas mesmas condições ora descritas.</p>
+        <h2>REAJUSTES</h2>
+        <table>
+            <tr>
+                <td>Os preços são fixos e irreajustáveis durante o prazo de vigência deste contrato. Caso a vigência do contrato ultrapasse o período de 12 (doze) meses, os preços deverão ser reajustados com base no valor de mercado, mediante aditamento contratual.</td>
+            </tr>
+        </table>
 
-        <h3>Tributos e Contribuições:</h3>
-        <p>Correrão por conta exclusiva do FORNECEDOR todos os tributos e contribuições que incidam ou venham a incidir sobre o presente pedido de fornecimento.</p>
+        <h2>PAGAMENTOS</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>Os faturamentos mensais da CONTRATADA serão autorizados pela CONTRATANTE e o pagamento será feito 10 dias após a data de emissão da Nota Fiscal.</p>
+                    <p>Os pagamentos de locação serão efetuados através de depósito bancário e ou boleto na conta bancária de titularidade da CONTRATADA, conforme DADOS ADICIONAIS</p>
+                </td>
+            </tr>
+        </table>
 
-        <h3>Responsabilidade Social:</h3>
-        <p>O FORNECEDOR se obriga a não empregar menores de 18 anos em atividades noturnas, perigosas ou insalubres e menores de 16 anos em qualquer trabalho, exceto na condição de aprendizes, a partir de 14 anos, bem como não utilizar qualquer forma de trabalho escravo ou análogo, devendo ainda incluir em todos os seus contratos com seus fornecedores, dispositivo vedando que os mesmos o façam.</p>
+        <h2>MULTAS APLICÁVEIS</h2>
+        <table>
+            <tr>
+                <td>
+                    <p><strong>Multa por atraso:</strong> No caso de descumprimento dos prazos aqui indicados, estabelecidos nesse contrato, a CONTRATADA incorrerá em multa diária correspondente a 1% (um por cento) do Valor Total do contrato, de maneira cumulativa, até que o prazo seja cumprido.</p>
+                    <p><strong>Multa por infração:</strong> No caso de descumprimento de qualquer obrigação deste contrato, a Parte infratora incorrerá em multa de 10% (dez por cento) do Valor Total do contrato, para cada infração devidamente comprovada.</p>
+                </td>
+            </tr>
+        </table>
 
-        <h3>Obediência às Normas:</h3>
-        <p>O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis, relativamente à segurança, higiene e medicina do trabalho, especialmente a norma regulamentadora NR 18, do Ministério do Trabalho, bem como as normas internas expedidas pela CONTRATANTE. No caso de desobediência, as consequências, inclusive multas aplicadas pelos órgãos públicos, serão suportadas pelo FORNECEDOR, mesmo que lançadas contra a CONTRATANTE ou terceiros. Neste caso, ainda que passíveis de defesa, o valor respectivo será caucionado pela CONTRATANTE, que poderá descontá-los dos haveres do FORNECEDOR, sendo certo que o FORNECEDOR também estará sujeito a uma multa de R$ 200,00 por infração de cada funcionário.</p>
+        <h2>RESCISÃO CONTRATUAL</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>O inadimplemento total ou parcial deste Contrato poderá dar ensejo a sua imediata rescisão, mediante comunicado escrito à outra Parte, garantindo a esta o prazo de 5 (cinco) dias para sanar a sua falta contratual, sem o que o Contrato poderá ser rescindido de pleno direito.</p>
+                    <p>Além das hipóteses legais, este Contrato ficará resolvido de pleno direito, independentemente de notificação judicial ou extrajudicial nas hipóteses de falência, pedido de recuperação judicial ou extrajudicial ou insolvência de qualquer das Partes.</p>
+                </td>
+            </tr>
+        </table>
 
-        <h3>Multas e Penalidades:</h3>
-        <p>Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento, em favor do CONTRATANTE, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE. Em caso de atraso na data de entrega pactuada, o FORNECEDOR ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa moratória diária no valor correspondente a 1,0% (um por cento) do valor total deste pedido de compra, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE. A aplicação das multas previstas nesse contrato está limitada a 30% (trinta por cento) do valor total desse pedido de compra. Não serão deduzidos desse montante os valores diretamente pagos pelas seguradoras em decorrência dos seguros previstos neste contrato. As multas previstas neste contrato não excluem quaisquer outras penalidades previstas em lei.</p>
-    </div>
+        <h2>GARANTIA</h2>
+        <table>
+            <tr>
+                <td>A CONTRATADA deverá garantir o perfeito funcionamento do equipamento durante todo o período de locação, realizando as manutenções necessárias e substituições quando aplicável.</td>
+            </tr>
+        </table>
 
-    <div class="signatures">
-        <div class="signature">
-            <p>CONTRATANTE</p>
-            <p>HDS SERVIÇO LTDA</p>
-        </div>
-        <div class="signature">
-            <p>FORNECEDOR</p>
-            <p>{{fornecedor.razao_social}}</p>
-        </div>
+        <h2>OBEDIÊNCIA AS NORMAS</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis, relativamente à segurança, higiene e medicina do trabalho, especialmente a norma regulamentadora NR 18, do Ministério do Trabalho, bem como as normas internas expedidas pela CONTRATANTE.</p>
+                </td>
+            </tr>
+        </table>
+
+        <h2>CLÁUSULAS CONTRATUAIS</h2>
+        <table>
+            <tr>
+                <td>Não Vinculação com Clientes: A Contratada se compromete, durante a vigência deste contrato e pelo período de 5 (cinco) anos após o seu término, a não criar qualquer tipo de vínculo ou relacionamento comercial com os clientes da Contratante através do equipamento locado, salvo mediante autorização expressa e por escrito da Contratante.</td>
+            </tr>
+        </table>
+
+        <h2>COMPLIANCE, INTEGRIDADE E LEIS ANTICORRUPÇÃO</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>As Partes se obrigam, sob as penas previstas neste instrumento e na legislação aplicável, a observar e cumprir rigorosamente todas as leis e atos normativos a que estão submetidas, nacionais ou internacionais, que disponham contra a prática de atos de corrupção e lavagem de dinheiro (em conjunto "Leis Anticorrupção"), assim como as normas e exigências constantes de suas políticas internas quando existentes ("Política Anticorrupção").</p>
+                </td>
+            </tr>
+        </table>
+
+        <h2>APRESENTAÇÃO DE DOCUMENTOS</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>Para assinatura deste contrato deverão ser apresentados os seguintes documentos:</p>
+                    <ol>
+                        <li>Contrato Social da Empresa e Ultima Alteração</li>
+                        <li>Cartão CNPJ</li>
+                        <li>Inscrição Estadual (se houver)</li>
+                        <li>Certidão Negativa de Débitos Estaduais</li>
+                        <li>Comprovante de Registro no Cadastro de Contribuinte Municipal no Município onde está Constituída (CCM)</li>
+                        <li>Certidão Negativa de Débitos Municipais no Município onde está Constituída</li>
+                        <li>Certidão Negativa de Tributos Federais</li>
+                        <li>Declaração Emitida em Papel Timbrado Demonstrando a Contabilidade Regular</li>
+                        <li>CND (Certidão Negativa de Débitos - INSS / Previdência Social)</li>
+                        <li>CRF (Certificado de Regularidade do FGTS)</li>
+                        <li>Certidão Negativa de Ações Trabalhistas</li>
+                        <li>Modelo de Nota Fiscal do Fornecedor</li>
+                    </ol>
+                </td>
+            </tr>
+        </table>
+
+        <h2>DO SIGILO E CONFIDENCIALIDADE</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>Todas as informações, documentos, desenhos e dados fornecidos pela CONTRATANTE, relacionados ao objeto do presente Contrato, incluindo os documentos técnicos, deverão ser tratados com o mais absoluto sigilo e a mais rigorosa confidencialidade.</p>
+                </td>
+            </tr>
+        </table>
+
+        <h2>ASSINATURAS</h2>
+        <table>
+            <tr>
+                <td>
+                    <p>As Partes desde já acordam, que o presente Contrato, bem como demais documentos correlatos, poderão ser assinados eletronicamente, caso em que todos os signatários deverão assinar pela plataforma a ser informada pela CONTRATANTE, nos termos da Lei nº 14.063 de 2020 e demais alterações posteriores.</p>
+                </td>
+            </tr>
+        </table>
+
+        <h2>Dados Adicionais</h2>
+        <table>
+            <tr>
+                <td></td>
+            </tr>
+        </table>
+
+        <h2>Informações Importantes</h2>
+        <table>
+            <tr>
+                <td>Frete: (  ) CIF     (   ) FOB</td>
+            </tr>
+        </table>
+
+
+        <h2>Informações Importantes para o Fornecedor</h2>
+        <table class="info-table">
+            <tr>
+                <td>
+                    <p><strong>Os Preços:</strong> Inclusos nos preços todas as taxas, tributos e impostos pertencentes à aquisição.</p>
+                    <p><strong>Prazo de Entrega:</strong> Material somente poderá ser entregue de acordo com programação da obra e caso o fornecedor não atenda esta programação, fica a CONTRATANTE autorizada a comprar o material de outros fornecedores e proceder o desconto da diferença do FORNECEDOR.</p>
+                    <p><strong>EPIS:</strong> O FORNECEDOR terá que munir seus funcionários com os EPIs adequados a entrega e/ou descarga, conforme OSMA 024.</p>
+                    <p><strong>Pagamento:</strong> Somente serão consideradas para efeito de pagamento, as quantidades aceitas durante a entrega na obra. Quando for o caso, somente serão consideradas as pesagens que forem efetuadas na balança da CONTRATANTE ou em outra indicada pela mesma.</p>
+                    <p><strong>Defeitos ou Acidentes:</strong> No caso de defeito de fabricação ou danos pelo transporte, o FORNECEDOR deverá substituir o produto sem qualquer õnus para a CONTRATANTE, no prazo máximo de 48 horas.</p>
+                    <p><strong>Tributos e Contribuições:</strong> Correrão por conta exclusivas do FORNECEDOR todos os tributos e contribuições que incidam ou venham a incidir sobre o presente pedido de fornecimento.</p>
+                    <p><strong>Responsabilidade Social:</strong> O FORNECEDOR se obriga a não empregar menores de 18 anos em atividades noturnas, perigosas ou insalubres e menores de 16 anos em qualquer trabalho.</p>
+                    <p><strong>Obediência as normas:</strong> O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis.</p>
+                    <p><strong>Multas e penalidades:</strong> Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento.</p>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html> 
