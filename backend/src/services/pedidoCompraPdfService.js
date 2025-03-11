@@ -30,18 +30,15 @@ class PedidoCompraPdfService {
 
       // Helper para formatar datas
       handlebars.registerHelper('formatDate', (dateString) => {
+        if (!dateString) return '';
         const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR', {
-          day: 'numeric',
-          month: 'numeric',
-          year: 'numeric'
-        });
+        return date.toLocaleDateString('pt-BR');
       });
 
       // Calcular total bruto
       const totalBruto = pedidoData.materiais.reduce((acc, item) => acc + item.valor_total, 0);
 
-      // Ajustar o cálculo do total final para usar valor_frete quando frete está null
+      // Ajustar o cálculo do total final
       const totalFinal = totalBruto - 
         parseFloat(pedidoData.desconto || 0) + 
         parseFloat(pedidoData.valor_frete || 0) + 
@@ -53,22 +50,23 @@ class PedidoCompraPdfService {
         return itemDate > maxDate ? itemDate : maxDate;
       }, new Date(0));
 
+      // Processar endereço do fornecedor
+      const enderecoCompleto = fornecedorData.endereco || '';
+      const [endereco = '', bairro = ''] = enderecoCompleto.split(' - ');
+      const [cidade = '', uf = ''] = (fornecedorData.municipio_uf || '').split('-').map(s => s.trim());
+
       // Formata os dados
       const data = {
         logoSrc: logoBase64,
         pedidoData,
         descricao: propostaData.descricao,
-        dataEmissao: new Date(pedidoData.created_at).toLocaleDateString('pt-BR', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        }),
+        dataEmissao: new Date(pedidoData.created_at).toLocaleDateString('pt-BR'),
         fornecedor: {
           ...fornecedorData,
-          endereco: fornecedorData.endereco,
-          bairro: '', 
-          cidade: fornecedorData.municipio_uf.split('-')[0].trim(),
-          uf: fornecedorData.municipio_uf.split('-')[1].trim()
+          endereco: endereco.trim(),
+          bairro: bairro.trim(),
+          cidade: cidade.trim(),
+          uf: uf.trim()
         },
         clientInfo: {
           razao_social: "Hds Serviço Ltda",
@@ -103,11 +101,7 @@ class PedidoCompraPdfService {
           style: 'currency',
           currency: 'BRL'
         }).format(totalFinal),
-        dataEntregaMaisDistante: new Date(dataEntregaMaisDistante).toLocaleDateString('pt-BR', {
-          day: 'numeric',
-          month: 'numeric',
-          year: 'numeric'
-        }),
+        dataEntregaMaisDistante: new Date(dataEntregaMaisDistante).toLocaleDateString('pt-BR'),
         dados_adicionais: pedidoData.dados_adicionais || ''
       };
 
