@@ -29,7 +29,7 @@ class PedidoCompraController {
 
       // Se não houver parâmetros de busca, retorna todos os pedidos
       if (!campo || !valor) {
-      const pedidos = await PedidoCompraModel.findAll();
+        const pedidos = await PedidoCompraModel.findAll();
         return res.json(pedidos);
       }
 
