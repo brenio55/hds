@@ -15,4 +15,4 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    command: sh -c "node src/database/migrate.js && npm run dev"
+    command: sh -c "node src/database/migrate.js && npm install && npm run start"
