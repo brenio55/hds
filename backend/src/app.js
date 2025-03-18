@@ -19,7 +19,11 @@ const allowedOrigins = [
     'http://127.0.0.1:5173',
     'http://82.25.71.53',
     'http://hdsservico.com.br',
-    'https://hdsservico.com.br'
+    'https://hdsservico.com.br',
+    'http://www.hdsservico.com.br',
+    'https://www.hdsservico.com.br',
+    'http://*.hdsservico.com.br',
+    'https://*.hdsservico.com.br'
 ];
 
 // Configuração do CORS
@@ -28,7 +32,13 @@ app.use(cors({
         // Permite requisições sem origin (como apps mobile ou ferramentas de API)
         if (!origin) return callback(null, true);
         
-        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+        // Verifica se o origin é um subdomínio de hdsservico.com.br
+        const isHdsSubdomain = origin && (
+            allowedOrigins.includes(origin) || 
+            /^https?:\/\/([a-zA-Z0-9-]+\.)*hdsservico\.com\.br$/.test(origin)
+        );
+        
+        if (isHdsSubdomain) {
             callback(null, true);
         } else {
             callback(new Error('Bloqueado pelo CORS'));
