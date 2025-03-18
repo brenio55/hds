@@ -43,7 +43,7 @@
                 font-size: 0.9rem;
             }
 
-            input, textarea {
+            input, textarea, select {
                 width: 100%;
                 padding: 6px 10px;
                 border: 1px solid #ddd;
@@ -71,11 +71,63 @@
                 }
             }
 
+            select.fornecedor-select, select.proposta-select {
+                background-color: #f8f9fa;
+                cursor: pointer;
+                
+                &:hover {
+                    background-color: #f1f3f5;
+                }
+                
+                option {
+                    padding: 8px;
+                }
+            }
+
+            select.proposta-select {
+                font-size: 0.85rem;
+                
+                option {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+            }
+
+            .input-with-dropdown {
+                position: relative;
+                
+                .loading-text, .error-text {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    margin-top: 2px;
+                }
+            }
+
             &.required label::after {
                 content: '*';
                 color: #e74c3c;
                 margin-left: 4px;
             }
+        }
+
+        .loading-text {
+            font-size: 0.8rem;
+            color: #3498db;
+            margin-left: 5px;
+            font-style: italic;
+        }
+
+        .error-text {
+            font-size: 0.8rem;
+            color: #e74c3c;
+            margin-left: 5px;
+            font-weight: bold;
+            background-color: rgba(231, 76, 60, 0.1);
+            padding: 2px 5px;
+            border-radius: 3px;
+            display: inline-block;
         }
     }
 
@@ -231,5 +283,66 @@
                 padding: 8px 6px;
             }
         }
+    }
+}
+
+.success-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+
+    .success-popup-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+
+        h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        button {
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background-color: #219653;
+                transform: translateY(-2px);
+            }
+        }
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
     }
 } 

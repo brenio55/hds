@@ -1,4 +1,4 @@
-.consultar-propostas-container {
+.consultar-fornecedores-container {
     padding: 20px;
     margin: 0 auto;
     margin-top: 110px;
@@ -17,6 +17,12 @@
 .form-group {
     display: flex;
     flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 14px;
 }
 
 .form-group input {
@@ -76,6 +82,7 @@
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
 }
 
 table {
@@ -101,6 +108,15 @@ tr:hover {
     background-color: #f5f5f5;
 }
 
+.actions-column {
+    white-space: nowrap;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
 .view-button {
     background-color: #4caf50;
     color: white;
@@ -117,14 +133,8 @@ tr:hover {
     background-color: #388e3c;
 }
 
-.view-button:disabled {
-    background-color: #a5d6a7;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.download-button {
-    background-color: #2196f3;
+.edit-button {
+    background-color: #ff9800;
     color: white;
     border: none;
     padding: 6px 12px;
@@ -135,19 +145,29 @@ tr:hover {
     white-space: nowrap;
 }
 
-.download-button:hover {
-    background-color: #0d47a1;
+.edit-button:hover {
+    background-color: #f57c00;
 }
 
-.download-button:disabled {
-    background-color: #90caf9;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.action-buttons {
+.actions {
     display: flex;
-    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.add-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.add-button:hover {
+    background-color: #0056b3;
 }
 
 @media (max-width: 768px) {
@@ -161,5 +181,10 @@ tr:hover {
     
     table {
         min-width: 800px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 5px;
     }
 } 

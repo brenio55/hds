@@ -41,7 +41,7 @@
   font-weight: 500;
   font-size: 0.9rem;
 }
-.pedidos-container form .form-group input, .pedidos-container form .form-group textarea {
+.pedidos-container form .form-group input, .pedidos-container form .form-group textarea, .pedidos-container form .form-group select {
   width: 100%;
   padding: 6px 10px;
   border: 1px solid #ddd;
@@ -50,25 +50,68 @@
   transition: all 0.3s ease;
   background-color: #f8f9fa;
 }
-.pedidos-container form .form-group input:focus, .pedidos-container form .form-group textarea:focus {
+.pedidos-container form .form-group input:focus, .pedidos-container form .form-group textarea:focus, .pedidos-container form .form-group select:focus {
   border-color: #e74c3c;
   background-color: #fff;
   box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
   outline: none;
 }
-.pedidos-container form .form-group input:invalid, .pedidos-container form .form-group textarea:invalid {
+.pedidos-container form .form-group input:invalid, .pedidos-container form .form-group textarea:invalid, .pedidos-container form .form-group select:invalid {
   border-color: #e74c3c;
 }
-.pedidos-container form .form-group input:invalid + .error-tooltip, .pedidos-container form .form-group textarea:invalid + .error-tooltip {
+.pedidos-container form .form-group input:invalid + .error-tooltip, .pedidos-container form .form-group textarea:invalid + .error-tooltip, .pedidos-container form .form-group select:invalid + .error-tooltip {
   display: block;
   color: #e74c3c;
   font-size: 0.8rem;
   margin-top: 4px;
 }
+.pedidos-container form .form-group select.fornecedor-select, .pedidos-container form .form-group select.proposta-select {
+  background-color: #f8f9fa;
+  cursor: pointer;
+}
+.pedidos-container form .form-group select.fornecedor-select:hover, .pedidos-container form .form-group select.proposta-select:hover {
+  background-color: #f1f3f5;
+}
+.pedidos-container form .form-group select.fornecedor-select option, .pedidos-container form .form-group select.proposta-select option {
+  padding: 8px;
+}
+.pedidos-container form .form-group select.proposta-select {
+  font-size: 0.85rem;
+}
+.pedidos-container form .form-group select.proposta-select option {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pedidos-container form .form-group .input-with-dropdown {
+  position: relative;
+}
+.pedidos-container form .form-group .input-with-dropdown .loading-text, .pedidos-container form .form-group .input-with-dropdown .error-text {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 2px;
+}
 .pedidos-container form .form-group.required label::after {
   content: "*";
   color: #e74c3c;
   margin-left: 4px;
+}
+.pedidos-container form .loading-text {
+  font-size: 0.8rem;
+  color: #3498db;
+  margin-left: 5px;
+  font-style: italic;
+}
+.pedidos-container form .error-text {
+  font-size: 0.8rem;
+  color: #e74c3c;
+  margin-left: 5px;
+  font-weight: bold;
+  background-color: rgba(231, 76, 60, 0.1);
+  padding: 2px 5px;
+  border-radius: 3px;
+  display: inline-block;
 }
 .pedidos-container .items-section, .pedidos-container .totals-section, .pedidos-container .additional-info {
   background: #f8f9fa;
@@ -196,5 +239,60 @@
   }
   .pedidos-container .items-table thead th, .pedidos-container .items-table tbody td {
     padding: 8px 6px;
+  }
+}
+.success-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+.success-popup .success-popup-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+.success-popup .success-popup-content h3 {
+  color: #27ae60;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+.success-popup .success-popup-content p {
+  margin-bottom: 20px;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+.success-popup .success-popup-content button {
+  background-color: #27ae60;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.success-popup .success-popup-content button:hover {
+  background-color: #219653;
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }/*# sourceMappingURL=pedidos.css.map */

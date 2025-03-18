@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ConsultarPropostas.css';
 import HeaderAdmin from './HeaderAdmin';
-import { propostasService } from '../services/ApiService';
+import ApiService from '../services/ApiService';
 
 function ConsultarPropostas() {
     const navigate = useNavigate();
@@ -10,6 +10,7 @@ function ConsultarPropostas() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [downloadingId, setDownloadingId] = useState(null);
+    const [visualizandoId, setVisualizandoId] = useState(null);
     const [filtros, setFiltros] = useState({
         numeroProposta: '',
         cliente: '',
@@ -33,7 +34,7 @@ function ConsultarPropostas() {
         setLoading(true);
         setError(null);
         try {
-            const data = await propostasService.buscarPropostas();
+            const data = await ApiService.buscarPropostas();
             const propostasOrdenadas = ordenarPropostasPorData(data.propostas || []);
             setPropostas(propostasOrdenadas);
         } catch (error) {
@@ -53,7 +54,7 @@ function ConsultarPropostas() {
             const filtrosValidos = Object.fromEntries(
                 Object.entries(filtros).filter(([_, value]) => value !== '')
             );
-            const data = await propostasService.buscarPropostas(filtrosValidos);
+            const data = await ApiService.buscarPropostas(filtrosValidos);
             const propostasOrdenadas = ordenarPropostasPorData(data.propostas || []);
             setPropostas(propostasOrdenadas);
         } catch (error) {
@@ -74,8 +75,20 @@ function ConsultarPropostas() {
 
     const handleVisualizarProposta = async (id, versao) => {
         try {
+            setVisualizandoId(id);
+            await ApiService.visualizarPdf(id, versao);
+        } catch (error) {
+            console.error('Erro ao visualizar PDF:', error);
+            alert('Erro ao visualizar o PDF. Por favor, tente novamente.');
+        } finally {
+            setVisualizandoId(null);
+        }
+    };
+
+    const handleDownloadProposta = async (id, versao) => {
+        try {
             setDownloadingId(id);
-            await propostasService.downloadPdf(id, versao);
+            await ApiService.downloadPdf(id, versao);
         } catch (error) {
             console.error('Erro ao baixar PDF:', error);
             alert('Erro ao baixar o PDF. Por favor, tente novamente.');
@@ -86,7 +99,13 @@ function ConsultarPropostas() {
 
     const formatarData = (dataString) => {
         if (!dataString) return '';
-        const data = new Date(dataString);
+        
+        // Extrair a data diretamente da string ISO, ignorando o fuso horário
+        const [ano, mes, dia] = dataString.split('T')[0].split('-');
+        
+        // Criar a data usando o fuso horário local, definindo o horário como meio-dia para evitar problemas com DST
+        const data = new Date(ano, mes - 1, dia, 12, 0, 0);
+        
         return data.toLocaleDateString('pt-BR');
     };
 
@@ -183,13 +202,22 @@ function ConsultarPropostas() {
                                             <td>{formatarValor(proposta.valor_final)}</td>
                                             <td>{formatarData(proposta.data_criacao)}</td>
                                             <td>
-                                                <button 
-                                                    className="view-button"
-                                                    onClick={() => handleVisualizarProposta(proposta.id, proposta.versao)}
-                                                    disabled={downloadingId === proposta.id}
-                                                >
-                                                    {downloadingId === proposta.id ? 'Baixando...' : 'Visualizar'}
-                                                </button>
+                                                <div className="action-buttons">
+                                                    <button 
+                                                        className="view-button"
+                                                        onClick={() => handleVisualizarProposta(proposta.id, proposta.versao)}
+                                                        disabled={visualizandoId === proposta.id}
+                                                    >
+                                                        {visualizandoId === proposta.id ? 'Abrindo...' : 'Visualizar'}
+                                                    </button>
+                                                    <button 
+                                                        className="download-button"
+                                                        onClick={() => handleDownloadProposta(proposta.id, proposta.versao)}
+                                                        disabled={downloadingId === proposta.id}
+                                                    >
+                                                        {downloadingId === proposta.id ? 'Baixando...' : 'Download'}
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

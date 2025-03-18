@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import HeaderAdmin from './HeaderAdmin';
 import './GerarPropostas.scss';
-import { propostasService } from '../services/ApiService';
+import ApiService from '../services/ApiService';
 import { useAdmin } from '../contexts/AdminContext';
 
 // Componente do Popup
@@ -11,7 +11,7 @@ const SuccessPopup = ({ onClose, propostaData }) => {
     const handleDownloadPDF = async () => {
         try {
             setDownloading(true);
-            await propostasService.downloadPdf(propostaData.id, propostaData.versao);
+            await ApiService.downloadPdf(propostaData.id, propostaData.versao);
         } catch (error) {
             console.error('Erro ao baixar PDF:', error);
             alert('Erro ao baixar PDF. Por favor, tente novamente.');
@@ -104,7 +104,7 @@ function GerarPropostas() {
                 user_id: user.id
             };
             
-            const response = await propostasService.criarProposta(dadosProposta);
+            const response = await ApiService.criarProposta(dadosProposta);
             setSuccessData(response); // Armazena os dados da proposta para o popup
         } catch (error) {
             alert('Erro ao gerar proposta: ' + error.message);

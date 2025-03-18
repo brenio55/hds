@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { formatCNPJ, formatCEP, formatTelefone } from '../utils/formatters';
 import HeaderAdmin from './HeaderAdmin';
 import './pedidos.scss';
-import { salvarPedidoCompleto } from '../services/ApiService';
+import ApiService from '../services/ApiService';
 
 function PedidosDeMaterial() {
     const [itens, setItens] = useState([]);
@@ -25,14 +25,25 @@ function PedidosDeMaterial() {
     const [cep, setCep] = useState('');
     const [contato, setContato] = useState('');
     const [devMode, setDevMode] = useState(false);
+    const [fornecedorId, setFornecedorId] = useState('');
+    const [fornecedorNome, setFornecedorNome] = useState('');
+    const [endereco, setEndereco] = useState('');
+    const [loadingFornecedor, setLoadingFornecedor] = useState(false);
+    const [errorFornecedor, setErrorFornecedor] = useState('');
     const [dadosPedido, setDadosPedido] = useState({
         valorFrete: '0,00',
         outrasDespesas: '0,00',
         informacoesImportantes: '',
-        condPagto: '',
+        condPagto: '30',
         prazoEntrega: '',
-        frete: ''
+        frete: 'CIF'
     });
+    const [listaFornecedores, setListaFornecedores] = useState([]);
+    const [loadingListaFornecedores, setLoadingListaFornecedores] = useState(false);
+    const [listaPropostas, setListaPropostas] = useState([]);
+    const [loadingPropostas, setLoadingPropostas] = useState(false);
+    const [centroCusto, setCentroCusto] = useState('');
+    const [propostaSelecionada, setPropostaSelecionada] = useState(null);
 
     const dadosTeste = {
         codigo: '001',
@@ -44,7 +55,7 @@ function PedidosDeMaterial() {
         pedido: '0123456789',
         dataVencto: new Date().toISOString().split('T')[0],
         condPagto: '30DDL',
-        centroCusto: 'TESTE'
+        centroCusto: '1'
     };
 
     const itemTeste = {
@@ -83,6 +94,41 @@ function PedidosDeMaterial() {
         }
     }, [devMode]);
 
+    useEffect(() => {
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        
+        // Carregar lista de fornecedores
+        carregarFornecedores();
+        
+        // Carregar lista de propostas para o centro de custo
+        carregarPropostas();
+    }, []);
+
+    const carregarFornecedores = async () => {
+        setLoadingListaFornecedores(true);
+        try {
+            const fornecedores = await ApiService.buscarFornecedores();
+            setListaFornecedores(fornecedores);
+        } catch (error) {
+            console.error('Erro ao carregar lista de fornecedores:', error);
+        } finally {
+            setLoadingListaFornecedores(false);
+        }
+    };
+
+    const carregarPropostas = async () => {
+        setLoadingPropostas(true);
+        try {
+            const data = await ApiService.buscarPropostas();
+            setListaPropostas(data.propostas || []);
+        } catch (error) {
+            console.error('Erro ao carregar propostas:', error);
+        } finally {
+            setLoadingPropostas(false);
+        }
+    };
+
     const handleInputChange = (e) => {
         if (devMode) {
             return;
@@ -113,9 +159,11 @@ function PedidosDeMaterial() {
             const quantidade = parseFloat(novoItem.quantidade.toString().replace(',', '.')) || 0;
             const valorUnitario = parseFloat(novoItem.valorUnitario.toString().replace(',', '.')) || 0;
             novoItem.valorTotal = (quantidade * valorUnitario).toFixed(2).toString();
+            novoItem.item = (itens.length + 1).toString();
             setItens(prev => [...prev, novoItem]);
         } else {
-            setItens(prev => [...prev, itemAtual]);
+            const novoItem = { ...itemAtual, item: (itens.length + 1).toString() };
+            setItens(prev => [...prev, novoItem]);
         }
         
         setItemAtual({
@@ -189,145 +237,57 @@ function PedidosDeMaterial() {
             const totalDescontos = calcularTotalDescontos();
             const totalFinal = calcularTotalFinal();
 
+            // Preparar os dados do pedido no formato esperado
             const pedidoParaSalvar = {
-                codigo: document.querySelector('[name="codigo"]').value,
-                fornecedor: document.querySelector('[name="fornecedor"]').value,
+                codigo: document.querySelector('[name="codigo"]')?.value || '',
+                fornecedor_id: fornecedorId,
                 cnpj: cnpj,
-                endereco: document.querySelector('[name="endereco"]').value,
+                endereco: endereco,
                 contato: contato,
-                pedido: document.querySelector('[name="pedido"]').value,
-                dataVencto: document.querySelector('[name="dataVencto"]').value,
+                dataVencto: document.querySelector('[name="dataVencto"]')?.value || '',
+                condPagto: dadosPedido.condPagto || '30',
+                frete: dadosPedido.frete || 'CIF',
                 totalBruto,
                 totalDescontos,
                 valorFrete: dadosPedido.valorFrete,
                 outrasDespesas: dadosPedido.outrasDespesas,
+                informacoesImportantes: dadosPedido.informacoesImportantes,
                 totalFinal,
-                previsaoEntrega: new Date().toISOString().split('T')[0]
+                proposta_id: centroCusto
             };
 
-            // const { numeroPedido } = await salvarPedidoCompleto(pedidoParaSalvar, itens);
-            const numeroPedido = '123456789';
+            // Preparar os itens no formato esperado
+            const itensFormatados = itens.map((item, index) => ({
+                ...item,
+                item: index + 1,
+                previsaoEntrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+            }));
 
-            const formatarValorMonetario = (valor) => {
-                if (!valor) return '0,00';
-                return typeof valor === 'string' ? valor : valor.toString().replace('.', ',');
-            };
-
-            const formatarData = (data) => {
-                if (!data) return '';
-                const [ano, mes, dia] = data.split('-');
-                return `${dia}/${mes}/${ano}`;
-            };
-
-            // Carregar a imagem como base64
-            const logoResponse = await fetch('/docs/admin/LOGO.png');
-            const logoBlob = await logoResponse.blob();
-            const logoBase64 = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(logoBlob);
-            });
-
-            const response = await fetch('/docs/admin/pedidoDeCompraTemplateCode.html');
-            let templateHtml = await response.text();
-
-            // Substitui a referência da imagem no template com a versão base64
-            templateHtml = templateHtml.replace(
-                /<img[^>]*>/,
-                `<img src="${logoBase64}" alt="Logo" class="logo" style="height: 80px;">`
-            );
-
-            // Substituir "Pedido de Compra" por "Pedido de Material"
-            templateHtml = templateHtml.replace(/PEDIDO DE COMPRA/g, 'PEDIDO DE MATERIAL');
-
-            // Atualizar a tabela de detalhes do pedido
-            const hoje = new Date();
-            const dataFormatada = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
+            // Chamar a função de salvar pedido completo
+            const resultado = await ApiService.criarPedido(pedidoParaSalvar, itensFormatados);
             
-            // Atualizar informações do cabeçalho
-            templateHtml = templateHtml.replace(/<td>20000001<\/td>\s*<td>12\/12\/2024<\/td>\s*<td>1<\/td>/, 
-                `<td>${numeroPedido}</td><td>${dataFormatada}</td><td>1</td>`);
-
-            // Atualizar detalhes do pedido
-            templateHtml = templateHtml.replace(
-                /<td>12345<\/td>\s*<td>Fornecedor XYZ<\/td>\s*<td>00\.000\.000\/0000-00<\/td>\s*<td>Rua Exemplo, 123<\/td>\s*<td>12000-000<\/td>\s*<td>\(12\) 3456-7890<\/td>/,
-                `<td>${document.querySelector('[name="codigo"]').value}</td>
-                <td>${document.querySelector('[name="fornecedor"]').value}</td>
-                <td>${cnpj}</td>
-                <td>${document.querySelector('[name="endereco"]').value}</td>
-                <td>${cep}</td>
-                <td>${contato}</td>`
-            );
-
-            // Atualizar informações do pedido
-            templateHtml = templateHtml.replace(
-                /<td>001<\/td>\s*<td>01\/01\/2024<\/td>\s*<td>À vista<\/td>\s*<td>Financeiro<\/td>/,
-                `<td>${document.querySelector('[name="pedido"]').value}</td>
-                <td>${formatarData(document.querySelector('[name="dataVencto"]').value)}</td>
-                <td>${dadosPedido.condPagto || 'N/A'}</td>
-                <td>${document.querySelector('[name="centroCusto"]')?.value || 'N/A'}</td>`
-            );
-
-            // Atualizar totais
-            templateHtml = templateHtml.replace(
-                /<td>R\$ 100,00<\/td>[\s\S]*?<td>R\$ 50,00<\/td>[\s\S]*?<td>R\$ 30,00<\/td>[\s\S]*?<td>R\$ 1\.100,00<\/td>[\s\S]*?<td>R\$ 1\.080,00<\/td>/,
-                `<td>R$ ${formatarValorMonetario(totalDescontos)}</td>
-                <td>R$ ${formatarValorMonetario(dadosPedido.valorFrete)}</td>
-                <td>R$ ${formatarValorMonetario(dadosPedido.outrasDespesas)}</td>
-                <td>R$ ${formatarValorMonetario(totalBruto)}</td>
-                <td>R$ ${formatarValorMonetario(totalFinal)}</td>`
-            );
-
-            // Atualizar data final de entrega
-            templateHtml = templateHtml.replace(
-                /<td>15\/01\/2024<\/td>/,
-                `<td>${dadosPedido.prazoEntrega || 'A combinar'}</td>`
-            );
-
-            // Limpar a tabela de materiais existente e adicionar os novos itens
-            const tabelaMateriais = itens.map((item, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                        <td>${item.descricao}</td>
-                        <td>${item.unidade}</td>
-                        <td>${item.quantidade}</td>
-                    <td>R$ ${formatarValorMonetario(item.valorUnitario)}</td>
-                    <td>R$ ${formatarValorMonetario(item.valorTotal)}</td>
-                    <td>${item.ipi}%</td>
-                        <td>${formatarData(item.previsaoEntrega)}</td>
-                    </tr>
-            `).join('');
-
-            templateHtml = templateHtml.replace(
-                /<tr>\s*<td>1<\/td>[\s\S]*?<\/tr>\s*<tr>\s*<td>2<\/td>[\s\S]*?<\/tr>/,
-                tabelaMateriais
-            );
-
-            // Atualizar dados adicionais
-            templateHtml = templateHtml.replace(
-                /<h2>Dados Adicionais<\/h2>\s*<table>\s*<tr>\s*<td><\/td>\s*<\/tr>\s*<\/table>/,
-                `<h2>Dados Adicionais</h2>
-                <table>
-                    <tr>
-                        <td>${(dadosPedido.informacoesImportantes || 'Nenhuma informação adicional').replace(/\n/g, '<br>')}</td>
-                    </tr>
-                </table>`
-            );
-
-            // Atualizar informações de frete
-            templateHtml = templateHtml.replace(
-                /Frete \(  \) CIF     \(   \) FOB/,
-                `Frete (${dadosPedido.frete === 'CIF' ? 'X' : '  '}) CIF     (${dadosPedido.frete === 'FOB' ? 'X' : '  '}) FOB`
-            );
-
-            // Criar o Blob e abrir em nova janela
-            const blob = new Blob([templateHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            URL.revokeObjectURL(url);
+            // Exibir popup de sucesso
+            const successPopup = document.createElement('div');
+            successPopup.className = 'success-popup';
+            successPopup.innerHTML = `
+                <div class="success-popup-content">
+                    <h3>Pedido Gerado com Sucesso!</h3>
+                    <p>O pedido foi criado com o ID: ${resultado.id || 'N/A'}</p>
+                    <button id="closeSuccessPopup">Fechar</button>
+                </div>
+            `;
+            document.body.appendChild(successPopup);
+            
+            // Adicionar evento para fechar o popup
+            document.getElementById('closeSuccessPopup').addEventListener('click', () => {
+                document.body.removeChild(successPopup);
+            });
+            
+            // Limpar o formulário ou redirecionar
+            // window.location.href = '/pedidosDeCompra';
         } catch (error) {
-            console.error('Erro ao gerar pedido:', error);
-            alert('Erro ao gerar pedido. Por favor, tente novamente.');
+            console.error('Erro ao criar pedido:', error);
+            alert(`Erro ao criar pedido: ${error.message}`);
         }
     };
 
@@ -360,6 +320,84 @@ function PedidosDeMaterial() {
         setContato(formatTelefone(rawValue));
     };
 
+    const handleFornecedorIdChange = async (e) => {
+        const id = e.target.value;
+        setFornecedorId(id);
+        
+        if (id && id.trim() !== '') {
+            setLoadingFornecedor(true);
+            setErrorFornecedor('');
+            
+            try {
+                const fornecedor = await ApiService.buscarFornecedorPorId(id);
+                
+                // Verificar se o fornecedor foi encontrado
+                if (fornecedor && fornecedor.id) {
+                    // Preencher os campos com os dados do fornecedor
+                    setFornecedorNome(fornecedor.razao_social || '');
+                    setCnpj(formatCNPJ(fornecedor.cnpj || ''));
+                    setEndereco(fornecedor.endereco || '');
+                    setCep(formatCEP(fornecedor.cep || ''));
+                    setContato(formatTelefone(fornecedor.telefone || fornecedor.celular || ''));
+                    setErrorFornecedor(''); // Garantir que não há mensagem de erro
+                } else {
+                    throw new Error('Fornecedor não encontrado');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao buscar fornecedor:', error);
+                setErrorFornecedor('Fornecedor não encontrado');
+                
+                // Limpar os campos em caso de erro
+                setFornecedorNome('');
+                setCnpj('');
+                setEndereco('');
+                setCep('');
+                setContato('');
+            } finally {
+                setLoadingFornecedor(false);
+            }
+        } else {
+            // Limpar os campos se o ID estiver vazio
+            setFornecedorNome('');
+            setCnpj('');
+            setEndereco('');
+            setCep('');
+            setContato('');
+            setErrorFornecedor('');
+        }
+    };
+
+    const handleFornecedorSelectChange = (e) => {
+        const selectedId = e.target.value;
+        if (selectedId) {
+            setFornecedorId(selectedId);
+            // Acionar a busca de detalhes do fornecedor
+            const event = { target: { value: selectedId } };
+            handleFornecedorIdChange(event);
+        } else {
+            // Limpar os campos se nenhum fornecedor for selecionado
+            setFornecedorId('');
+            setFornecedorNome('');
+            setCnpj('');
+            setEndereco('');
+            setCep('');
+            setContato('');
+        }
+    };
+
+    const handlePropostaChange = (e) => {
+        const propostaId = e.target.value;
+        setCentroCusto(propostaId);
+        
+        if (propostaId) {
+            const proposta = listaPropostas.find(p => p.id === propostaId);
+            setPropostaSelecionada(proposta);
+        } else {
+            setPropostaSelecionada(null);
+        }
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         await handleGerarPedido();
@@ -373,12 +411,46 @@ function PedidosDeMaterial() {
                 <form onSubmit={handleSubmit}>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Código:</label>
-                            <input type="text" name="codigo" defaultValue={devMode ? dadosTeste.codigo : ''} />
+                            <label>Código do Fornecedor:</label>
+                            <div className="input-with-dropdown">
+                                <input 
+                                    type="text" 
+                                    name="fornecedorId" 
+                                    value={fornecedorId}
+                                    onChange={handleFornecedorIdChange}
+                                    placeholder="Digite o ID do fornecedor" 
+                                />
+                                {loadingFornecedor && <span className="loading-text">Carregando...</span>}
+                                {errorFornecedor && <span className="error-text">{errorFornecedor}</span>}
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Selecionar Fornecedor:</label>
+                            <select 
+                                onChange={handleFornecedorSelectChange}
+                                value={fornecedorId || ''}
+                                className="fornecedor-select"
+                            >
+                                <option value="">Selecione um fornecedor</option>
+                                {loadingListaFornecedores ? (
+                                    <option disabled>Carregando fornecedores...</option>
+                                ) : (
+                                    listaFornecedores.map(fornecedor => (
+                                        <option key={fornecedor.id} value={fornecedor.id}>
+                                            {fornecedor.razao_social} (ID: {fornecedor.id})
+                                        </option>
+                                    ))
+                                )}
+                            </select>
                         </div>
                         <div className="form-group">
                             <label>Fornecedor:</label>
-                            <input type="text" name="fornecedor" defaultValue={devMode ? dadosTeste.fornecedor : ''} />
+                            <input 
+                                type="text" 
+                                name="fornecedor" 
+                                value={fornecedorNome}
+                                readOnly 
+                            />
                         </div>
                         <div className="form-group">
                             <label>CNPJ:</label>
@@ -387,13 +459,19 @@ function PedidosDeMaterial() {
                                 value={cnpj}
                                 onChange={handleCNPJChange}
                                 maxLength="18"
+                                readOnly
                             />
                         </div>
                     </div>
                     <div className="form-row">
                         <div className="form-group">
                             <label>Endereço:</label>
-                            <input type="text" name="endereco" defaultValue={devMode ? dadosTeste.endereco : ''} />
+                            <input 
+                                type="text" 
+                                name="endereco" 
+                                value={endereco}
+                                readOnly 
+                            />
                         </div>
                         <div className="form-group">
                             <label>CEP:</label>
@@ -402,6 +480,7 @@ function PedidosDeMaterial() {
                                 value={cep}
                                 onChange={handleCEPChange}
                                 maxLength="9"
+                                readOnly
                             />
                         </div>
                         <div className="form-group">
@@ -411,14 +490,11 @@ function PedidosDeMaterial() {
                                 value={contato}
                                 onChange={handleContatoChange}
                                 maxLength="15"
+                                readOnly
                             />
                         </div>
                     </div>
                     <div className="form-row">
-                        <div className="form-group">
-                            <label>Pedido:</label>
-                            <input type="text" name="pedido" defaultValue={devMode ? dadosTeste.pedido : ''} />
-                        </div>
                         <div className="form-group">
                             <label>Data Vencto:</label>
                             <input
@@ -429,8 +505,84 @@ function PedidosDeMaterial() {
                             />
                         </div>
                         <div className="form-group">
+                            <label>Condição de Pagamento (DDL):</label>
+                            <input 
+                                type="number" 
+                                name="condPagto" 
+                                value={dadosPedido.condPagto} 
+                                onChange={handleDadosPedidoChange} 
+                                placeholder="30"
+                            />
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
                             <label>Centro de Custo:</label>
-                            <input type="text" name="centroCusto" defaultValue={devMode ? dadosTeste.centroCusto : ''} />
+                            <div className="input-with-dropdown">
+                                <input 
+                                    type="text" 
+                                    name="centroCusto" 
+                                    value={centroCusto}
+                                    onChange={(e) => setCentroCusto(e.target.value)}
+                                    placeholder="Digite o centro de custo" 
+                                />
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Selecionar Proposta (Centro de Custo):</label>
+                            <select 
+                                onChange={handlePropostaChange}
+                                value={centroCusto || ''}
+                                className="proposta-select"
+                            >
+                                <option value="">Selecione uma proposta</option>
+                                {loadingPropostas ? (
+                                    <option disabled>Carregando propostas...</option>
+                                ) : (
+                                    listaPropostas.map(proposta => (
+                                        <option key={proposta.id} value={proposta.id}>
+                                            {proposta.id} - {proposta.descricao} ({proposta.client_info?.nome || proposta.client_info?.razao_social || 'Cliente'})
+                                        </option>
+                                    ))
+                                )}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Tipo de Frete:</label>
+                            <select 
+                                name="frete" 
+                                value={dadosPedido.frete} 
+                                onChange={handleDadosPedidoChange}
+                            >
+                                <option value="CIF">CIF (Frete por conta do fornecedor)</option>
+                                <option value="FOB">FOB (Frete por conta do destinatário)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Valor do Frete:</label>
+                            <input 
+                                type="text" 
+                                name="valorFrete" 
+                                value={dadosPedido.valorFrete} 
+                                onChange={handleDadosPedidoChange} 
+                                placeholder="0,00"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Outras Despesas:</label>
+                            <input 
+                                type="text" 
+                                name="outrasDespesas" 
+                                value={dadosPedido.outrasDespesas} 
+                                onChange={handleDadosPedidoChange} 
+                                placeholder="0,00"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Total Final:</label>
+                            <input type="text" value={calcularTotalFinal()} readOnly />
                         </div>
                     </div>
 
@@ -444,6 +596,8 @@ function PedidosDeMaterial() {
                                     name="item"
                                     value={itemAtual.item}
                                     onChange={handleInputChange}
+                                    readOnly
+                                    placeholder="Automático"
                                 />
                             </div>
                             <div className="form-group">
@@ -583,24 +737,6 @@ function PedidosDeMaterial() {
                         </div>
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Valor Frete:</label>
-                                <input
-                                    type="text"
-                                    name="valorFrete"
-                                    value={dadosPedido.valorFrete}
-                                    onChange={handleDadosPedidoChange}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Outras Despesas:</label>
-                                <input
-                                    type="text"
-                                    name="outrasDespesas"
-                                    value={dadosPedido.outrasDespesas}
-                                    onChange={handleDadosPedidoChange}
-                                />
-                            </div>
-                            <div className="form-group">
                                 <label>Total Final:</label>
                                 <input type="text" value={calcularTotalFinal()} readOnly />
                             </div>
@@ -620,29 +756,11 @@ function PedidosDeMaterial() {
                         </div>
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Cond. Pagto:</label>
-                                <input
-                                    type="text"
-                                    name="condPagto"
-                                    value={dadosPedido.condPagto}
-                                    onChange={handleDadosPedidoChange}
-                                />
-                            </div>
-                            <div className="form-group">
                                 <label>Prazo de Entrega:</label>
                                 <input
-                                    type="text"
+                                    type="date"
                                     name="prazoEntrega"
                                     value={dadosPedido.prazoEntrega}
-                                    onChange={handleDadosPedidoChange}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Frete:</label>
-                                <input
-                                    type="text"
-                                    name="frete"
-                                    value={dadosPedido.frete}
                                     onChange={handleDadosPedidoChange}
                                 />
                             </div>
