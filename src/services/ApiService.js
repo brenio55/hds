@@ -721,6 +721,30 @@ class ApiService {
             throw error;
         }
     }
+
+    static async consultarPedidos() {
+        return await this.get('/pedidos');
+    }
+
+    static async faturarPedidoCompra(formData) {
+        return await this.post('/pedidos/faturar', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+    }
+
+    static async consultarFaturamentos(filtros = {}) {
+        const { tipo = 'todos', numeroPedido, dataInicial, dataFinal } = filtros;
+        const params = new URLSearchParams();
+        
+        if (tipo !== 'todos') params.append('tipo', tipo);
+        if (numeroPedido) params.append('numeroPedido', numeroPedido);
+        if (dataInicial) params.append('dataInicial', dataInicial);
+        if (dataFinal) params.append('dataFinal', dataFinal);
+
+        return await this.get(`/pedidos/faturamentos?${params.toString()}`);
+    }
 }
 
 export default ApiService; 

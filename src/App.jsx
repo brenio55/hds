@@ -17,6 +17,8 @@ import CadastrarFornecedor from './admin/CadastrarFornecedor';
 import EditarFornecedor from './admin/EditarFornecedor';
 import VisualizarFornecedor from './admin/VisualizarFornecedor';
 import { AdminProvider } from './contexts/AdminContext';
+import FaturarPedido from './admin/GerenciamentoDePedidos/FaturarPedido';
+import ConsultarFaturamentos from './admin/GerenciamentoDePedidos/ConsultarFaturamentos';
 
 
 function App() {
@@ -39,6 +41,8 @@ function App() {
           <Route path="/cadastrarFornecedor" element={<CadastrarFornecedor />} />
           <Route path="/editarFornecedor/:id" element={<EditarFornecedor />} />
           <Route path="/visualizarFornecedor/:id" element={<VisualizarFornecedor />} />
+          <Route path="/faturarPedido" element={<FaturarPedido />} />
+          <Route path="/consultarFaturamentos" element={<ConsultarFaturamentos />} />
         </Routes>
       </BrowserRouter>
     </AdminProvider>

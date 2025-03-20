@@ -1356,4 +1356,103 @@ div.service-buttons {
 }
 .password-input-container input {
   margin-bottom: 0px !important;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.action-button {
+  min-width: unset;
+  height: unset;
+  padding: 5px 10px;
+  margin: 2px;
+  font-size: 14px;
+}
+
+.form-group select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 100%;
+}
+.form-group input[type=file] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+}
+.form-group input[disabled] {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.filtro-container {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-end;
+  gap: 15px;
+  flex-wrap: wrap;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+}
+.filtro-container .form-group {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 10px;
+}
+.filtro-container .form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+.filtro-container .form-group input, .filtro-container .form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.filtro-container .form-group input:focus, .filtro-container .form-group select:focus {
+  outline: none;
+  border-color: #4284c5;
+  box-shadow: 0 0 3px rgba(66, 132, 197, 0.3);
+}
+.filtro-container .form-group input[type=date] {
+  padding: 7px;
+}
+.filtro-container button.action-button {
+  height: 38px;
+  margin-bottom: 10px;
+  background-color: #4284c5;
+  min-width: 120px;
+  font-size: 14px;
+}
+.filtro-container button.action-button:hover {
+  background-color: #3573b0;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+.acoes-cell {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.acoes-cell .action-button {
+  background-color: #4284c5;
+}
+.acoes-cell .action-button:hover {
+  background-color: #3573b0;
 }/*# sourceMappingURL=style.css.map */
