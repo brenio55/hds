@@ -19,6 +19,7 @@ import VisualizarFornecedor from './admin/VisualizarFornecedor';
 import { AdminProvider } from './contexts/AdminContext';
 import FaturarPedido from './admin/GerenciamentoDePedidos/FaturarPedido';
 import ConsultarFaturamentos from './admin/GerenciamentoDePedidos/ConsultarFaturamentos';
+import RCReembolso from './admin/Financeiro/RCReembolso';
 
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
           <Route path="/visualizarFornecedor/:id" element={<VisualizarFornecedor />} />
           <Route path="/faturarPedido" element={<FaturarPedido />} />
           <Route path="/consultarFaturamentos" element={<ConsultarFaturamentos />} />
+          <Route path="/rcReembolso" element={<RCReembolso />} />
         </Routes>
       </BrowserRouter>
     </AdminProvider>

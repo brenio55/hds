@@ -43,7 +43,7 @@ function Dashboard(){
                             <div className="serviceButton">Relatório Geral de Centros de Custo</div>
                             <div className="serviceButton">Consultar Custo de Obra de Centro de Custo</div>
                             <div className="serviceButton">RC - Aluguel de Casas</div>
-                            <div className="serviceButton">RC - Reembolso Funcionário</div>
+                            <div className="serviceButton" onClick={() => handleNavigation('/rcReembolso')}>RC - Reembolso Funcionário</div>
                         </div>
                     </div>
                 </div>

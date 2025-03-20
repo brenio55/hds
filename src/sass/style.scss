@@ -1612,3 +1612,107 @@ div.service-buttons {
     }
 }
 
+.tabs-container {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+
+    .tab {
+        padding: 10px 20px;
+        cursor: pointer;
+        font-weight: bold;
+        color: #666;
+        border: 2px solid transparent;
+        border-bottom: none;
+        margin-right: 5px;
+        transition: all 0.3s ease;
+
+        &:hover {
+            color: #4284c5;
+        }
+
+        &.active {
+            color: #4284c5;
+            border-color: #ddd;
+            border-bottom-color: white;
+            margin-bottom: -2px;
+        }
+    }
+}
+
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+
+    .form-group {
+        margin-bottom: 20px;
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+
+            &:focus {
+                outline: none;
+                border-color: #4284c5;
+                box-shadow: 0 0 3px rgba(66, 132, 197, 0.3);
+            }
+        }
+
+        input[type="file"] {
+            padding: 8px;
+            border: 1px dashed #4284c5;
+            background-color: #f0f7ff;
+        }
+
+        input[type="number"] {
+            text-align: right;
+        }
+    }
+
+    .submit-button {
+        width: 100%;
+        padding: 12px;
+        background-color: #4284c5;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+
+        &:hover {
+            background-color: #3573b0;
+        }
+
+        &:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.consulta-container {
+    .filtro-container {
+        margin-bottom: 30px;
+    }
+
+    .table-container {
+        margin-top: 20px;
+        overflow-x: auto;
+    }
+}
+
