@@ -745,6 +745,45 @@ class ApiService {
 
         return await this.get(`/pedidos/faturamentos?${params.toString()}`);
     }
+
+    // Métodos relacionados a Aluguel de Casas
+    static async registrarAluguel(formData) {
+        return await this.post('/alugueis', formData);
+    }
+
+    static async buscarAlugueis(filtros = {}) {
+        const { dataInicial, dataFinal, centroCustoId } = filtros;
+        const params = new URLSearchParams();
+        
+        if (dataInicial) params.append('dataInicial', dataInicial);
+        if (dataFinal) params.append('dataFinal', dataFinal);
+        if (centroCustoId) params.append('centroCustoId', centroCustoId);
+
+        return await this.get(`/alugueis?${params.toString()}`);
+    }
+
+    static async buscarCentrosCusto() {
+        return await this.get('/centros-custo');
+    }
+
+    // Método para finalizar aluguel
+    static async finalizarAluguel(id) {
+        try {
+            const response = await fetch(`${API_URL}/alugueis/${id}/finalizar`, {
+                method: 'PUT',
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao finalizar aluguel');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao finalizar aluguel:', error);
+            throw error;
+        }
+    }
 }
 
 export default ApiService; 
