@@ -1616,50 +1616,92 @@ div.service-buttons {
     display: flex;
     margin-bottom: 20px;
     border-bottom: 2px solid #ddd;
+    background-color: #f5f5f5;
+    padding: 0 10px;
+    border-radius: 5px 5px 0 0;
 
     .tab {
-        padding: 10px 20px;
+        padding: 12px 30px;
         cursor: pointer;
         font-weight: bold;
         color: #666;
-        border: 2px solid transparent;
-        border-bottom: none;
-        margin-right: 5px;
+        position: relative;
         transition: all 0.3s ease;
+        margin-right: 5px;
 
         &:hover {
             color: #4284c5;
+            background-color: #e9ecef;
         }
 
         &.active {
             color: #4284c5;
-            border-color: #ddd;
-            border-bottom-color: white;
+            background-color: white;
+            border-radius: 5px 5px 0 0;
+            border: 2px solid #ddd;
+            border-bottom: 2px solid white;
             margin-bottom: -2px;
+
+            &:after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background-color: white;
+            }
         }
     }
 }
 
 .form-container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 5px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 0 0 5px 5px;
+    border: 1px solid #ddd;
+
+    &.registro-form {
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+
+            .form-group {
+                flex: 1;
+                min-width: 250px;
+                margin-bottom: 0;
+            }
+
+            &:last-child {
+                margin-bottom: 0;
+                
+                .submit-button {
+                    width: 100%;
+                    max-width: 300px;
+                    margin: 0 auto;
+                }
+            }
+        }
+    }
 
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 15px;
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-weight: bold;
             color: #333;
+            font-size: 0.9rem;
         }
 
         input, select {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
@@ -1672,9 +1714,9 @@ div.service-buttons {
         }
 
         input[type="file"] {
-            padding: 8px;
+            padding: 6px;
             border: 1px dashed #4284c5;
-            background-color: #f0f7ff;
+            background-color: #f8faff;
         }
 
         input[type="number"] {
@@ -1683,16 +1725,16 @@ div.service-buttons {
     }
 
     .submit-button {
-        width: 100%;
-        padding: 12px;
+        padding: 10px;
         background-color: #4284c5;
         color: white;
         border: none;
         border-radius: 4px;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: bold;
         cursor: pointer;
         transition: background-color 0.3s ease;
+        height: 40px;
 
         &:hover {
             background-color: #3573b0;
@@ -1707,11 +1749,15 @@ div.service-buttons {
 
 .consulta-container {
     .filtro-container {
-        margin-bottom: 30px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #f8faff;
+        border: 1px solid #e0e0e0;
+        border-radius: 5px;
     }
 
     .table-container {
-        margin-top: 20px;
+        margin-top: 15px;
         overflow-x: auto;
     }
 }

@@ -129,104 +129,110 @@ function RCReembolso() {
                     </div>
 
                     {activeTab === 'registro' ? (
-                        <form onSubmit={handleRegistroSubmit} className="form-container">
-                            <div className="form-group">
-                                <label>SELECIONE O FUNCIONÁRIO A REEMBOLSAR:</label>
-                                <select
-                                    value={formRegistro.funcionarioId}
-                                    onChange={(e) => setFormRegistro({
-                                        ...formRegistro,
-                                        funcionarioId: e.target.value
-                                    })}
-                                    required
+                        <form onSubmit={handleRegistroSubmit} className="form-container registro-form">
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>SELECIONE O FUNCIONÁRIO A REEMBOLSAR:</label>
+                                    <select
+                                        value={formRegistro.funcionarioId}
+                                        onChange={(e) => setFormRegistro({
+                                            ...formRegistro,
+                                            funcionarioId: e.target.value
+                                        })}
+                                        required
+                                    >
+                                        <option value="">Selecione um funcionário</option>
+                                        {funcionarios.map(func => (
+                                            <option key={func.id} value={func.id}>
+                                                {func.nome}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>VALOR A REEMBOLSAR (a FATURAR):</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={formRegistro.valor}
+                                        onChange={(e) => setFormRegistro({
+                                            ...formRegistro,
+                                            valor: e.target.value
+                                        })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>DATA DE VENCIMENTO:</label>
+                                    <input
+                                        type="date"
+                                        value={formRegistro.dataVencimento}
+                                        onChange={(e) => setFormRegistro({
+                                            ...formRegistro,
+                                            dataVencimento: e.target.value
+                                        })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>COMPROVANTE:</label>
+                                    <input
+                                        type="file"
+                                        onChange={(e) => setFormRegistro({
+                                            ...formRegistro,
+                                            comprovante: e.target.files[0]
+                                        })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>PIX OU TED (DADOS BANCÁRIOS):</label>
+                                    <input
+                                        type="text"
+                                        value={formRegistro.contaBancaria}
+                                        onChange={(e) => setFormRegistro({
+                                            ...formRegistro,
+                                            contaBancaria: e.target.value
+                                        })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>SELECIONE A OBRA (PROPOSTA/CENTRO DE CUSTO):</label>
+                                    <select
+                                        value={formRegistro.centroCustoId}
+                                        onChange={(e) => setFormRegistro({
+                                            ...formRegistro,
+                                            centroCustoId: e.target.value
+                                        })}
+                                        required
+                                    >
+                                        <option value="">Selecione um centro de custo</option>
+                                        {centrosCusto.map(centro => (
+                                            <option key={centro.id} value={centro.id}>
+                                                {centro.nome}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <button 
+                                    type="submit" 
+                                    className="submit-button"
+                                    disabled={loading}
                                 >
-                                    <option value="">Selecione um funcionário</option>
-                                    {funcionarios.map(func => (
-                                        <option key={func.id} value={func.id}>
-                                            {func.nome}
-                                        </option>
-                                    ))}
-                                </select>
+                                    {loading ? 'Registrando...' : 'REGISTRAR REEMBOLSO'}
+                                </button>
                             </div>
-
-                            <div className="form-group">
-                                <label>VALOR A REEMBOLSAR (FATURAR):</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={formRegistro.valor}
-                                    onChange={(e) => setFormRegistro({
-                                        ...formRegistro,
-                                        valor: e.target.value
-                                    })}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>DATA DE VENCIMENTO:</label>
-                                <input
-                                    type="date"
-                                    value={formRegistro.dataVencimento}
-                                    onChange={(e) => setFormRegistro({
-                                        ...formRegistro,
-                                        dataVencimento: e.target.value
-                                    })}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>COMPROVANTE:</label>
-                                <input
-                                    type="file"
-                                    onChange={(e) => setFormRegistro({
-                                        ...formRegistro,
-                                        comprovante: e.target.files[0]
-                                    })}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>PIX OU TED (DADOS BANCÁRIOS):</label>
-                                <input
-                                    type="text"
-                                    value={formRegistro.contaBancaria}
-                                    onChange={(e) => setFormRegistro({
-                                        ...formRegistro,
-                                        contaBancaria: e.target.value
-                                    })}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>SELECIONE A OBRA (PROPOSTA/CENTRO DE CUSTO):</label>
-                                <select
-                                    value={formRegistro.centroCustoId}
-                                    onChange={(e) => setFormRegistro({
-                                        ...formRegistro,
-                                        centroCustoId: e.target.value
-                                    })}
-                                    required
-                                >
-                                    <option value="">Selecione um centro de custo</option>
-                                    {centrosCusto.map(centro => (
-                                        <option key={centro.id} value={centro.id}>
-                                            {centro.nome}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <button 
-                                type="submit" 
-                                className="submit-button"
-                                disabled={loading}
-                            >
-                                {loading ? 'Registrando...' : 'REGISTRAR REEMBOLSO'}
-                            </button>
                         </form>
                     ) : (
                         <div className="consulta-container">
