@@ -6,9 +6,9 @@ class PedidoCompraModel {
       INSERT INTO pedido_compra (
         clientinfo_id, fornecedores_id, ddl, data_vencimento,
         proposta_id, materiais, desconto, valor_frete,
-        despesas_adicionais, dados_adicionais, frete
+        despesas_adicionais, dados_adicionais, frete, ativo
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true)
       RETURNING *
     `;
 
@@ -136,7 +136,7 @@ class PedidoCompraModel {
       SET clientinfo_id = $1, fornecedores_id = $2, ddl = $3,
           data_vencimento = $4, proposta_id = $5, materiais = $6,
           desconto = $7, valor_frete = $8, despesas_adicionais = $9,
-          dados_adicionais = $10, frete = $11
+          dados_adicionais = $10, frete = $11, ativo = $13
       WHERE id = $12
       RETURNING *
     `;
@@ -153,7 +153,8 @@ class PedidoCompraModel {
       data.despesas_adicionais,
       data.dados_adicionais,
       data.frete,
-      id
+      id,
+      data.ativo
     ];
 
     const result = await db.query(query, values);

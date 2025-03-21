@@ -47,7 +47,8 @@ class PedidoCompraController {
         'despesas_adicionais',
         'dados_adicionais',
         'frete',
-        'created_at'
+        'created_at',
+        'ativo'
       ];
 
       if (!camposPermitidos.includes(campo)) {
