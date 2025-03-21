@@ -1052,8 +1052,108 @@ curl -X DELETE http://localhost:3000/api/reembolso/1 \
   -H "Authorization: Bearer seu_token"
 ```
 
+### Funcionários
+
+#### Criar Funcionário
+
+POST /api/funcionarios
+
+**Headers:**
+```
+Authorization: Bearer seu_token
+Content-Type: application/json
+```
+
+**Corpo da Requisição:**
+```json
+{
+  "nome": "João Silva",
+  "cargo": "Engenheiro",
+  "departamento": "Obras",
+  "dados": {
+    "email": "joao.silva@empresa.com",
+    "telefone": "11999999999",
+    "endereco": {
+      "rua": "Rua Principal",
+      "numero": "123",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "cep": "01001-000"
+    },
+    "documentos": {
+      "cpf": "123.456.789-00",
+      "rg": "12.345.678-9"
+    }
+  }
+}
+```
+
+**Exemplos de Uso:**
+```bash
+# Criar funcionário
+curl -X POST http://localhost:3000/api/funcionarios \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "João Silva",
+    "cargo": "Engenheiro",
+    "departamento": "Obras",
+    "dados": {
+      "email": "joao.silva@empresa.com",
+      "telefone": "11999999999",
+      "endereco": {
+        "rua": "Rua Principal",
+        "numero": "123",
+        "cidade": "São Paulo",
+        "estado": "SP",
+        "cep": "01001-000"
+      },
+      "documentos": {
+        "cpf": "123.456.789-00",
+        "rg": "12.345.678-9"
+      }
+    }
+  }'
+
+# Listar todos os funcionários
+curl http://localhost:3000/api/funcionarios \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por ID específico
+curl "http://localhost:3000/api/funcionarios?campo=id&valor=1" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por nome
+curl "http://localhost:3000/api/funcionarios?campo=nome&valor=João" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por cargo
+curl "http://localhost:3000/api/funcionarios?campo=cargo&valor=Engenheiro" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por departamento
+curl "http://localhost:3000/api/funcionarios?campo=departamento&valor=Obras" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por dados (busca em campos JSON)
+curl "http://localhost:3000/api/funcionarios?campo=dados&valor=joao.silva@empresa.com" \
+  -H "Authorization: Bearer seu_token"
+
+# Atualizar funcionário
+curl -X PUT http://localhost:3000/api/funcionarios/1 \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cargo": "Engenheiro Sênior",
+    "departamento": "Projetos"
+  }'
+
+# Deletar funcionário
+curl -X DELETE http://localhost:3000/api/funcionarios/1 \
+  -H "Authorization: Bearer seu_token"
+```
+
 **Observações:**
-- O endpoint base é `/api/reembolso` (não `/api/reembolsos`)
 - Datas devem estar no formato YYYY-MM-DD
 - Valores monetários são armazenados com 2 casas decimais
 - O campo `id_funcionarios` deve referenciar um funcionário existente
