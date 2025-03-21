@@ -942,3 +942,123 @@ curl "http://localhost:3000/api/servicos?campo=itens&valor=Manutenção" \
 - Buscas por IDs são exatas
 - Datas são retornadas no formato ISO 8601
 
+### Reembolsos
+
+#### Criar Reembolso
+```http
+POST /api/reembolso
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+Content-Type: application/json
+```
+
+**Corpo da Requisição:**
+```json
+{
+  "id_funcionarios": 1,
+  "valor": 150.00,
+  "prazo": "2024-04-01",
+  "descricao": "Reembolso de despesas com transporte"
+}
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "id": 1,
+  "id_funcionarios": 1,
+  "valor": 150.00,
+  "prazo": "2024-04-01",
+  "descricao": "Reembolso de despesas com transporte",
+  "created_at": "2024-03-21T10:00:00Z"
+}
+```
+
+#### Listar/Buscar Reembolsos
+```http
+GET /api/reembolso
+GET /api/reembolso?campo={campo}&valor={valor}
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Parâmetros de Consulta:**
+- `campo`: Campo para filtrar (opcional)
+  - Valores permitidos: `id`, `id_funcionarios`, `valor`, `prazo`, `descricao`, `created_at`
+- `valor`: Valor para filtrar (opcional)
+
+**Exemplos de Consultas por Coluna:**
+```bash
+# Buscar por ID específico
+curl "http://localhost:3000/api/reembolso?campo=id&valor=1" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por ID do funcionário
+curl "http://localhost:3000/api/reembolso?campo=id_funcionarios&valor=1" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por valor específico
+curl "http://localhost:3000/api/reembolso?campo=valor&valor=150.00" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por prazo
+curl "http://localhost:3000/api/reembolso?campo=prazo&valor=2024-04-01" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por parte da descrição
+curl "http://localhost:3000/api/reembolso?campo=descricao&valor=transporte" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por data de criação
+curl "http://localhost:3000/api/reembolso?campo=created_at&valor=2024-03-21" \
+  -H "Authorization: Bearer seu_token"
+```
+
+**Exemplos de Uso Básicos:**
+```bash
+# Criar reembolso
+curl -X POST http://localhost:3000/api/reembolso \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id_funcionarios": 1,
+    "valor": 150.00,
+    "prazo": "2024-04-01",
+    "descricao": "Reembolso de despesas com transporte"
+  }'
+
+# Listar todos os reembolsos
+curl http://localhost:3000/api/reembolso \
+  -H "Authorization: Bearer seu_token"
+
+# Atualizar reembolso
+curl -X PUT http://localhost:3000/api/reembolso/1 \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "valor": 200.00,
+    "prazo": "2024-04-15",
+    "descricao": "Reembolso de despesas com transporte - atualizado"
+  }'
+
+# Deletar reembolso
+curl -X DELETE http://localhost:3000/api/reembolso/1 \
+  -H "Authorization: Bearer seu_token"
+```
+
+**Observações:**
+- O endpoint base é `/api/reembolso` (não `/api/reembolsos`)
+- Datas devem estar no formato YYYY-MM-DD
+- Valores monetários são armazenados com 2 casas decimais
+- O campo `id_funcionarios` deve referenciar um funcionário existente
+- Buscas por IDs são exatas
+- Buscas por descrição são case-insensitive e parciais
+- Datas são retornadas no formato ISO 8601
+- Para todas as requisições é necessário incluir o token JWT no header `Authorization`
+
