@@ -843,3 +843,102 @@ curl "http://localhost:3000/api/alugueis?campo=detalhes&valor=abril" \
 - Buscas por `valor` são exatas
 - Datas são retornadas no formato ISO 8601
 
+### Serviços
+
+#### Criar Serviço
+
+POST /api/servicos
+
+**Headers:**
+```
+Authorization: Bearer seu_token
+Content-Type: application/json
+```
+
+**Corpo da Requisição:**
+```json
+{
+  "fornecedor_id": 1,
+  "data_vencimento": "2024-04-21",
+  "proposta_id": 1,
+  "itens": {
+    "descricao": "Serviço de Manutenção",
+    "unidade": "hora",
+    "quantidade": 40,
+    "valor_total": 4000.00,
+    "desconto": 200.00,
+    "valor_unitario": 100.00,
+    "ipi": 5,
+    "unidades": 40,
+    "data_entrega": "2024-05-01",
+    "valor_frete": 150.00,
+    "outras_despesas": 100.00,
+    "informacao_importante": "Serviço com garantia de 90 dias",
+    "condicao_pagamento": "30/60/90 dias",
+    "prazo_maximo": "2024-05-15",
+    "escopo": "Manutenção preventiva e corretiva",
+    "afazer_contratante": [
+      "Disponibilizar acesso ao local",
+      "Fornecer documentação necessária"
+    ],
+    "afazer_contratada": [
+      "Realizar diagnóstico",
+      "Executar manutenção",
+      "Emitir relatório técnico"
+    ]
+  }
+}
+```
+
+**Exemplos de Uso:**
+```bash
+# Criar serviço
+curl -X POST http://localhost:3000/api/servicos \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fornecedor_id": 1,
+    "data_vencimento": "2024-04-21",
+    "proposta_id": 1,
+    "itens": {
+      "descricao": "Serviço de Manutenção",
+      "unidade": "hora",
+      "quantidade": 40,
+      "valor_total": 4000.00,
+      "desconto": 200.00,
+      "valor_unitario": 100.00,
+      "ipi": 5,
+      "unidades": 40,
+      "data_entrega": "2024-05-01",
+      "valor_frete": 150.00,
+      "outras_despesas": 100.00,
+      "informacao_importante": "Serviço com garantia de 90 dias",
+      "condicao_pagamento": "30/60/90 dias",
+      "prazo_maximo": "2024-05-15",
+      "escopo": "Manutenção preventiva e corretiva",
+      "afazer_contratante": ["Disponibilizar acesso ao local"],
+      "afazer_contratada": ["Realizar diagnóstico"]
+    }
+  }'
+
+# Buscar por fornecedor específico
+curl "http://localhost:3000/api/servicos?campo=fornecedor_id&valor=1" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por data de vencimento
+curl "http://localhost:3000/api/servicos?campo=data_vencimento&valor=2024-04-21" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por texto na descrição dos itens
+curl "http://localhost:3000/api/servicos?campo=itens&valor=Manutenção" \
+  -H "Authorization: Bearer seu_token"
+```
+
+**Observações:**
+- O campo `itens` deve seguir a estrutura exata definida acima
+- Datas devem estar no formato YYYY-MM-DD
+- Valores monetários são armazenados com 2 casas decimais
+- Buscas em `itens` são case-insensitive e parciais
+- Buscas por IDs são exatas
+- Datas são retornadas no formato ISO 8601
+
