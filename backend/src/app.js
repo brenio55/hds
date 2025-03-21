@@ -8,7 +8,7 @@ const fornecedorRoutes = require('./routes/fornecedorRoutes');
 const pedidoCompraRoutes = require('./routes/pedidoCompraRoutes');
 const funcionarioRoutes = require('./routes/funcionarioRoutes');
 const reembolsoRoutes = require('./routes/reembolsoRoutes');
-const dividaRoutes = require('./routes/dividaRoutes');
+const aluguelRoutes = require('./routes/aluguelRoutes');
 const pedidoLocacaoRoutes = require('./routes/pedidoLocacaoRoutes');
 const custoObraRoutes = require('./routes/custoObraRoutes');
 
@@ -67,7 +67,7 @@ app.use('/api/fornecedores', fornecedorRoutes);
 app.use('/api/pedidos-compra', pedidoCompraRoutes);
 app.use('/api/funcionarios', funcionarioRoutes);
 app.use('/api/reembolso', reembolsoRoutes);
-app.use('/api/dividas', dividaRoutes);
+app.use('/api/alugueis', aluguelRoutes);
 app.use('/api/pedidos-locacao', pedidoLocacaoRoutes);
 app.use('/api/custos-obra', custoObraRoutes);
 

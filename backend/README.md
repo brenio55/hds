@@ -692,11 +692,11 @@ curl -X PUT http://localhost:3000/api/pedidos-compra/1 \
 - Ambos os endpoints de PDF geram o arquivo automaticamente se não existir
 - O PDF é gerado com base no template definido em src/templates/pedido_compra1.html
 
-### Dívidas
+### Aluguéis
 
-#### Criar Dívida
+#### Criar Aluguel
 ```http
-POST /api/dividas
+POST /api/alugueis
 ```
 
 **Headers:**
@@ -710,10 +710,10 @@ Content-Type: application/json
 {
   "valor": 1500.50,
   "detalhes": {
-    "credor": "Banco XYZ",
-    "vencimento": "2024-04-15",
-    "parcelas": 12,
-    "observacoes": "Empréstimo pessoal"
+    "data_vencimento": "2024-04-15",
+    "pagamento": "pix",
+    "obra_id": 1,
+    "observacoes": "Aluguel referente ao mês de abril"
   }
 }
 ```
@@ -724,18 +724,18 @@ Content-Type: application/json
   "id": 1,
   "valor": "1500.50",
   "detalhes": {
-    "credor": "Banco XYZ",
-    "vencimento": "2024-04-15",
-    "parcelas": 12,
-    "observacoes": "Empréstimo pessoal"
+    "data_vencimento": "2024-04-15",
+    "pagamento": "pix",
+    "obra_id": 1,
+    "observacoes": "Aluguel referente ao mês de abril"
   },
   "created_at": "2024-03-21T10:00:00Z"
 }
 ```
 
-#### Atualizar Dívida
+#### Atualizar Aluguel
 ```http
-PUT /api/dividas/{id}
+PUT /api/alugueis/{id}
 ```
 
 **Headers:**
@@ -749,33 +749,18 @@ Content-Type: application/json
 {
   "valor": 1600.00,
   "detalhes": {
-    "credor": "Banco XYZ",
-    "vencimento": "2024-05-15",
-    "parcelas": 12,
-    "observacoes": "Valor atualizado"
+    "data_vencimento": "2024-05-15",
+    "pagamento": "ted",
+    "obra_id": 1,
+    "observacoes": "Aluguel referente ao mês de maio"
   }
 }
 ```
 
-**Resposta de Sucesso:**
-```json
-{
-  "id": 1,
-  "valor": "1600.00",
-  "detalhes": {
-    "credor": "Banco XYZ",
-    "vencimento": "2024-05-15",
-    "parcelas": 12,
-    "observacoes": "Valor atualizado"
-  },
-  "created_at": "2024-03-21T10:00:00Z"
-}
-```
-
-#### Listar/Buscar Dívidas
+#### Listar/Buscar Aluguéis
 ```http
-GET /api/dividas
-GET /api/dividas?campo={campo}&valor={valor}
+GET /api/alugueis
+GET /api/alugueis?campo={campo}&valor={valor}
 ```
 
 **Headers:**
@@ -795,10 +780,10 @@ Authorization: Bearer seu_token
     "id": 1,
     "valor": "1600.00",
     "detalhes": {
-      "credor": "Banco XYZ",
-      "vencimento": "2024-05-15",
-      "parcelas": 12,
-      "observacoes": "Valor atualizado"
+      "data_vencimento": "2024-05-15",
+      "pagamento": "ted",
+      "obra_id": 1,
+      "observacoes": "Aluguel referente ao mês de maio"
     },
     "created_at": "2024-03-21T10:00:00Z"
   }
@@ -807,141 +792,54 @@ Authorization: Bearer seu_token
 
 **Exemplos de Uso:**
 ```bash
-# Criar dívida
-curl -X POST http://localhost:3000/api/dividas \
+# Criar aluguel
+curl -X POST http://localhost:3000/api/alugueis \
   -H "Authorization: Bearer seu_token" \
   -H "Content-Type: application/json" \
   -d '{
     "valor": 1500.50,
     "detalhes": {
-      "credor": "Banco XYZ",
-      "vencimento": "2024-04-15",
-      "parcelas": 12,
-      "observacoes": "Empréstimo pessoal"
+      "data_vencimento": "2024-04-15",
+      "pagamento": "pix",
+      "obra_id": 1,
+      "observacoes": "Aluguel referente ao mês de abril"
     }
   }'
 
-# Atualizar dívida
-curl -X PUT http://localhost:3000/api/dividas/1 \
+# Atualizar aluguel
+curl -X PUT http://localhost:3000/api/alugueis/1 \
   -H "Authorization: Bearer seu_token" \
   -H "Content-Type: application/json" \
   -d '{
     "valor": 1600.00,
     "detalhes": {
-      "credor": "Banco XYZ",
-      "vencimento": "2024-05-15"
+      "data_vencimento": "2024-05-15",
+      "pagamento": "ted",
+      "obra_id": 1,
+      "observacoes": "Aluguel referente ao mês de maio"
     }
   }'
 
-# Listar todas as dívidas
-curl http://localhost:3000/api/dividas \
+# Listar todos os aluguéis
+curl http://localhost:3000/api/alugueis \
   -H "Authorization: Bearer seu_token"
 
 # Buscar por valor específico
-curl "http://localhost:3000/api/dividas?campo=valor&valor=1500.50" \
+curl "http://localhost:3000/api/alugueis?campo=valor&valor=1500.50" \
   -H "Authorization: Bearer seu_token"
 
-# Buscar por texto nos detalhes
-curl "http://localhost:3000/api/dividas?campo=detalhes&valor=Banco" \
+# Buscar por texto nas observações
+curl "http://localhost:3000/api/alugueis?campo=detalhes&valor=abril" \
   -H "Authorization: Bearer seu_token"
 ```
 
 **Observações:**
-- O campo `detalhes` é flexível e aceita qualquer estrutura JSON válida
+- O campo `detalhes` deve seguir a estrutura exata definida acima
+- O campo `pagamento` aceita apenas os valores "pix" ou "ted"
+- `obra_id` deve ser um ID válido existente na tabela de obras
+- `data_vencimento` deve estar no formato YYYY-MM-DD
 - Valores monetários são armazenados com 2 casas decimais
 - Buscas em `detalhes` são case-insensitive e parciais
 - Buscas por `valor` são exatas
 - Datas são retornadas no formato ISO 8601
-
-### Pedidos de Locação
-
-#### Criar Pedido de Locação
-```http
-POST /api/pedidos-locacao
-```
-
-**Headers:**
-```http
-Authorization: Bearer seu_token
-Content-Type: application/json
-```
-
-**Corpo da Requisição:**
-```json
-{
-  "fornecedor_id": 1,  // ID válido da tabela fornecedores
-  "itens": [
-    {
-      "descricao": "Item A",
-      "unidade": "un",
-      "quantidade": 10,
-      "ipi": 5,
-      "valor_unitario": 100.00,
-      "valor_total": 1000.00,
-      "desconto": 50.00,
-      "previsao_entrega": "2024-04-15"
-    }
-  ],
-  "total_bruto": 1000.00,
-  "total_ipi": 50.00,
-  "total_descontos": 50.00,
-  "valor_frete": 100.00,
-  "outras_despesas": 30.00,
-  "total_final": 1130.00,
-  "informacoes_importantes": "Observações importantes...",
-  "cond_pagto": "30/60/90 dias",
-  "prazo_entrega": "2024-04-15",
-  "frete": 100.00
-}
-```
-
-**Observações Importantes:**
-- `fornecedor_id`: Deve ser um ID válido existente na tabela `fornecedores`
-- Os valores monetários devem ser enviados com 2 casas decimais
-- As datas devem estar no formato YYYY-MM-DD
-- O campo `itens` aceita um array de objetos com os detalhes dos itens
-- O PDF é gerado automaticamente na criação/atualização do pedido
-
-#### Atualizar Pedido de Locação
-```http
-PUT /api/pedidos-locacao/{id}
-```
-
-#### Listar Pedidos de Locação
-```http
-GET /api/pedidos-locacao
-```
-
-#### Buscar Pedido de Locação por ID
-```http
-GET /api/pedidos-locacao/{id}
-```
-
-#### Download do PDF
-```http
-GET /api/pedidos-locacao/{id}/pdf/download
-```
-
-**Exemplos de Uso:**
-```bash
-# Criar pedido
-curl -X POST http://localhost:3000/api/pedidos-locacao \
-  -H "Authorization: Bearer seu_token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "fornecedor_id": 1,
-    "itens": [...],
-    "total_bruto": 1000.00,
-    ...
-  }'
-
-# Baixar PDF
-curl -O -J -L http://localhost:3000/api/pedidos-locacao/1/pdf/download \
-  -H "Authorization: Bearer seu_token"
-```
-
-**Relacionamentos:**
-- `fornecedor_id`: Referencia a tabela `fornecedores` através do campo `id`
-- O sistema validará se o fornecedor existe antes de criar/atualizar o pedido
-- Caso o fornecedor não exista, a requisição retornará erro 400
 
