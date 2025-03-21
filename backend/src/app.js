@@ -10,6 +10,7 @@ const funcionarioRoutes = require('./routes/funcionarioRoutes');
 const reembolsoRoutes = require('./routes/reembolsoRoutes');
 const dividaRoutes = require('./routes/dividaRoutes');
 const pedidoLocacaoRoutes = require('./routes/pedidoLocacaoRoutes');
+const custoObraRoutes = require('./routes/custoObraRoutes');
 
 const app = express();
 
@@ -68,6 +69,7 @@ app.use('/api/funcionarios', funcionarioRoutes);
 app.use('/api/reembolso', reembolsoRoutes);
 app.use('/api/dividas', dividaRoutes);
 app.use('/api/pedidos-locacao', pedidoLocacaoRoutes);
+app.use('/api/custos-obra', custoObraRoutes);
 
 // Tratamento de erros
 app.use((err, req, res, next) => {
