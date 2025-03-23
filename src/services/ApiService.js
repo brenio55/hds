@@ -748,7 +748,17 @@ class ApiService {
 
     // Métodos relacionados a Aluguel de Casas
     static async registrarAluguel(formData) {
-        return await this.post('/alugueis', formData);
+        return await this.post('/api/alugueis', formData);
+    }
+
+    /**
+     * Atualiza os dados de um aluguel existente
+     * @param {Number} id - ID do aluguel a ser atualizado
+     * @param {Object} formData - Dados do aluguel a serem atualizados
+     * @returns {Promise<Object>} - Aluguel atualizado
+     */
+    static async atualizarAluguel(id, formData) {
+        return await this.put(`/api/alugueis/${id}`, formData);
     }
 
     /**
@@ -758,37 +768,45 @@ class ApiService {
      */
     static async buscarAlugueis(filtros = {}) {
         try {
-            let url = `${API_URL}/api/alugueis`;
+            let endpoint = '/api/alugueis';
+            const params = new URLSearchParams();
             
             // Adicionar filtros se existirem
             if (filtros.campo && filtros.valor) {
-                url += `?campo=${filtros.campo}&valor=${encodeURIComponent(filtros.valor)}`;
+                params.append('campo', filtros.campo);
+                params.append('valor', filtros.valor);
             } else if (filtros.dataInicial && filtros.dataFinal) {
                 // Suporte para filtro por período de data
-                url += `?campo=detalhes&valor=${encodeURIComponent(
-                    JSON.stringify({
-                        data_inicio: filtros.dataInicial,
-                        data_fim: filtros.dataFinal
-                    })
-                )}`;
+                params.append('campo', 'detalhes');
+                params.append('valor', JSON.stringify({
+                    data_inicio: filtros.dataInicial,
+                    data_fim: filtros.dataFinal
+                }));
             } else if (filtros.obraId) {
                 // Suporte para filtro por obra
-                url += `?campo=detalhes&valor=${encodeURIComponent(`"obra_id":${filtros.obraId}`)}`;
+                params.append('campo', 'detalhes');
+                params.append('valor', `"obra_id":${filtros.obraId}`);
             }
             
-            const response = await fetch(url, {
-                headers: createAuthHeaders()
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar aluguéis');
+            const queryString = params.toString();
+            if (queryString) {
+                endpoint += `?${queryString}`;
             }
-
-            return await response.json();
+            
+            return await this.get(endpoint);
         } catch (error) {
             console.error('Erro ao buscar aluguéis:', error);
             throw error;
         }
+    }
+
+    /**
+     * Busca um aluguel pelo ID
+     * @param {Number} id - ID do aluguel a ser buscado
+     * @returns {Promise<Object>} - Aluguel encontrado
+     */
+    static async buscarAluguelPorId(id) {
+        return await this.get(`/api/alugueis/${id}`);
     }
 
     static async buscarCentrosCusto() {
@@ -797,19 +815,93 @@ class ApiService {
 
     // Método para finalizar aluguel
     static async finalizarAluguel(id) {
+        return await this.put(`/api/alugueis/${id}/finalizar`);
+    }
+
+    // Método auxiliar para requisições GET
+    static async get(endpoint, options = {}) {
         try {
-            const response = await fetch(`${API_URL}/alugueis/${id}/finalizar`, {
-                method: 'PUT',
-                headers: createAuthHeaders()
+            const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: createAuthHeaders(),
+                ...options
             });
 
             if (!response.ok) {
-                throw new Error('Erro ao finalizar aluguel');
+                throw new Error(`Erro na requisição GET para ${url}: ${response.status} ${response.statusText}`);
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Erro ao finalizar aluguel:', error);
+            console.error(`Erro na requisição GET para ${endpoint}:`, error);
+            throw error;
+        }
+    }
+
+    // Método auxiliar para requisições POST
+    static async post(endpoint, data = {}, options = {}) {
+        try {
+            const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+            const isFormData = data instanceof FormData;
+            
+            const headers = isFormData 
+                ? { ...createAuthHeaders(), ...options.headers } 
+                : { ...createAuthHeaders(), 'Content-Type': 'application/json', ...options.headers };
+            
+            // Removemos Content-Type para FormData pois o navegador define automaticamente com boundary
+            if (isFormData && headers['Content-Type']) {
+                delete headers['Content-Type'];
+            }
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers,
+                body: isFormData ? data : JSON.stringify(data),
+                ...options
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro na requisição POST para ${url}: ${response.status} ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error(`Erro na requisição POST para ${endpoint}:`, error);
+            throw error;
+        }
+    }
+
+    // Método auxiliar para requisições PUT
+    static async put(endpoint, data = {}, options = {}) {
+        try {
+            const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+            const isFormData = data instanceof FormData;
+            
+            const headers = isFormData 
+                ? { ...createAuthHeaders(), ...options.headers } 
+                : { ...createAuthHeaders(), 'Content-Type': 'application/json', ...options.headers };
+            
+            // Removemos Content-Type para FormData pois o navegador define automaticamente com boundary
+            if (isFormData && headers['Content-Type']) {
+                delete headers['Content-Type'];
+            }
+            
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers,
+                body: Object.keys(data).length > 0 ? (isFormData ? data : JSON.stringify(data)) : undefined,
+                ...options
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro na requisição PUT para ${url}: ${response.status} ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error(`Erro na requisição PUT para ${endpoint}:`, error);
             throw error;
         }
     }

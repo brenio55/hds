@@ -96,12 +96,14 @@ function RCAluguel() {
                 return;
             }
             
-            // Converter valores para o formato correto
+            // Converter valores para o formato correto conforme documentação da API
             const dadosParaEnvio = {
                 valor: parseFloat(formRegistro.valor),
                 detalhes: {
-                    ...formRegistro.detalhes,
-                    obra_id: parseInt(formRegistro.detalhes.obra_id)
+                    data_vencimento: formRegistro.detalhes.data_vencimento,
+                    pagamento: formRegistro.detalhes.pagamento,
+                    obra_id: parseInt(formRegistro.detalhes.obra_id),
+                    observacoes: formRegistro.detalhes.observacoes
                 }
             };
             
@@ -161,6 +163,53 @@ function RCAluguel() {
             } finally {
                 setLoading(false);
             }
+        }
+    };
+
+    const handleAtualizarAluguel = async (id) => {
+        if (!id) return;
+        
+        try {
+            setLoading(true);
+            
+            // Carregar dados do aluguel atual
+            const aluguel = await ApiService.buscarAluguelPorId(id);
+            
+            // Pedir confirmação e coletar novos dados
+            if (window.confirm(`Deseja atualizar o aluguel #${id}?`)) {
+                const novoValor = prompt('Novo valor:', aluguel.valor);
+                const novaDataVencimento = prompt('Nova data de vencimento (AAAA-MM-DD):', aluguel.detalhes.data_vencimento);
+                const novoPagamento = prompt('Tipo de pagamento (pix/ted):', aluguel.detalhes.pagamento);
+                const novasObservacoes = prompt('Observações:', aluguel.detalhes.observacoes);
+                
+                // Validar dados
+                if (!novoValor || isNaN(parseFloat(novoValor)) || 
+                    !novaDataVencimento || 
+                    (novoPagamento !== 'pix' && novoPagamento !== 'ted')) {
+                    alert('Dados inválidos. A atualização foi cancelada.');
+                    return;
+                }
+                
+                // Atualizar aluguel
+                const dadosAtualizados = {
+                    valor: parseFloat(novoValor),
+                    detalhes: {
+                        data_vencimento: novaDataVencimento,
+                        pagamento: novoPagamento,
+                        obra_id: aluguel.detalhes.obra_id,
+                        observacoes: novasObservacoes
+                    }
+                };
+                
+                await ApiService.atualizarAluguel(id, dadosAtualizados);
+                alert('Aluguel atualizado com sucesso!');
+                buscarAlugueis(); // Recarrega a lista
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar aluguel:', error);
+            alert('Erro ao atualizar aluguel. Tente novamente.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -409,10 +458,17 @@ function RCAluguel() {
                                                     <td className="acoes-cell">
                                                         <button
                                                             className="action-button"
+                                                            onClick={() => handleAtualizarAluguel(aluguel.id)}
+                                                            disabled={loading || aluguel.finalizado}
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                        <button
+                                                            className="action-button"
                                                             onClick={() => handleFinalizarAluguel(aluguel.id)}
                                                             disabled={loading || aluguel.finalizado}
                                                         >
-                                                            {aluguel.finalizado ? 'Finalizado' : 'Finalizar Aluguel'}
+                                                            {aluguel.finalizado ? 'Finalizado' : 'Finalizar'}
                                                         </button>
                                                     </td>
                                                 </tr>
