@@ -4,6 +4,52 @@ import HeaderAdmin from './HeaderAdmin';
 import './pedidos.scss';
 import ApiService from '../services/ApiService';
 
+// Estilos adicionais para o popup de sucesso
+const styles = `
+.success-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.success-popup-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 400px;
+    text-align: center;
+}
+
+.success-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.success-buttons button {
+    min-width: 120px;
+    height: 35px;
+    font-size: 14px;
+    border-radius: 3px;
+}
+
+#viewPdfButton {
+    background-color: #4284c5;
+}
+
+#viewPdfButton:hover {
+    background-color: #3573b0;
+}
+`;
+
 function PedidosDeLocacao() {
     const [itens, setItens] = useState([]);
     const [itemAtual, setItemAtual] = useState({
@@ -103,6 +149,24 @@ function PedidosDeLocacao() {
         
         // Carregar lista de propostas para o centro de custo
         carregarPropostas();
+    }, []);
+
+    useEffect(() => {
+        // Adiciona os estilos apenas se eles ainda não existirem
+        if (!document.getElementById('locacao-styles')) {
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'locacao-styles';
+            styleSheet.textContent = styles;
+            document.head.appendChild(styleSheet);
+            
+            // Limpar estilos ao desmontar o componente
+            return () => {
+                const styleElement = document.getElementById('locacao-styles');
+                if (styleElement) {
+                    document.head.removeChild(styleElement);
+                }
+            };
+        }
     }, []);
 
     const carregarFornecedores = async () => {
@@ -344,53 +408,55 @@ function PedidosDeLocacao() {
         try {
             const formatarValorMonetario = (valor) => {
                 const valorNumerico = parseFloat(valor.replace(',', '.')) || 0;
-                return valorNumerico.toFixed(2).replace('.', ',');
+                return valorNumerico.toFixed(2);  // Removido o replace para enviar no formato correto para API
             };
 
-            const totalBruto = calcularTotalBruto();
-            const totalIPI = calcularTotalIPI();
-            const totalDescontos = calcularTotalDescontos();
-            const totalFinal = calcularTotalFinal();
+            const totalBruto = formatarValorMonetario(calcularTotalBruto());
+            const totalIPI = formatarValorMonetario(calcularTotalIPI());
+            const totalDescontos = formatarValorMonetario(calcularTotalDescontos());
+            const totalFinal = formatarValorMonetario(calcularTotalFinal());
             const valorFrete = formatarValorMonetario(dadosPedido.valorFrete);
             const outrasDespesas = formatarValorMonetario(dadosPedido.outrasDespesas);
 
-            // Preparar os dados do pedido no formato esperado
-            const pedidoParaSalvar = {
-                codigo: document.querySelector('[name="codigo"]')?.value || '',
-                fornecedor_id: fornecedorId,
-                cnpj: cnpj,
-                endereco: endereco,
-                contato: contato,
-                dataVencto: document.querySelector('[name="dataVencto"]')?.value || '',
-                condPagto: dadosPedido.condPagto || '30',
-                frete: dadosPedido.frete || 'CIF',
-                totalBruto,
-                totalDescontos,
-                valorFrete: dadosPedido.valorFrete,
-                outrasDespesas: dadosPedido.outrasDespesas,
-                informacoesImportantes: dadosPedido.informacoesImportantes,
-                totalFinal,
-                proposta_id: centroCusto
+            // Preparar os dados do pedido no formato esperado pela API
+            const pedidoLocacao = {
+                fornecedor_id: parseInt(fornecedorId),
+                itens: itens.map((item, index) => ({
+                    descricao: item.descricao,
+                    unidade: item.unidade,
+                    quantidade: parseFloat(item.quantidade.replace(',', '.')) || 0,
+                    ipi: parseFloat(item.ipi.replace(',', '.')) || 0,
+                    valor_unitario: parseFloat(item.valorUnitario.replace(',', '.')) || 0,
+                    valor_total: parseFloat(item.valorTotal.replace(',', '.')) || 0,
+                    desconto: parseFloat(item.desconto.replace(',', '.')) || 0,
+                    previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+                })),
+                total_bruto: parseFloat(totalBruto),
+                total_ipi: parseFloat(totalIPI),
+                total_descontos: parseFloat(totalDescontos),
+                valor_frete: parseFloat(valorFrete),
+                outras_despesas: parseFloat(outrasDespesas),
+                total_final: parseFloat(totalFinal),
+                informacoes_importantes: dadosPedido.informacoesImportantes || '',
+                cond_pagto: dadosPedido.condPagto || '30/60/90 dias',
+                prazo_entrega: dadosPedido.prazoEntrega || new Date().toISOString().split('T')[0],
+                frete: parseFloat(valorFrete)
             };
 
-            // Preparar os itens no formato esperado
-            const itensFormatados = itens.map((item, index) => ({
-                ...item,
-                item: index + 1, // Garantir que os itens estão numerados sequencialmente
-                previsaoEntrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-            }));
-
-            // Chamar a função de salvar pedido completo
-            const resultado = await ApiService.criarPedido(pedidoParaSalvar, itensFormatados);
+            // Chamar o novo endpoint específico para pedidos de locação
+            const resultado = await ApiService.criarPedidoLocacao(pedidoLocacao);
             
             // Exibir popup de sucesso
             const successPopup = document.createElement('div');
             successPopup.className = 'success-popup';
             successPopup.innerHTML = `
                 <div class="success-popup-content">
-                    <h3>Pedido Gerado com Sucesso!</h3>
+                    <h3>Pedido de Locação Gerado com Sucesso!</h3>
                     <p>O pedido foi criado com o ID: ${resultado.id || 'N/A'}</p>
-                    <button id="closeSuccessPopup">Fechar</button>
+                    <div class="success-buttons">
+                        <button id="closeSuccessPopup">Fechar</button>
+                        <button id="viewPdfButton">Visualizar PDF</button>
+                    </div>
                 </div>
             `;
             document.body.appendChild(successPopup);
@@ -400,10 +466,19 @@ function PedidosDeLocacao() {
                 document.body.removeChild(successPopup);
             });
             
-            // Limpar o formulário ou redirecionar
-            // window.location.href = '/pedidosDeCompra';
+            // Adicionar evento para visualizar o PDF
+            if (resultado.id) {
+                document.getElementById('viewPdfButton').addEventListener('click', async () => {
+                    try {
+                        await ApiService.visualizarPedidoLocacaoPdf(resultado.id);
+                    } catch (error) {
+                        console.error('Erro ao visualizar PDF:', error);
+                        alert('Erro ao visualizar o PDF. Tente novamente mais tarde.');
+                    }
+                });
+            }
         } catch (error) {
-            console.error('Erro ao criar pedido:', error);
+            console.error('Erro ao criar pedido de locação:', error);
             alert(`Erro ao criar pedido: ${error.message}`);
         }
     };
