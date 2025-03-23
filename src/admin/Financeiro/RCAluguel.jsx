@@ -12,33 +12,40 @@ function RCAluguel() {
     // Estados para o formulário de registro
     const [formRegistro, setFormRegistro] = useState({
         valor: '',
-        dataVencimento: '',
-        contaBancaria: '',
-        centroCustoId: ''
+        detalhes: {
+            data_vencimento: '',
+            pagamento: 'pix',
+            obra_id: '',
+            observacoes: ''
+        }
     });
 
     // Estados para os filtros de consulta
     const [filtros, setFiltros] = useState({
+        campo: '',
+        valor: '',
         dataInicial: '',
         dataFinal: '',
-        centroCustoId: ''
+        obraId: ''
     });
 
     useEffect(() => {
-        carregarDadosIniciais();
+        carregarCentrosCusto();
         if (activeTab === 'consulta') {
             buscarAlugueis();
         }
     }, [activeTab]);
 
-    const carregarDadosIniciais = async () => {
+    const carregarCentrosCusto = async () => {
         try {
             setLoading(true);
-            // Aqui você deve implementar as chamadas à API para carregar os centros de custo
-            // const responseCentrosCusto = await ApiService.buscarCentrosCusto();
-            // setCentrosCusto(responseCentrosCusto);
+            // Usar o endpoint de propostas para obter os centros de custo
+            const response = await ApiService.buscarPropostas();
+            const listaCentrosCusto = response?.propostas || [];
+            setCentrosCusto(listaCentrosCusto);
         } catch (error) {
-            console.error('Erro ao carregar dados iniciais:', error);
+            console.error('Erro ao carregar propostas:', error);
+            alert('Não foi possível carregar a lista de propostas.');
         } finally {
             setLoading(false);
         }
@@ -47,11 +54,32 @@ function RCAluguel() {
     const buscarAlugueis = async () => {
         try {
             setLoading(true);
-            // Implementar chamada à API para buscar aluguéis com filtros
-            // const response = await ApiService.buscarAlugueis(filtros);
-            // setAlugueis(response);
+            let filtrosParaBusca = {};
+            
+            // Se dataInicial e dataFinal estiverem preenchidos, usar o filtro por período
+            if (filtros.dataInicial && filtros.dataFinal) {
+                filtrosParaBusca = {
+                    dataInicial: filtros.dataInicial,
+                    dataFinal: filtros.dataFinal
+                };
+            } 
+            // Se houver um centro de custo específico, filtrar por ele
+            else if (filtros.obraId) {
+                filtrosParaBusca = { obraId: filtros.obraId };
+            } 
+            // Se houver um campo e valor específicos, usar esse filtro
+            else if (filtros.campo && filtros.valor) {
+                filtrosParaBusca = {
+                    campo: filtros.campo,
+                    valor: filtros.valor
+                };
+            }
+            
+            const response = await ApiService.buscarAlugueis(filtrosParaBusca);
+            setAlugueis(response || []);
         } catch (error) {
             console.error('Erro ao buscar aluguéis:', error);
+            alert('Não foi possível carregar os aluguéis. Tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -61,22 +89,38 @@ function RCAluguel() {
         e.preventDefault();
         try {
             setLoading(true);
-            // Implementar chamada à API para registrar aluguel
-            // const formData = new FormData();
-            // Object.keys(formRegistro).forEach(key => {
-            //     formData.append(key, formRegistro[key]);
-            // });
-            // await ApiService.registrarAluguel(formData);
+            
+            // Validação de pagamento
+            if (formRegistro.detalhes.pagamento !== 'pix' && formRegistro.detalhes.pagamento !== 'ted') {
+                alert('O tipo de pagamento deve ser "pix" ou "ted".');
+                return;
+            }
+            
+            // Converter valores para o formato correto
+            const dadosParaEnvio = {
+                valor: parseFloat(formRegistro.valor),
+                detalhes: {
+                    ...formRegistro.detalhes,
+                    obra_id: parseInt(formRegistro.detalhes.obra_id)
+                }
+            };
+            
+            await ApiService.registrarAluguel(dadosParaEnvio);
             alert('Aluguel registrado com sucesso!');
+            
+            // Limpar formulário
             setFormRegistro({
                 valor: '',
-                dataVencimento: '',
-                contaBancaria: '',
-                centroCustoId: ''
+                detalhes: {
+                    data_vencimento: '',
+                    pagamento: 'pix',
+                    obra_id: '',
+                    observacoes: ''
+                }
             });
         } catch (error) {
             console.error('Erro ao registrar aluguel:', error);
-            alert('Erro ao registrar aluguel. Tente novamente.');
+            alert('Erro ao registrar aluguel. Verifique os dados e tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -98,6 +142,12 @@ function RCAluguel() {
         return new Date(data).toLocaleDateString('pt-BR');
     };
 
+    const formatarNomeProposta = (proposta) => {
+        const nome = proposta.client_info?.nome || proposta.client_info?.razao_social || proposta.title || proposta.nome || `Proposta #${proposta.id}`;
+        const data = proposta.data_criacao ? ` - ${formatarData(proposta.data_criacao)}` : '';
+        return `${nome}${data}`;
+    };
+
     const handleFinalizarAluguel = async (id) => {
         if (window.confirm('Tem certeza que deseja finalizar este aluguel?')) {
             try {
@@ -112,6 +162,36 @@ function RCAluguel() {
                 setLoading(false);
             }
         }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        
+        // Se for um campo do objeto detalhes
+        if (name.includes('.')) {
+            const [parent, child] = name.split('.');
+            setFormRegistro({
+                ...formRegistro,
+                [parent]: {
+                    ...formRegistro[parent],
+                    [child]: value
+                }
+            });
+        } else {
+            // Campo de nível superior
+            setFormRegistro({
+                ...formRegistro,
+                [name]: value
+            });
+        }
+    };
+
+    const handleFiltroChange = (e) => {
+        const { name, value } = e.target;
+        setFiltros({
+            ...filtros,
+            [name]: value
+        });
     };
 
     return (
@@ -144,11 +224,9 @@ function RCAluguel() {
                                     <input
                                         type="number"
                                         step="0.01"
+                                        name="valor"
                                         value={formRegistro.valor}
-                                        onChange={(e) => setFormRegistro({
-                                            ...formRegistro,
-                                            valor: e.target.value
-                                        })}
+                                        onChange={handleInputChange}
                                         required
                                     />
                                 </div>
@@ -157,11 +235,9 @@ function RCAluguel() {
                                     <label>DATA DE VENCIMENTO:</label>
                                     <input
                                         type="date"
-                                        value={formRegistro.dataVencimento}
-                                        onChange={(e) => setFormRegistro({
-                                            ...formRegistro,
-                                            dataVencimento: e.target.value
-                                        })}
+                                        name="detalhes.data_vencimento"
+                                        value={formRegistro.detalhes.data_vencimento}
+                                        onChange={handleInputChange}
                                         required
                                     />
                                 </div>
@@ -169,35 +245,45 @@ function RCAluguel() {
 
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>PIX OU TED (DADOS BANCÁRIOS):</label>
-                                    <input
-                                        type="text"
-                                        value={formRegistro.contaBancaria}
-                                        onChange={(e) => setFormRegistro({
-                                            ...formRegistro,
-                                            contaBancaria: e.target.value
-                                        })}
+                                    <label>TIPO DE PAGAMENTO:</label>
+                                    <select
+                                        name="detalhes.pagamento"
+                                        value={formRegistro.detalhes.pagamento}
+                                        onChange={handleInputChange}
                                         required
-                                    />
+                                    >
+                                        <option value="pix">PIX</option>
+                                        <option value="ted">TED</option>
+                                    </select>
                                 </div>
 
                                 <div className="form-group">
-                                    <label>SELECIONE A OBRA (CENTRO DE CUSTO):</label>
+                                    <label>SELECIONE A PROPOSTA (CENTRO DE CUSTO):</label>
                                     <select
-                                        value={formRegistro.centroCustoId}
-                                        onChange={(e) => setFormRegistro({
-                                            ...formRegistro,
-                                            centroCustoId: e.target.value
-                                        })}
+                                        name="detalhes.obra_id"
+                                        value={formRegistro.detalhes.obra_id}
+                                        onChange={handleInputChange}
                                         required
                                     >
-                                        <option value="">Selecione um centro de custo</option>
-                                        {centrosCusto.map(centro => (
-                                            <option key={centro.id} value={centro.id}>
-                                                {centro.nome}
+                                        <option value="">Selecione uma proposta</option>
+                                        {centrosCusto.map(proposta => (
+                                            <option key={proposta.id} value={proposta.id}>
+                                                {formatarNomeProposta(proposta)}
                                             </option>
                                         ))}
                                     </select>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>OBSERVAÇÕES:</label>
+                                    <textarea
+                                        name="detalhes.observacoes"
+                                        value={formRegistro.detalhes.observacoes}
+                                        onChange={handleInputChange}
+                                        rows="3"
+                                    ></textarea>
                                 </div>
                             </div>
 
@@ -215,14 +301,38 @@ function RCAluguel() {
                         <div className="consulta-container">
                             <form onSubmit={handleFiltroSubmit} className="filtro-container">
                                 <div className="form-group">
+                                    <label>Filtrar por:</label>
+                                    <select
+                                        name="campo"
+                                        value={filtros.campo}
+                                        onChange={handleFiltroChange}
+                                    >
+                                        <option value="">Selecione um campo</option>
+                                        <option value="id">ID</option>
+                                        <option value="valor">Valor</option>
+                                        <option value="detalhes">Detalhes/Observações</option>
+                                        <option value="created_at">Data de criação</option>
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Valor de busca:</label>
+                                    <input
+                                        type="text"
+                                        name="valor"
+                                        value={filtros.valor}
+                                        onChange={handleFiltroChange}
+                                        placeholder="Digite o valor para buscar"
+                                    />
+                                </div>
+
+                                <div className="form-group">
                                     <label>Data Inicial:</label>
                                     <input
                                         type="date"
+                                        name="dataInicial"
                                         value={filtros.dataInicial}
-                                        onChange={(e) => setFiltros({
-                                            ...filtros,
-                                            dataInicial: e.target.value
-                                        })}
+                                        onChange={handleFiltroChange}
                                     />
                                 </div>
 
@@ -230,27 +340,23 @@ function RCAluguel() {
                                     <label>Data Final:</label>
                                     <input
                                         type="date"
+                                        name="dataFinal"
                                         value={filtros.dataFinal}
-                                        onChange={(e) => setFiltros({
-                                            ...filtros,
-                                            dataFinal: e.target.value
-                                        })}
+                                        onChange={handleFiltroChange}
                                     />
                                 </div>
 
                                 <div className="form-group">
-                                    <label>Centro de Custo:</label>
+                                    <label>Proposta:</label>
                                     <select
-                                        value={filtros.centroCustoId}
-                                        onChange={(e) => setFiltros({
-                                            ...filtros,
-                                            centroCustoId: e.target.value
-                                        })}
+                                        name="obraId"
+                                        value={filtros.obraId}
+                                        onChange={handleFiltroChange}
                                     >
-                                        <option value="">Todos</option>
-                                        {centrosCusto.map(centro => (
-                                            <option key={centro.id} value={centro.id}>
-                                                {centro.nome}
+                                        <option value="">Todas</option>
+                                        {centrosCusto.map(proposta => (
+                                            <option key={proposta.id} value={proposta.id}>
+                                                {formatarNomeProposta(proposta)}
                                             </option>
                                         ))}
                                     </select>
@@ -269,31 +375,49 @@ function RCAluguel() {
                                 <table className="itens-table">
                                     <thead>
                                         <tr>
+                                            <th>ID</th>
                                             <th>Valor</th>
                                             <th>Data de Vencimento</th>
-                                            <th>Centro de Custo</th>
-                                            <th>Dados Bancários</th>
+                                            <th>Tipo de Pagamento</th>
+                                            <th>Proposta</th>
+                                            <th>Observações</th>
                                             <th>Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {alugueis.map((aluguel) => (
-                                            <tr key={aluguel.id}>
-                                                <td>{formatarValor(aluguel.valor)}</td>
-                                                <td>{formatarData(aluguel.dataVencimento)}</td>
-                                                <td>{aluguel.centroCusto.nome}</td>
-                                                <td>{aluguel.contaBancaria}</td>
-                                                <td className="acoes-cell">
-                                                    <button
-                                                        className="action-button"
-                                                        onClick={() => handleFinalizarAluguel(aluguel.id)}
-                                                        disabled={loading || aluguel.finalizado}
-                                                    >
-                                                        {aluguel.finalizado ? 'Finalizado' : 'Finalizar Aluguel'}
-                                                    </button>
+                                        {alugueis.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="7" style={{ textAlign: 'center' }}>
+                                                    {loading ? 'Carregando aluguéis...' : 'Nenhum aluguel encontrado.'}
                                                 </td>
                                             </tr>
-                                        ))}
+                                        ) : (
+                                            alugueis.map((aluguel) => (
+                                                <tr key={aluguel.id}>
+                                                    <td>{aluguel.id}</td>
+                                                    <td>{formatarValor(aluguel.valor)}</td>
+                                                    <td>{formatarData(aluguel.detalhes.data_vencimento)}</td>
+                                                    <td>
+                                                        {aluguel.detalhes.pagamento === 'pix' ? 'PIX' : 'TED'}
+                                                    </td>
+                                                    <td>
+                                                        {centrosCusto.find(p => p.id === aluguel.detalhes.obra_id) 
+                                                          ? formatarNomeProposta(centrosCusto.find(p => p.id === aluguel.detalhes.obra_id))
+                                                          : `Proposta ID: ${aluguel.detalhes.obra_id}`}
+                                                    </td>
+                                                    <td>{aluguel.detalhes.observacoes}</td>
+                                                    <td className="acoes-cell">
+                                                        <button
+                                                            className="action-button"
+                                                            onClick={() => handleFinalizarAluguel(aluguel.id)}
+                                                            disabled={loading || aluguel.finalizado}
+                                                        >
+                                                            {aluguel.finalizado ? 'Finalizado' : 'Finalizar Aluguel'}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
                                     </tbody>
                                 </table>
                             </div>

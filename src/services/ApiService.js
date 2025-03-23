@@ -751,15 +751,44 @@ class ApiService {
         return await this.post('/alugueis', formData);
     }
 
+    /**
+     * Busca aluguéis com filtros opcionais
+     * @param {Object} filtros - Filtros opcionais (campo, valor)
+     * @returns {Promise<Array>} - Lista de aluguéis
+     */
     static async buscarAlugueis(filtros = {}) {
-        const { dataInicial, dataFinal, centroCustoId } = filtros;
-        const params = new URLSearchParams();
-        
-        if (dataInicial) params.append('dataInicial', dataInicial);
-        if (dataFinal) params.append('dataFinal', dataFinal);
-        if (centroCustoId) params.append('centroCustoId', centroCustoId);
+        try {
+            let url = `${API_URL}/api/alugueis`;
+            
+            // Adicionar filtros se existirem
+            if (filtros.campo && filtros.valor) {
+                url += `?campo=${filtros.campo}&valor=${encodeURIComponent(filtros.valor)}`;
+            } else if (filtros.dataInicial && filtros.dataFinal) {
+                // Suporte para filtro por período de data
+                url += `?campo=detalhes&valor=${encodeURIComponent(
+                    JSON.stringify({
+                        data_inicio: filtros.dataInicial,
+                        data_fim: filtros.dataFinal
+                    })
+                )}`;
+            } else if (filtros.obraId) {
+                // Suporte para filtro por obra
+                url += `?campo=detalhes&valor=${encodeURIComponent(`"obra_id":${filtros.obraId}`)}`;
+            }
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
 
-        return await this.get(`/alugueis?${params.toString()}`);
+            if (!response.ok) {
+                throw new Error('Erro ao buscar aluguéis');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao buscar aluguéis:', error);
+            throw error;
+        }
     }
 
     static async buscarCentrosCusto() {
@@ -781,183 +810,6 @@ class ApiService {
             return await response.json();
         } catch (error) {
             console.error('Erro ao finalizar aluguel:', error);
-            throw error;
-        }
-    }
-
-    // ===== Métodos para Pedidos de Locação =====
-    
-    /**
-     * Cria um novo pedido de locação
-     * @param {Object} dadosPedido - Dados do pedido de locação
-     * @returns {Promise<Object>} - Dados do pedido criado
-     */
-    static async criarPedidoLocacao(dadosPedido) {
-        try {
-            const response = await fetch(`${API_URL}/api/pedidos-locacao`, {
-                method: 'POST',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosPedido)
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao criar pedido de locação');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao criar pedido de locação:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Atualiza um pedido de locação existente
-     * @param {number} id - ID do pedido a ser atualizado
-     * @param {Object} dadosPedido - Novos dados do pedido
-     * @returns {Promise<Object>} - Dados do pedido atualizado
-     */
-    static async atualizarPedidoLocacao(id, dadosPedido) {
-        try {
-            const response = await fetch(`${API_URL}/api/pedidos-locacao/${id}`, {
-                method: 'PUT',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosPedido)
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao atualizar pedido de locação');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao atualizar pedido de locação:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Lista todos os pedidos de locação com filtros opcionais
-     * @param {Object} filtros - Filtros a serem aplicados na busca
-     * @returns {Promise<Array>} - Lista de pedidos de locação
-     */
-    static async listarPedidosLocacao(filtros = {}) {
-        try {
-            const queryParams = new URLSearchParams(filtros).toString();
-            const url = `${API_URL}/api/pedidos-locacao${queryParams ? `?${queryParams}` : ''}`;
-            
-            const response = await fetch(url, {
-                headers: createAuthHeaders()
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao listar pedidos de locação');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao listar pedidos de locação:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Busca um pedido de locação por ID
-     * @param {number} id - ID do pedido a ser buscado
-     * @returns {Promise<Object>} - Dados do pedido 
-     */
-    static async buscarPedidoLocacaoPorId(id) {
-        try {
-            const response = await fetch(`${API_URL}/api/pedidos-locacao/${id}`, {
-                headers: createAuthHeaders()
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar pedido de locação');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao buscar pedido de locação:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Faz o download do PDF de um pedido de locação
-     * @param {number} id - ID do pedido 
-     * @returns {Promise<Blob>} - Blob contendo o PDF
-     */
-    static async downloadPedidoLocacaoPdf(id) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/pedidos-locacao/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Erro ao baixar PDF do pedido de locação');
-            }
-
-            // Obtém o nome do arquivo do header Content-Disposition
-            const contentDisposition = response.headers.get('content-disposition');
-            let filename = 'pedido-locacao.pdf';
-            
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                if (filenameMatch && filenameMatch[1]) {
-                    filename = filenameMatch[1].replace(/['"]/g, '');
-                }
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            
-            // Cria um link temporário para download
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            
-            // Limpa após o download
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            
-            return true;
-        } catch (error) {
-            console.error('Erro ao baixar PDF do pedido de locação:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Visualiza o PDF de um pedido de locação em nova aba
-     * @param {number} id - ID do pedido 
-     * @returns {Promise<void>}
-     */
-    static async visualizarPedidoLocacaoPdf(id) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/pedidos-locacao/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Erro ao carregar PDF do pedido de locação');
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            
-            return true;
-        } catch (error) {
-            console.error('Erro ao visualizar PDF do pedido de locação:', error);
             throw error;
         }
     }
