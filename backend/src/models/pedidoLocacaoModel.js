@@ -4,17 +4,19 @@ class PedidoLocacaoModel {
   static async create(data) {
     const query = `
       INSERT INTO pedido_locacao (
-        fornecedor_id, itens, total_bruto, total_ipi,
-        total_descontos, valor_frete, outras_despesas,
-        total_final, informacoes_importantes, cond_pagto,
-        prazo_entrega, frete
+        fornecedor_id, "clientInfo_id", proposta_id, itens, 
+        total_bruto, total_ipi, total_descontos, valor_frete, 
+        outras_despesas, total_final, informacoes_importantes, 
+        cond_pagto, prazo_entrega, frete
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *
     `;
 
     const values = [
       data.fornecedor_id,
+      data.clientInfo_id,
+      data.proposta_id,
       data.itens,
       data.total_bruto,
       data.total_ipi,
@@ -43,23 +45,27 @@ class PedidoLocacaoModel {
     const query = `
       UPDATE pedido_locacao
       SET fornecedor_id = $1,
-          itens = $2,
-          total_bruto = $3,
-          total_ipi = $4,
-          total_descontos = $5,
-          valor_frete = $6,
-          outras_despesas = $7,
-          total_final = $8,
-          informacoes_importantes = $9,
-          cond_pagto = $10,
-          prazo_entrega = $11,
-          frete = $12
-      WHERE id = $13
+          "clientInfo_id" = $2,
+          proposta_id = $3,
+          itens = $4,
+          total_bruto = $5,
+          total_ipi = $6,
+          total_descontos = $7,
+          valor_frete = $8,
+          outras_despesas = $9,
+          total_final = $10,
+          informacoes_importantes = $11,
+          cond_pagto = $12,
+          prazo_entrega = $13,
+          frete = $14
+      WHERE id = $15
       RETURNING *
     `;
 
     const values = [
       data.fornecedor_id,
+      data.clientInfo_id,
+      data.proposta_id,
       JSON.stringify(data.itens),
       data.total_bruto,
       data.total_ipi,
@@ -96,13 +102,13 @@ class PedidoLocacaoModel {
             f.telefone as fornecedor_telefone,
             f.email as fornecedor_email,
             f.contato as fornecedor_contato,
-            c.nome as cliente_nome,
-            c.endereco as cliente_endereco,
+            c."RazaoSocial" as cliente_nome,
+            c."Endereço" as cliente_endereco,
             p.descricao as proposta_descricao,
             p.valor_final as proposta_valor
         FROM pedido_locacao pl
         LEFT JOIN fornecedores f ON pl.fornecedor_id = f.id
-        LEFT JOIN clientinfo c ON pl.clientinfo_id = c.id
+        LEFT JOIN "clientInfo" c ON pl."clientInfo_id" = c.id
         LEFT JOIN propostas p ON pl.proposta_id = p.id
         WHERE pl.id = $1
     `;
@@ -122,13 +128,13 @@ class PedidoLocacaoModel {
             f.telefone as fornecedor_telefone,
             f.email as fornecedor_email,
             f.contato as fornecedor_contato,
-            c.nome as cliente_nome,
-            c.endereco as cliente_endereco,
+            c."RazaoSocial" as cliente_nome,
+            c."Endereço" as cliente_endereco,
             p.descricao as proposta_descricao,
             p.valor_final as proposta_valor
         FROM pedido_locacao pl
         LEFT JOIN fornecedores f ON pl.fornecedor_id = f.id
-        LEFT JOIN clientinfo c ON pl.clientinfo_id = c.id
+        LEFT JOIN "clientInfo" c ON pl."clientInfo_id" = c.id
         LEFT JOIN propostas p ON pl.proposta_id = p.id
         ORDER BY pl.created_at DESC
     `;
@@ -148,4 +154,4 @@ class PedidoLocacaoModel {
   }
 }
 
-module.exports = PedidoLocacaoModel; 
+module.exports = PedidoLocacaoModel;
