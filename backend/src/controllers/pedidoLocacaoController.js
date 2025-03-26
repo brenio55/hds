@@ -95,8 +95,21 @@ class PedidoLocacaoController {
   static async downloadPdf(req, res) {
     try {
       const pedido = await PedidoLocacaoModel.findById(req.params.id);
-      if (!pedido || !pedido.pdf_uid) {
-        return res.status(404).json({ error: 'PDF não encontrado' });
+      if (!pedido) {
+        return res.status(404).json({ error: 'Pedido não encontrado' });
+      }
+
+      // Se não houver pdf_uid, gera um novo PDF
+      if (!pedido.pdf_uid) {
+        console.log('PDF não encontrado, gerando novo PDF...');
+        try {
+          const pdfUid = await PedidoLocacaoPdfService.generatePdf(pedido);
+          await PedidoLocacaoModel.updatePdfUid(pedido.id, pdfUid);
+          pedido.pdf_uid = pdfUid;
+        } catch (error) {
+          console.error('Erro ao gerar PDF:', error);
+          return res.status(500).json({ error: 'Erro ao gerar PDF' });
+        }
       }
 
       const pdfPath = path.join(__dirname, `../../uploads/pdfs/${pedido.pdf_uid}.pdf`);
@@ -109,7 +122,23 @@ class PedidoLocacaoController {
         res.send(fileBuffer);
       } catch (error) {
         console.error('Erro ao acessar arquivo:', error);
-        res.status(404).json({ error: 'Arquivo PDF não encontrado' });
+        
+        // Se o arquivo não existe, tenta gerar novamente
+        try {
+          console.log('Arquivo não encontrado, gerando novo PDF...');
+          const pdfUid = await PedidoLocacaoPdfService.generatePdf(pedido);
+          await PedidoLocacaoModel.updatePdfUid(pedido.id, pdfUid);
+          
+          const newPdfPath = path.join(__dirname, `../../uploads/pdfs/${pdfUid}.pdf`);
+          const fileBuffer = await fs.readFile(newPdfPath);
+          
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename=pedido-locacao-${pedido.id}.pdf`);
+          res.send(fileBuffer);
+        } catch (genError) {
+          console.error('Erro ao gerar novo PDF:', genError);
+          res.status(500).json({ error: 'Erro ao gerar PDF' });
+        }
       }
     } catch (error) {
       console.error('Erro ao baixar PDF:', error);
