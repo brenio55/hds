@@ -1162,3 +1162,94 @@ curl -X DELETE http://localhost:3000/api/funcionarios/1 \
 - Datas são retornadas no formato ISO 8601
 - Para todas as requisições é necessário incluir o token JWT no header `Authorization`
 
+### Pedidos Consolidados
+
+Endpoint que centraliza e retorna dados de pedidos de compra, locação e serviços com seus relacionamentos.
+
+```http
+GET /api/pedidos-consolidados
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "total": 123,
+  "pedidos": [
+    {
+      "tipo": "compra", // Tipo pode ser: "compra", "locacao" ou "servico"
+      "id": 9,
+      "created_at": "2025-03-23T16:10:52.645Z",
+      "ativo": true,
+      "data_vencimento": "2025-03-23T00:00:00.000Z",
+      "ddl": 30,
+      "desconto": "0.00",
+      "valor_frete": "0.00",
+      "despesas_adicionais": "0.00",
+      "dados_adicionais": "",
+      "materiais": [],
+      "frete": {
+        "tipo": "CIF",
+        "valor": 0
+      },
+      // Dados do fornecedor relacionado
+      "fornecedor": {
+        "id": 1,
+        "razao_social": "NOME TESTE DE FORNECEDOR",
+        "cnpj": "12.123.123/0001-00",
+        "endereco": "ENDEREÇO TESTE",
+        "telefone": "81231231231",
+        // ... outros dados do fornecedor
+      },
+      // Dados do cliente relacionado (se houver)
+      "cliente": {
+        "id": "2",
+        "RazaoSocial": "Empresa Teste LTDA",
+        "CNPJ": "12.345.678/0001-90",
+        "Endereço": "Rua Teste, 123",
+        // ... outros dados do cliente
+      },
+      // Dados da proposta relacionada (se houver)
+      "proposta": {
+        "id": 1,
+        "descricao": "Proposta Teste",
+        // ... outros dados da proposta
+      }
+    }
+    // ... mais pedidos
+  ]
+}
+```
+
+**Observações:**
+- Os pedidos são retornados ordenados por data de criação (mais recentes primeiro)
+- O campo `tipo` indica a origem do pedido: "compra", "locacao" ou "servico"
+- Relacionamentos não encontrados retornam `null`
+- Datas são retornadas no formato ISO 8601
+- O endpoint consolida dados das tabelas:
+  - pedido_compra
+  - pedido_locacao
+  - servico
+  - fornecedores
+  - clientInfo
+  - propostas
+
+**Exemplo de Uso:**
+```bash
+# Listar todos os pedidos consolidados
+curl -X GET http://localhost:3000/api/pedidos-consolidados \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json"
+```
+
+**Exemplo com token específico:**
+```bash
+curl -X GET http://localhost:3000/api/pedidos-consolidados \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJ1c2VybmFtZSI6Imp1bGlvIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQzMDQwNzQ4LCJleHAiOjE3NDMxMjcxNDh9._ZgL7I7Fem0jw7Nqq4Bd4beSIRGwgFbYEnS9neqS2q0" \
+  -H "Content-Type: application/json"
+```
+
