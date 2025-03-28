@@ -1253,3 +1253,95 @@ curl -X GET http://localhost:3000/api/pedidos-consolidados \
   -H "Content-Type: application/json"
 ```
 
+### Faturamento
+
+Endpoint para gerenciar faturamentos dos pedidos (compra, locação e serviço).
+
+```http
+GET /api/faturamentos
+POST /api/faturamentos
+GET /api/faturamentos/:id
+PUT /api/faturamentos/:id
+DELETE /api/faturamentos/:id
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Corpo da Requisição (POST/PUT):**
+```json
+{
+  "id_number": 1,
+  "id_type": "compra", // "compra", "locacao" ou "servico"
+  "valor_total_pedido": 1000.00,
+  "valor_faturado": 50.00, // Porcentagem (0-100)
+  "valor_a_faturar": 500.00,
+  "data_vencimento": "2024-03-25",
+  "nf": "123456789",
+  "nf_anexo": "base64_string_do_anexo",
+  "pagamento": "pix" // "pix", "boleto" ou "ted"
+}
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "id": 1,
+  "id_number": 1,
+  "id_type": "compra",
+  "valor_total_pedido": "1000.00",
+  "valor_faturado": "50.00",
+  "valor_a_faturar": "500.00",
+  "data_vencimento": "2024-03-25",
+  "nf": "123456789",
+  "nf_anexo": "base64_string_do_anexo",
+  "pagamento": "pix",
+  "created_at": "2024-03-25T10:30:00Z"
+}
+```
+
+**Parâmetros de Busca:**
+- `campo`: Campo para filtrar (id_type, id_number, data_vencimento, nf, pagamento)
+- `valor`: Valor para buscar
+
+**Exemplo de Uso:**
+```bash
+# Criar novo faturamento
+curl -X POST http://localhost:3000/api/faturamentos \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id_number": 1,
+    "id_type": "compra",
+    "valor_total_pedido": 1000.00,
+    "valor_faturado": 50.00,
+    "valor_a_faturar": 500.00,
+    "data_vencimento": "2024-03-25",
+    "nf": "123456789",
+    "nf_anexo": "base64_string",
+    "pagamento": "pix"
+  }'
+
+# Listar todos os faturamentos
+curl -X GET http://localhost:3000/api/faturamentos \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por tipo de pedido
+curl -X GET "http://localhost:3000/api/faturamentos?campo=id_type&valor=compra" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por número da NF
+curl -X GET "http://localhost:3000/api/faturamentos?campo=nf&valor=123456789" \
+  -H "Authorization: Bearer seu_token"
+```
+
+**Observações:**
+- O campo `id_type` deve ser um dos valores: "compra", "locacao" ou "servico"
+- O campo `pagamento` deve ser um dos valores: "pix", "boleto" ou "ted"
+- O campo `valor_faturado` deve ser uma porcentagem entre 0 e 100
+- O campo `nf_anexo` deve ser uma string base64 válida
+- O sistema valida se o pedido (id_number + id_type) existe antes de criar/atualizar
+- Datas devem estar no formato YYYY-MM-DD
+
