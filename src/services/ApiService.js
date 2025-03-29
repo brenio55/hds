@@ -1613,13 +1613,39 @@ class ApiService {
     // Métodos para Reembolsos
     static async criarReembolso(dadosReembolso) {
         try {
+            console.log('Enviando dados de reembolso para o backend:', dadosReembolso);
+            
+            // Verificar se estamos enviando FormData
+            const isFormData = dadosReembolso instanceof FormData;
+            
+            let headers = createAuthHeaders();
+            let body;
+            
+            if (isFormData) {
+                // Se for FormData, remove Content-Type para que o navegador defina automaticamente com boundary
+                delete headers['Content-Type'];
+                body = dadosReembolso;
+                
+                // Log para debug dos dados no FormData
+                console.log('Enviando FormData com as seguintes chaves:');
+                for (let pair of dadosReembolso.entries()) {
+                    console.log(pair[0] + ': ' + (pair[1] instanceof File ? 'File: ' + pair[1].name : pair[1]));
+                }
+            } else {
+                // Se for objeto normal, mantém Content-Type JSON e serializa
+                headers['Content-Type'] = 'application/json';
+                body = JSON.stringify(dadosReembolso);
+            }
+            
             const response = await fetch(`${API_URL}/api/reembolso`, {
                 method: 'POST',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosReembolso)
+                headers: headers,
+                body: body
             });
 
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Erro na resposta do servidor:', errorText);
                 throw new Error(`Erro ao criar reembolso: ${response.statusText}`);
             }
 

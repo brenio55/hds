@@ -110,7 +110,32 @@ function RCReembolso() {
         e.preventDefault();
         try {
             setLoading(true);
-            console.log("Enviando dados de reembolso:", formRegistro);
+            console.log("Preparando dados de reembolso para envio:", formRegistro);
+            
+            // Validar dados antes de enviar
+            if (!formRegistro.funcionarioId) {
+                throw new Error('Funcionário não selecionado');
+            }
+            
+            if (!formRegistro.valor || isNaN(parseFloat(formRegistro.valor)) || parseFloat(formRegistro.valor) <= 0) {
+                throw new Error('Valor inválido');
+            }
+            
+            if (!formRegistro.dataVencimento) {
+                throw new Error('Data de vencimento não informada');
+            }
+            
+            if (!formRegistro.comprovante) {
+                throw new Error('Comprovante não anexado');
+            }
+            
+            if (!formRegistro.contaBancaria) {
+                throw new Error('Dados bancários não informados');
+            }
+            
+            if (!formRegistro.centroCustoId) {
+                throw new Error('Centro de custo não selecionado');
+            }
             
             // Criar FormData para enviar o arquivo
             const formData = new FormData();
@@ -121,11 +146,19 @@ function RCReembolso() {
             formData.append('dataVencimento', formRegistro.dataVencimento);
             if (formRegistro.comprovante) {
                 formData.append('comprovante', formRegistro.comprovante);
+                console.log("Comprovante anexado:", formRegistro.comprovante.name, "tipo:", formRegistro.comprovante.type);
             }
             formData.append('contaBancaria', formRegistro.contaBancaria);
             formData.append('centroCustoId', formRegistro.centroCustoId);
             
+            // Log para verificar o conteúdo do FormData
+            console.log("Conteúdo do FormData:");
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + (pair[1] instanceof File ? 'File: ' + pair[1].name : pair[1]));
+            }
+            
             // Enviar para a API
+            console.log("Enviando FormData para a API...");
             const response = await ApiService.criarReembolso(formData);
             console.log('Reembolso registrado com sucesso:', response);
             
@@ -144,8 +177,8 @@ function RCReembolso() {
             setError(null);
         } catch (error) {
             console.error('Erro ao registrar reembolso:', error);
-            setError('Erro ao registrar reembolso. Verifique os dados e tente novamente.');
-            alert('Erro ao registrar reembolso. Tente novamente.');
+            setError('Erro ao registrar reembolso: ' + (error.message || 'Verifique os dados e tente novamente.'));
+            alert('Erro ao registrar reembolso: ' + (error.message || 'Tente novamente.'));
         } finally {
             setLoading(false);
         }
