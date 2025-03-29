@@ -59,4 +59,26 @@ router.put('/:id', authMiddleware, ServicoController.update);
  */
 router.delete('/:id', authMiddleware, ServicoController.delete);
 
+/**
+ * @swagger
+ * /api/servicos/{id}/pdf:
+ *   get:
+ *     summary: Gera um PDF do serviço
+ *     tags: [Servicos]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/:id/pdf', authMiddleware, ServicoController.generatePdf);
+
+/**
+ * @swagger
+ * /api/servicos/{id}/pdf/download:
+ *   get:
+ *     summary: Baixa um PDF do serviço
+ *     tags: [Servicos]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/:id/pdf/download', authMiddleware, ServicoController.downloadPdf);
+
 module.exports = router; 

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido de Serviço</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fff;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header-right {
+            text-align: right;
+            font-size: 12px;
+        }
+
+        .header-right p {
+            margin: 5px 0;
+        }
+
+        .logo {
+            height: 50px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0;
+            flex-grow: 1;
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+
+        .section-title {
+            background-color: #fff;
+            color: #FF0000;
+            padding: 5px 0;
+            margin: 20px 0 10px 0;
+            font-weight: bold;
+            border-bottom: 1px solid #FF0000;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #fff;
+            font-weight: bold;
+            width: 150px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr auto 1fr;
+            gap: 0;
+        }
+
+        .info-grid > div {
+            border: 1px solid #000;
+            padding: 8px;
+        }
+
+        .info-grid > div:nth-child(odd) {
+            font-weight: bold;
+            background-color: #fff;
+        }
+
+        .valores td {
+            text-align: right;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{logoBase64}}" alt="Logo" class="logo">
+        <h1 class="page-title">PEDIDO DE SERVIÇO</h1>
+        <div class="header-right">
+            <p>Pedido: {{id}}</p>
+            <p>Data: {{formatDate created_at}}</p>
+            <p>Revisão: 1.0</p>
+        </div>
+    </div>
+
+    <div class="section-title">DADOS DO CONTRATANTE</div>
+    <table>
+        <tr>
+            <th style="width: 80px">Empresa:</th>
+            <td style="width: 25%">Hds Serviço Ltda</td>
+            <th style="width: 60px">CNPJ:</th>
+            <td style="width: 25%">40.931.075/0001-00</td>
+            <th style="width: 140px">Inscrição Estadual:</th>
+            <td>688.578.880.111</td>
+            <th style="width: 140px">Inscrição Municipal:</th>
+            <td>000000000091587</td>
+        </tr>
+        <tr>
+            <th>Endereço:</th>
+            <td colspan="3">Av Dom Pedro I, 242</td>
+            <th>Bairro:</th>
+            <td>Campos Elíseos</td>
+            <th>Cidade/UF:</th>
+            <td>Taubaté/SP</td>
+        </tr>
+    </table>
+
+    <div class="section-title">DADOS DO FORNECEDOR</div>
+    <table>
+        <tr>
+            <th style="width: 120px">Razão Social:</th>
+            <td style="width: 40%">{{fornecedor.razao_social}}</td>
+            <th style="width: 60px">CNPJ:</th>
+            <td>{{fornecedor.cnpj}}</td>
+        </tr>
+        <tr>
+            <th>IE:</th>
+            <td>{{fornecedor.inscricao_estadual}}</td>
+            <th>IM:</th>
+            <td>{{fornecedor.inscricao_municipal}}</td>
+        </tr>
+        <tr>
+            <th>Contato:</th>
+            <td>{{fornecedor.contato}}</td>
+            <th>Telefone:</th>
+            <td>{{#if fornecedor.telefone}}{{fornecedor.telefone}}{{else}}{{fornecedor.celular}}{{/if}}</td>
+        </tr>
+        <tr>
+            <th>Endereço:</th>
+            <td>{{fornecedor.endereco}}</td>
+            <th>CEP:</th>
+            <td>{{fornecedor.cep}}</td>
+        </tr>
+        <tr>
+            <th>Cidade/UF:</th>
+            <td colspan="3">{{fornecedor.municipio_uf}}</td>
+        </tr>
+    </table>
+
+    <div class="section-title">ESCOPO DO SERVIÇO</div>
+    <table>
+        <tr>
+            <th>Descrição:</th>
+            <td colspan="3">{{itens.descricao}}</td>
+        </tr>
+        <tr>
+            <th>Escopo:</th>
+            <td colspan="3">{{itens.escopo}}</td>
+        </tr>
+        <tr>
+            <th>Unidade:</th>
+            <td>{{itens.unidade}}</td>
+            <th>Quantidade:</th>
+            <td>{{itens.quantidade}}</td>
+        </tr>
+        <tr>
+            <th>Data de Entrega:</th>
+            <td>{{formatDate itens.data_entrega}}</td>
+            <th>Prazo Máximo:</th>
+            <td>{{formatDate itens.prazo_maximo}}</td>
+        </tr>
+    </table>
+
+    <div class="section-title">VALORES E CONDIÇÕES</div>
+    <table class="valores">
+        <tr>
+            <th>Valor Unitário:</th>
+            <td>{{formatMoney itens.valor_unitario}}</td>
+            <th>Quantidade Total:</th>
+            <td>{{itens.unidades}}</td>
+        </tr>
+        <tr>
+            <th>IPI:</th>
+            <td>{{itens.ipi}}%</td>
+            <th>Desconto:</th>
+            <td>{{formatMoney itens.desconto}}</td>
+        </tr>
+        <tr>
+            <th>Valor Frete:</th>
+            <td>{{formatMoney itens.valor_frete}}</td>
+            <th>Outras Despesas:</th>
+            <td>{{formatMoney itens.outras_despesas}}</td>
+        </tr>
+        <tr>
+            <th>Valor Total:</th>
+            <td colspan="3"><strong>{{formatMoney itens.valor_total}}</strong></td>
+        </tr>
+        <tr>
+            <th>Condição de Pagamento:</th>
+            <td colspan="3">{{itens.condicao_pagamento}}</td>
+        </tr>
+    </table>
+
+    <div class="section-title">RESPONSABILIDADES</div>
+    <table>
+        <tr>
+            <th>Contratada deve:</th>
+            <td>
+                <ul>
+                    {{#each itens.afazer_contratada}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th>Contratante deve:</th>
+            <td>
+                <ul>
+                    {{#each itens.afazer_contratante}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </td>
+        </tr>
+    </table>
+
+    {{#if itens.informacao_importante}}
+    <div class="section-title">INFORMAÇÕES IMPORTANTES</div>
+    <table>
+        <tr>
+            <td colspan="2">{{itens.informacao_importante}}</td>
+        </tr>
+    </table>
+    {{/if}}
+
+    <div class="footer">
+        <p>Documento gerado automaticamente pelo sistema</p>
+    </div>
+</body>
+</html> 
