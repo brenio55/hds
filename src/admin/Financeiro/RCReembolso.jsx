@@ -113,7 +113,21 @@ function RCReembolso() {
             
             const response = await ApiService.buscarReembolsos(filtrosPreenchidos);
             console.log("Reembolsos encontrados:", response);
-            setReembolsos(Array.isArray(response) ? response : []);
+            
+            // Mapear os campos para o formato usado no frontend
+            const reembolsosMapeados = Array.isArray(response) ? response.map(reembolso => ({
+                id: reembolso.id,
+                funcionarioId: reembolso.id_funcionarios,
+                valor: reembolso.valor,
+                dataVencimento: reembolso.prazo,
+                comprovante: reembolso.comprovante,
+                contaBancaria: reembolso.descricao,
+                centroCustoId: reembolso.centro_custo_id,
+                dataCriacao: reembolso.created_at
+            })) : [];
+            
+            console.log("Reembolsos mapeados para o frontend:", reembolsosMapeados);
+            setReembolsos(reembolsosMapeados);
             setError(null);
         } catch (error) {
             console.error('Erro ao buscar reembolsos:', error);
@@ -126,73 +140,45 @@ function RCReembolso() {
 
     const handleRegistroSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validação dos campos obrigatórios
+        if (!formRegistro.funcionarioId || !formRegistro.valor || !formRegistro.dataVencimento || !formRegistro.contaBancaria || !formRegistro.centroCustoId) {
+            setError('Por favor, preencha todos os campos obrigatórios.');
+            return;
+        }
+        
         try {
             setLoading(true);
-            console.log("Preparando dados de reembolso para envio:", formRegistro);
             
-            // Validar dados antes de enviar
-            if (!formRegistro.funcionarioId) {
-                throw new Error('Funcionário não selecionado');
-            }
+            // Preparar dados para o backend
+            const dadosReembolso = {
+                id_funcionarios: formRegistro.funcionarioId,
+                valor: formRegistro.valor,
+                prazo: formRegistro.dataVencimento,
+                descricao: formRegistro.contaBancaria,
+                centro_custo_id: formRegistro.centroCustoId
+            };
             
-            if (!formRegistro.valor || isNaN(parseFloat(formRegistro.valor)) || parseFloat(formRegistro.valor) <= 0) {
-                throw new Error('Valor inválido');
-            }
-            
-            if (!formRegistro.dataVencimento) {
-                throw new Error('Data de vencimento não informada');
-            }
-            
-            // Comprovante é obrigatório apenas para novos reembolsos
-            if (!editandoReembolso && !formRegistro.comprovante) {
-                throw new Error('Comprovante não anexado');
-            }
-            
-            if (!formRegistro.contaBancaria) {
-                throw new Error('Dados bancários não informados');
-            }
-            
-            if (!formRegistro.centroCustoId) {
-                throw new Error('Centro de custo não selecionado');
-            }
-            
-            // Criar FormData para enviar o arquivo
-            const formData = new FormData();
-            
-            // Adicionar campos ao FormData
-            formData.append('funcionarioId', formRegistro.funcionarioId);
-            formData.append('valor', formRegistro.valor);
-            formData.append('dataVencimento', formRegistro.dataVencimento);
+            // Converter comprovante para base64 se existir
             if (formRegistro.comprovante) {
-                formData.append('comprovante', formRegistro.comprovante);
-                console.log("Comprovante anexado:", formRegistro.comprovante.name, "tipo:", formRegistro.comprovante.type);
+                const base64 = await converterParaBase64(formRegistro.comprovante);
+                dadosReembolso.comprovante = base64;
             }
-            formData.append('contaBancaria', formRegistro.contaBancaria);
-            formData.append('centroCustoId', formRegistro.centroCustoId);
             
-            // Log para verificar o conteúdo do FormData
-            console.log("Conteúdo do FormData:");
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ': ' + (pair[1] instanceof File ? 'File: ' + pair[1].name : pair[1]));
-            }
+            console.log("Dados de reembolso a serem enviados:", dadosReembolso);
             
             let response;
-            
-            // Se estiver editando, atualiza o reembolso existente
             if (editandoReembolso) {
-                console.log(`Atualizando reembolso ID ${editandoReembolso.id}`);
-                response = await ApiService.atualizarReembolso(editandoReembolso.id, formData);
-                console.log('Reembolso atualizado com sucesso:', response);
-                alert('Reembolso atualizado com sucesso!');
+                response = await ApiService.atualizarReembolso(editandoReembolso.id, dadosReembolso);
+                console.log("Reembolso atualizado:", response);
+                setError('Reembolso atualizado com sucesso!');
             } else {
-                // Caso contrário, cria um novo
-                console.log("Enviando FormData para a API...");
-                response = await ApiService.criarReembolso(formData);
-                console.log('Reembolso registrado com sucesso:', response);
-                alert('Reembolso registrado com sucesso!');
+                response = await ApiService.criarReembolso(dadosReembolso);
+                console.log("Reembolso criado:", response);
+                setError('Reembolso registrado com sucesso!');
             }
             
-            // Limpar formulário e estado de edição
+            // Limpar formulário e fechar modal
             setFormRegistro({
                 funcionarioId: '',
                 valor: '',
@@ -203,19 +189,24 @@ function RCReembolso() {
             });
             setEditandoReembolso(null);
             
-            // Se estiver na aba de consulta, atualiza os dados
-            if (activeTab === 'consulta') {
-                buscarReembolsos();
-            }
-            
-            setError(null);
+            // Recarregar lista de reembolsos
+            buscarReembolsos();
         } catch (error) {
-            console.error('Erro ao processar reembolso:', error);
-            setError('Erro: ' + (error.message || 'Verifique os dados e tente novamente.'));
-            alert('Erro: ' + (error.message || 'Tente novamente.'));
+            console.error('Erro ao salvar reembolso:', error);
+            setError('Erro ao salvar reembolso. Por favor, tente novamente.');
         } finally {
             setLoading(false);
         }
+    };
+
+    // Função para converter arquivo para base64
+    const converterParaBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
     };
 
     const handleFiltroSubmit = (e) => {
@@ -235,8 +226,21 @@ function RCReembolso() {
     };
 
     const handleEditarReembolso = (reembolso) => {
-        setEditandoReembolso(reembolso);
-        setActiveTab('registro');
+        console.log("Editando reembolso:", reembolso);
+        
+        // Define os valores iniciais do formulário com os dados do reembolso
+        setFormRegistro({
+            ...reembolso,
+            // Certifique-se de que os campos estão corretos para o formulário
+            funcionarioId: reembolso.funcionarioId || '',
+            valor: reembolso.valor || '',
+            dataVencimento: reembolso.dataVencimento ? formatarDataParaInput(reembolso.dataVencimento) : '',
+            comprovante: null, // Não preenche o campo de arquivo, usuário deve selecionar novamente se desejar
+            contaBancaria: reembolso.contaBancaria || '',
+            centroCustoId: reembolso.centroCustoId || ''
+        });
+        
+        setModalOpen(true);
     };
 
     const handleCancelarEdicao = () => {

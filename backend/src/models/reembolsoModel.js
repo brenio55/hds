@@ -7,9 +7,11 @@ class ReembolsoModel {
         id_funcionarios,
         valor,
         prazo,
-        descricao
+        descricao,
+        comprovante,
+        centro_custo_id
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
 
@@ -17,13 +19,25 @@ class ReembolsoModel {
       data.id_funcionarios,
       data.valor,
       data.prazo,
-      data.descricao
+      data.descricao,
+      data.comprovante || null,
+      data.centro_custo_id || null
     ];
 
     try {
+      console.log('Criando reembolso com dados:', {
+        id_funcionarios: data.id_funcionarios,
+        valor: data.valor,
+        prazo: data.prazo,
+        descricao: data.descricao,
+        has_comprovante: !!data.comprovante,
+        centro_custo_id: data.centro_custo_id
+      });
+      
       const result = await db.query(query, values);
       return result.rows[0];
     } catch (error) {
+      console.error('Erro SQL ao criar reembolso:', error);
       throw new Error(`Erro ao criar reembolso: ${error.message}`);
     }
   }
@@ -34,8 +48,10 @@ class ReembolsoModel {
       SET id_funcionarios = $1,
           valor = $2,
           prazo = $3,
-          descricao = $4
-      WHERE id = $5
+          descricao = $4,
+          comprovante = COALESCE($5, comprovante),
+          centro_custo_id = COALESCE($6, centro_custo_id)
+      WHERE id = $7
       RETURNING *
     `;
 
@@ -44,11 +60,27 @@ class ReembolsoModel {
       data.valor,
       data.prazo,
       data.descricao,
+      data.comprovante || null,
+      data.centro_custo_id || null,
       id
     ];
 
-    const result = await db.query(query, values);
-    return result.rows[0];
+    try {
+      console.log('Atualizando reembolso ID', id, 'com dados:', {
+        id_funcionarios: data.id_funcionarios,
+        valor: data.valor,
+        prazo: data.prazo,
+        descricao: data.descricao,
+        comprovante_updated: !!data.comprovante,
+        centro_custo_id: data.centro_custo_id
+      });
+      
+      const result = await db.query(query, values);
+      return result.rows[0];
+    } catch (error) {
+      console.error('Erro SQL ao atualizar reembolso:', error);
+      throw new Error(`Erro ao atualizar reembolso: ${error.message}`);
+    }
   }
 
   static async findByField(campo, valor) {

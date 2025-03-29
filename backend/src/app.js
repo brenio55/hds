@@ -57,7 +57,11 @@ app.use(cors({
 // Middleware para tratar preflight requests
 app.options('*', cors());
 
-app.use(express.json());
+// Aumentar limite de tamanho para processar JSON (para acomodar base64)
+app.use(express.json({ limit: '50mb' }));
+
+// Processar dados de formulário (application/x-www-form-urlencoded)
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Documentação Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
