@@ -1425,6 +1425,233 @@ class ApiService {
             };
         }
     }
+
+    // Métodos para Faturamentos
+    static async criarFaturamento(dadosFaturamento) {
+        try {
+            const response = await fetch(`${API_URL}/api/faturamentos`, {
+                method: 'POST',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosFaturamento)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao criar faturamento: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao criar faturamento:', error);
+            throw error;
+        }
+    }
+
+    static async buscarFaturamentos(filtros = {}) {
+        try {
+            const queryParams = new URLSearchParams(filtros).toString();
+            const url = `${API_URL}/api/faturamentos${queryParams ? `?${queryParams}` : ''}`;
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar faturamentos: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao buscar faturamentos:', error);
+            throw error;
+        }
+    }
+
+    static async atualizarFaturamento(id, dadosFaturamento) {
+        try {
+            const response = await fetch(`${API_URL}/api/faturamentos/${id}`, {
+                method: 'PUT',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosFaturamento)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao atualizar faturamento: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao atualizar faturamento:', error);
+            throw error;
+        }
+    }
+
+    static async deletarFaturamento(id) {
+        try {
+            const response = await fetch(`${API_URL}/api/faturamentos/${id}`, {
+                method: 'DELETE',
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao deletar faturamento: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao deletar faturamento:', error);
+            throw error;
+        }
+    }
+
+    // Métodos para Funcionários
+    static async criarFuncionario(dadosFuncionario) {
+        try {
+            const response = await fetch(`${API_URL}/api/funcionarios`, {
+                method: 'POST',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosFuncionario)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao criar funcionário: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao criar funcionário:', error);
+            throw error;
+        }
+    }
+
+    static async buscarFuncionarios() {
+        try {
+            const response = await fetch(`${API_URL}/api/funcionarios`, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar funcionários: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao buscar funcionários:', error);
+            throw error;
+        }
+    }
+
+    static async buscarFuncionarioPorId(id) {
+        try {
+            const response = await fetch(`${API_URL}/api/funcionarios/${id}`, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar funcionário: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao buscar funcionário:', error);
+            throw error;
+        }
+    }
+
+    static async atualizarFuncionario(id, dadosFuncionario) {
+        try {
+            const response = await fetch(`${API_URL}/api/funcionarios/${id}`, {
+                method: 'PUT',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosFuncionario)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao atualizar funcionário: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao atualizar funcionário:', error);
+            throw error;
+        }
+    }
+
+    static async deletarFuncionario(id) {
+        try {
+            const response = await fetch(`${API_URL}/api/funcionarios/${id}`, {
+                method: 'DELETE',
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao deletar funcionário: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao deletar funcionário:', error);
+            throw error;
+        }
+    }
+
+    // Métodos para Reembolsos
+    static async criarReembolso(dadosReembolso) {
+        try {
+            const response = await fetch(`${API_URL}/api/reembolso`, {
+                method: 'POST',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosReembolso)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao criar reembolso: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao criar reembolso:', error);
+            throw error;
+        }
+    }
+
+    static async buscarReembolsos(filtros = {}) {
+        try {
+            const queryParams = new URLSearchParams(filtros).toString();
+            const url = `${API_URL}/api/reembolso${queryParams ? `?${queryParams}` : ''}`;
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar reembolsos: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao buscar reembolsos:', error);
+            throw error;
+        }
+    }
+
+    static async atualizarReembolso(id, dadosReembolso) {
+        try {
+            const response = await fetch(`${API_URL}/api/reembolso/${id}`, {
+                method: 'PUT',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosReembolso)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao atualizar reembolso: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao atualizar reembolso:', error);
+            throw error;
+        }
+    }
 }
 
 export default ApiService; 
