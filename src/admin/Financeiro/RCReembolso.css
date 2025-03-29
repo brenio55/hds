@@ -166,4 +166,88 @@ h1 {
     text-align: center;
     padding: 30px;
     color: #666;
+}
+
+/* Estilos para botões de ação na tabela */
+.view-button {
+    background-color: #2196f3;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+}
+
+.edit-button {
+    background-color: #ff9800;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+}
+
+.edit-button:hover {
+    background-color: #e68a00;
+}
+
+.delete-button {
+    background-color: #f44336;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+}
+
+.delete-button:hover {
+    background-color: #d32f2f;
+}
+
+/* Estilos para notificação de edição */
+.edit-notification {
+    background-color: #e3f2fd;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #2196f3;
+}
+
+.edit-notification p {
+    margin: 0;
+    font-weight: 500;
+    color: #0d47a1;
+}
+
+.cancel-edit-button {
+    background-color: #e0e0e0;
+    color: #424242;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.cancel-edit-button:hover {
+    background-color: #bdbdbd;
+}
+
+/* Estilos para arquivo existente na edição */
+.existing-file {
+    margin-top: 8px;
+    font-size: 0.9rem;
+}
+
+.existing-file a {
+    color: #2196f3;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.existing-file a:hover {
+    text-decoration: underline;
+}
+
+.file-note {
+    color: #757575;
+    font-style: italic;
+    margin-top: 4px;
+    font-size: 0.85rem;
 } 

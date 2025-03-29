@@ -11,6 +11,8 @@ function RCReembolso() {
     const [centrosCusto, setCentrosCusto] = useState([]);
     const [reembolsos, setReembolsos] = useState([]);
     const [error, setError] = useState(null);
+    const [editandoReembolso, setEditandoReembolso] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
 
     // Estados para o formulário de registro
     const [formRegistro, setFormRegistro] = useState({
@@ -36,6 +38,22 @@ function RCReembolso() {
             buscarReembolsos();
         }
     }, [activeTab]);
+
+    useEffect(() => {
+        // Quando um reembolso é selecionado para edição, preenche o formulário
+        if (editandoReembolso) {
+            setFormRegistro({
+                funcionarioId: editandoReembolso.funcionarioId || '',
+                valor: editandoReembolso.valor || '',
+                dataVencimento: editandoReembolso.dataVencimento ? 
+                    new Date(editandoReembolso.dataVencimento).toISOString().split('T')[0] : '',
+                comprovante: null, // O arquivo não pode ser preenchido automaticamente
+                contaBancaria: editandoReembolso.contaBancaria || '',
+                centroCustoId: editandoReembolso.centroCustoId || ''
+            });
+            setActiveTab('registro');
+        }
+    }, [editandoReembolso]);
 
     const carregarDadosIniciais = async () => {
         try {
@@ -125,7 +143,8 @@ function RCReembolso() {
                 throw new Error('Data de vencimento não informada');
             }
             
-            if (!formRegistro.comprovante) {
+            // Comprovante é obrigatório apenas para novos reembolsos
+            if (!editandoReembolso && !formRegistro.comprovante) {
                 throw new Error('Comprovante não anexado');
             }
             
@@ -157,12 +176,23 @@ function RCReembolso() {
                 console.log(pair[0] + ': ' + (pair[1] instanceof File ? 'File: ' + pair[1].name : pair[1]));
             }
             
-            // Enviar para a API
-            console.log("Enviando FormData para a API...");
-            const response = await ApiService.criarReembolso(formData);
-            console.log('Reembolso registrado com sucesso:', response);
+            let response;
             
-            // Limpar formulário
+            // Se estiver editando, atualiza o reembolso existente
+            if (editandoReembolso) {
+                console.log(`Atualizando reembolso ID ${editandoReembolso.id}`);
+                response = await ApiService.atualizarReembolso(editandoReembolso.id, formData);
+                console.log('Reembolso atualizado com sucesso:', response);
+                alert('Reembolso atualizado com sucesso!');
+            } else {
+                // Caso contrário, cria um novo
+                console.log("Enviando FormData para a API...");
+                response = await ApiService.criarReembolso(formData);
+                console.log('Reembolso registrado com sucesso:', response);
+                alert('Reembolso registrado com sucesso!');
+            }
+            
+            // Limpar formulário e estado de edição
             setFormRegistro({
                 funcionarioId: '',
                 valor: '',
@@ -171,14 +201,18 @@ function RCReembolso() {
                 contaBancaria: '',
                 centroCustoId: ''
             });
+            setEditandoReembolso(null);
             
-            // Mostrar mensagem de sucesso
-            alert('Reembolso registrado com sucesso!');
+            // Se estiver na aba de consulta, atualiza os dados
+            if (activeTab === 'consulta') {
+                buscarReembolsos();
+            }
+            
             setError(null);
         } catch (error) {
-            console.error('Erro ao registrar reembolso:', error);
-            setError('Erro ao registrar reembolso: ' + (error.message || 'Verifique os dados e tente novamente.'));
-            alert('Erro ao registrar reembolso: ' + (error.message || 'Tente novamente.'));
+            console.error('Erro ao processar reembolso:', error);
+            setError('Erro: ' + (error.message || 'Verifique os dados e tente novamente.'));
+            alert('Erro: ' + (error.message || 'Tente novamente.'));
         } finally {
             setLoading(false);
         }
@@ -200,6 +234,41 @@ function RCReembolso() {
         return new Date(data).toLocaleDateString('pt-BR');
     };
 
+    const handleEditarReembolso = (reembolso) => {
+        setEditandoReembolso(reembolso);
+        setActiveTab('registro');
+    };
+
+    const handleCancelarEdicao = () => {
+        setEditandoReembolso(null);
+        setFormRegistro({
+            funcionarioId: '',
+            valor: '',
+            dataVencimento: '',
+            comprovante: null,
+            contaBancaria: '',
+            centroCustoId: ''
+        });
+    };
+
+    const handleExcluirReembolso = async (id) => {
+        if (window.confirm('Tem certeza que deseja excluir este reembolso?')) {
+            try {
+                setLoading(true);
+                await ApiService.excluirReembolso(id);
+                alert('Reembolso excluído com sucesso!');
+                // Atualizar a lista após excluir
+                buscarReembolsos();
+            } catch (error) {
+                console.error('Erro ao excluir reembolso:', error);
+                setError('Erro ao excluir reembolso: ' + (error.message || 'Tente novamente.'));
+                alert('Erro ao excluir reembolso: ' + (error.message || 'Tente novamente.'));
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
     // Verificação de segurança para renderização de listas
     const centrosCustoArray = Array.isArray(centrosCusto) ? centrosCusto : [];
     const funcionariosArray = Array.isArray(funcionarios) ? funcionarios : [];
@@ -217,13 +286,23 @@ function RCReembolso() {
                     <div className="tabs-container">
                         <div 
                             className={`tab ${activeTab === 'registro' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('registro')}
+                            onClick={() => {
+                                setActiveTab('registro');
+                                if (editandoReembolso) {
+                                    handleCancelarEdicao();
+                                }
+                            }}
                         >
-                            Registro
+                            {editandoReembolso ? 'Editar Reembolso' : 'Registro'}
                         </div>
                         <div 
                             className={`tab ${activeTab === 'consulta' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('consulta')}
+                            onClick={() => {
+                                setActiveTab('consulta');
+                                if (editandoReembolso) {
+                                    handleCancelarEdicao();
+                                }
+                            }}
                         >
                             Consulta
                         </div>
@@ -231,6 +310,15 @@ function RCReembolso() {
 
                     {activeTab === 'registro' ? (
                         <form onSubmit={handleRegistroSubmit} className="form-container registro-form">
+                            {editandoReembolso && (
+                                <div className="edit-notification">
+                                    <p>Editando reembolso #{editandoReembolso.id}</p>
+                                    <button type="button" className="cancel-edit-button" onClick={handleCancelarEdicao}>
+                                        Cancelar Edição
+                                    </button>
+                                </div>
+                            )}
+                            
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>SELECIONE O FUNCIONÁRIO A REEMBOLSAR:</label>
@@ -283,15 +371,21 @@ function RCReembolso() {
 
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>COMPROVANTE:</label>
+                                    <label>COMPROVANTE{!editandoReembolso ? ' (obrigatório)' : ' (opcional na edição)'}:</label>
                                     <input
                                         type="file"
                                         onChange={(e) => setFormRegistro({
                                             ...formRegistro,
                                             comprovante: e.target.files[0]
                                         })}
-                                        required
+                                        required={!editandoReembolso}
                                     />
+                                    {editandoReembolso && editandoReembolso.comprovante && (
+                                        <div className="existing-file">
+                                            <p>Arquivo atual: <a href={editandoReembolso.comprovante} target="_blank" rel="noopener noreferrer">Ver comprovante</a></p>
+                                            <p className="file-note">Envie um novo arquivo apenas se desejar substituir o atual</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="form-group">
@@ -318,11 +412,24 @@ function RCReembolso() {
                                         required
                                     >
                                         <option value="">Selecione um centro de custo</option>
-                                        {centrosCustoArray.map(centro => (
-                                            <option key={centro.id} value={centro.id}>
-                                                {'#' + centro.id + ' - ' + centro.client_info.nome + ' - ' + centro.descricao || centro.titulo || `Proposta #${centro.id}`}
-                                            </option>
-                                        ))}
+                                        {centrosCustoArray.map(centro => {
+                                            // Verificar se centro.client_info existe para evitar erros
+                                            let displayText = '#' + centro.id;
+                                            if (centro.client_info && centro.client_info.nome) {
+                                                displayText += ' - ' + centro.client_info.nome;
+                                            }
+                                            if (centro.descricao) {
+                                                displayText += ' - ' + centro.descricao;
+                                            } else if (centro.titulo) {
+                                                displayText += ' - ' + centro.titulo;
+                                            }
+                                            
+                                            return (
+                                                <option key={centro.id} value={centro.id}>
+                                                    {displayText}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                 </div>
                             </div>
@@ -333,7 +440,7 @@ function RCReembolso() {
                                     className="submit-button"
                                     disabled={loading}
                                 >
-                                    {loading ? 'Registrando...' : 'REGISTRAR REEMBOLSO'}
+                                    {loading ? 'Processando...' : editandoReembolso ? 'ATUALIZAR REEMBOLSO' : 'REGISTRAR REEMBOLSO'}
                                 </button>
                             </div>
                         </form>
@@ -458,12 +565,26 @@ function RCReembolso() {
                                                             {reembolso.comprovante && (
                                                                 <button 
                                                                     onClick={() => window.open(reembolso.comprovante, '_blank')}
-                                                                    className="action-button"
+                                                                    className="action-button view-button"
                                                                     title="Visualizar Comprovante"
                                                                 >
-                                                                    Ver Comprovante
+                                                                    Ver
                                                                 </button>
                                                             )}
+                                                            <button 
+                                                                onClick={() => handleEditarReembolso(reembolso)}
+                                                                className="action-button edit-button"
+                                                                title="Editar Reembolso"
+                                                            >
+                                                                Editar
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleExcluirReembolso(reembolso.id)}
+                                                                className="action-button delete-button"
+                                                                title="Excluir Reembolso"
+                                                            >
+                                                                Excluir
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 );

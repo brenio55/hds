@@ -1646,7 +1646,7 @@ class ApiService {
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Erro na resposta do servidor:', errorText);
-                throw new Error(`Erro ao criar reembolso: ${response.statusText}`);
+                throw new Error(`Erro ao criar reembolso: ${response.statusText || errorText}`);
             }
 
             return await response.json();
@@ -1661,6 +1661,7 @@ class ApiService {
             const queryParams = new URLSearchParams(filtros).toString();
             const url = `${API_URL}/api/reembolso${queryParams ? `?${queryParams}` : ''}`;
             
+            console.log('Buscando reembolsos na URL:', url);
             const response = await fetch(url, {
                 headers: createAuthHeaders()
             });
@@ -1669,21 +1670,78 @@ class ApiService {
                 throw new Error(`Erro ao buscar reembolsos: ${response.statusText}`);
             }
 
-            return await response.json();
+            const data = await response.json();
+            console.log('Reembolsos recebidos do backend:', data);
+            return Array.isArray(data) ? data : [];
         } catch (error) {
             console.error('Erro ao buscar reembolsos:', error);
-            throw error;
+            return [];
         }
     }
 
     static async atualizarReembolso(id, dadosReembolso) {
         try {
             console.log(`Atualizando reembolso ${id}:`, dadosReembolso);
+            
+            // Verificar se estamos enviando FormData
             const isFormData = dadosReembolso instanceof FormData;
-            const response = await this.put(`/reembolso/${id}`, dadosReembolso, { isFormData });
-            return response;
+            
+            let headers = createAuthHeaders();
+            let body;
+            
+            if (isFormData) {
+                // Se for FormData, remove Content-Type para que o navegador defina automaticamente com boundary
+                delete headers['Content-Type'];
+                body = dadosReembolso;
+                
+                // Log para debug dos dados no FormData
+                console.log('Enviando FormData para atualização:');
+                for (let pair of dadosReembolso.entries()) {
+                    console.log(pair[0] + ': ' + (pair[1] instanceof File ? 'File: ' + pair[1].name : pair[1]));
+                }
+            } else {
+                // Se for objeto normal, mantém Content-Type JSON e serializa
+                headers['Content-Type'] = 'application/json';
+                body = JSON.stringify(dadosReembolso);
+            }
+            
+            const response = await fetch(`${API_URL}/api/reembolso/${id}`, {
+                method: 'PUT',
+                headers: headers,
+                body: body
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Erro na resposta do servidor ao atualizar reembolso ${id}:`, errorText);
+                throw new Error(`Erro ao atualizar reembolso: ${response.statusText || errorText}`);
+            }
+
+            return await response.json();
         } catch (error) {
             console.error(`Erro ao atualizar reembolso ${id}:`, error);
+            throw error;
+        }
+    }
+    
+    static async excluirReembolso(id) {
+        try {
+            console.log(`Excluindo reembolso ${id}`);
+            
+            const response = await fetch(`${API_URL}/api/reembolso/${id}`, {
+                method: 'DELETE',
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Erro na resposta do servidor ao excluir reembolso ${id}:`, errorText);
+                throw new Error(`Erro ao excluir reembolso: ${response.statusText || errorText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error(`Erro ao excluir reembolso ${id}:`, error);
             throw error;
         }
     }
