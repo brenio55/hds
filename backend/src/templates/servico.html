@@ -102,6 +102,31 @@
             font-size: 11px;
             color: #666;
         }
+        
+        .materiais-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+        
+        .materiais-table th {
+            text-align: center;
+            background-color: #f2f2f2;
+        }
+        
+        .materiais-table td {
+            text-align: center;
+        }
+        
+        .valor-destaque {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .escopo-texto {
+            white-space: pre-line;
+        }
     </style>
 </head>
 <body>
@@ -169,77 +194,87 @@
         </tr>
     </table>
 
-    <div class="section-title">ESCOPO DO SERVIÇO</div>
+    <div class="section-title">ITENS DO SERVIÇO</div>
+    <table class="materiais-table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Descrição</th>
+                <th>UN</th>
+                <th>Quant.</th>
+                <th>IPI (%)</th>
+                <th>Valor Unit.</th>
+                <th>Valor Total</th>
+                <th>Desc. (%)</th>
+                <th>Previsão Entrega</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each itens.materiais}}
+            <tr>
+                <td>{{item}}</td>
+                <td style="text-align: left">{{descricao}}</td>
+                <td>{{unidade}}</td>
+                <td>{{quantidade}}</td>
+                <td>{{ipi}}%</td>
+                <td>{{formatMoney valor_unitario}}</td>
+                <td>{{formatMoney valor_total}}</td>
+                <td>{{desconto}}%</td>
+                <td>{{formatDate previsao_entrega}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <div class="section-title">ESCOPO DA CONTRATAÇÃO</div>
     <table>
         <tr>
-            <th>Descrição:</th>
-            <td colspan="3">{{itens.descricao}}</td>
-        </tr>
-        <tr>
-            <th>Escopo:</th>
-            <td colspan="3">{{itens.escopo}}</td>
-        </tr>
-        <tr>
-            <th>Unidade:</th>
-            <td>{{itens.unidade}}</td>
-            <th>Quantidade:</th>
-            <td>{{itens.quantidade}}</td>
-        </tr>
-        <tr>
-            <th>Data de Entrega:</th>
-            <td>{{formatDate itens.data_entrega}}</td>
-            <th>Prazo Máximo:</th>
-            <td>{{formatDate itens.prazo_maximo}}</td>
+            <td class="escopo-texto">{{itens.escopo_contratacao}}</td>
         </tr>
     </table>
 
     <div class="section-title">VALORES E CONDIÇÕES</div>
     <table class="valores">
         <tr>
-            <th>Valor Unitário:</th>
-            <td>{{formatMoney itens.valor_unitario}}</td>
-            <th>Quantidade Total:</th>
-            <td>{{itens.unidades}}</td>
+            <th>Total Bruto:</th>
+            <td>{{formatMoney itens.total_bruto}}</td>
         </tr>
         <tr>
             <th>IPI:</th>
-            <td>{{itens.ipi}}%</td>
-            <th>Desconto:</th>
-            <td>{{formatMoney itens.desconto}}</td>
+            <td>{{formatMoney itens.total_ipi}}</td>
         </tr>
         <tr>
-            <th>Valor Frete:</th>
+            <th>Frete:</th>
             <td>{{formatMoney itens.valor_frete}}</td>
+        </tr>
+        <tr>
             <th>Outras Despesas:</th>
             <td>{{formatMoney itens.outras_despesas}}</td>
         </tr>
         <tr>
+            <th>Descontos:</th>
+            <td>{{formatMoney itens.total_descontos}}</td>
+        </tr>
+        <tr>
             <th>Valor Total:</th>
-            <td colspan="3"><strong>{{formatMoney itens.valor_total}}</strong></td>
+            <td class="valor-destaque">{{formatMoney itens.total_final}}</td>
         </tr>
         <tr>
             <th>Condição de Pagamento:</th>
-            <td colspan="3">{{itens.condicao_pagamento}}</td>
+            <td>{{itens.condicao_pagamento}}</td>
+        </tr>
+        <tr>
+            <th>Tipo de Frete:</th>
+            <td>{{itens.frete}}</td>
         </tr>
     </table>
 
-    <div class="section-title">RESPONSABILIDADES</div>
+    <div class="section-title">RESPONSABILIDADES DA CONTRATADA</div>
     <table>
         <tr>
-            <th>Contratada deve:</th>
             <td>
                 <ul>
-                    {{#each itens.afazer_contratada}}
-                    <li>{{this}}</li>
-                    {{/each}}
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <th>Contratante deve:</th>
-            <td>
-                <ul>
-                    {{#each itens.afazer_contratante}}
+                    {{#each itens.responsabilidade_contratada}}
                     <li>{{this}}</li>
                     {{/each}}
                 </ul>
@@ -247,17 +282,49 @@
         </tr>
     </table>
 
-    {{#if itens.informacao_importante}}
+    <div class="section-title">RESPONSABILIDADES DA CONTRATANTE</div>
+    <table>
+        <tr>
+            <td>
+                <ul>
+                    {{#each itens.responsabilidade_contratante}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </td>
+        </tr>
+    </table>
+
+    {{#if itens.informacoes_importantes}}
     <div class="section-title">INFORMAÇÕES IMPORTANTES</div>
     <table>
         <tr>
-            <td colspan="2">{{itens.informacao_importante}}</td>
+            <td class="escopo-texto">{{itens.informacoes_importantes}}</td>
         </tr>
     </table>
     {{/if}}
 
+    <div class="section-title">APROVAÇÕES</div>
+    <table>
+        <tr>
+            <td style="width: 50%; height: 100px; vertical-align: bottom; text-align: center;">
+                _______________________________________<br>
+                Contratante - HDS Serviço Ltda<br>
+                Nome: _____________________________<br>
+                Cargo: _____________________________
+            </td>
+            <td style="width: 50%; height: 100px; vertical-align: bottom; text-align: center;">
+                _______________________________________<br>
+                Contratada - {{fornecedor.razao_social}}<br>
+                Nome: _____________________________<br>
+                Cargo: _____________________________
+            </td>
+        </tr>
+    </table>
+
     <div class="footer">
-        <p>Documento gerado automaticamente pelo sistema</p>
+        <p>Hds Serviço Ltda - CNPJ: 40.931.075/0001-00</p>
+        <p>Av Dom Pedro I, 242 - Campos Elíseos - Taubaté/SP</p>
     </div>
 </body>
 </html> 

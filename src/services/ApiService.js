@@ -1131,6 +1131,236 @@ class ApiService {
             throw error;
         }
     }
+
+    /**
+     * Métodos relacionados a Pedidos de Serviço
+     */
+    
+    /**
+     * Cria um novo pedido de serviço
+     * @param {Object} dadosPedido - Dados do pedido de serviço
+     * @returns {Promise<Object>} - Dados do pedido criado
+     */
+    static async criarPedidoServico(dadosPedido) {
+        try {
+            const response = await fetch(`${API_URL}/api/servicos`, {
+                method: 'POST',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosPedido)
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao criar pedido de serviço');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao criar pedido de serviço:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Atualiza um pedido de serviço existente
+     * @param {number} id - ID do pedido a ser atualizado
+     * @param {Object} dadosPedido - Novos dados do pedido
+     * @returns {Promise<Object>} - Dados do pedido atualizado
+     */
+    static async atualizarPedidoServico(id, dadosPedido) {
+        try {
+            const response = await fetch(`${API_URL}/api/servicos/${id}`, {
+                method: 'PUT',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosPedido)
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao atualizar pedido de serviço');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao atualizar pedido de serviço:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Lista todos os pedidos de serviço com filtros opcionais
+     * @param {Object} filtros - Filtros a serem aplicados na busca
+     * @returns {Promise<Array>} - Lista de pedidos de serviço
+     */
+    static async listarPedidosServico(filtros = {}) {
+        try {
+            const queryParams = new URLSearchParams(filtros).toString();
+            const url = `${API_URL}/api/servicos${queryParams ? `?${queryParams}` : ''}`;
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao listar pedidos de serviço');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao listar pedidos de serviço:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Busca um pedido de serviço por ID
+     * @param {number} id - ID do pedido a ser buscado
+     * @returns {Promise<Object>} - Dados do pedido 
+     */
+    static async buscarPedidoServicoPorId(id) {
+        try {
+            const response = await fetch(`${API_URL}/api/servicos/${id}`, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao buscar pedido de serviço');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erro ao buscar pedido de serviço:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Faz o download do PDF de um pedido de serviço
+     * @param {number} id - ID do pedido 
+     * @returns {Promise<Blob>} - Blob contendo o PDF
+     */
+    static async downloadPedidoServicoPdf(id) {
+        try {
+            const response = await fetch(
+                `${API_URL}/api/servicos/${id}/pdf/download`,
+                {
+                    headers: createAuthHeaders()
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Erro ao baixar PDF do pedido de serviço');
+            }
+
+            // Obtém o nome do arquivo do header Content-Disposition
+            const contentDisposition = response.headers.get('content-disposition');
+            let filename = 'pedido-servico.pdf';
+            
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, '');
+                }
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            
+            // Cria um link temporário para download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Limpa após o download
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            return true;
+        } catch (error) {
+            console.error('Erro ao baixar PDF do pedido de serviço:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Visualiza o PDF de um pedido de serviço em nova aba
+     * @param {number} id - ID do pedido 
+     * @returns {Promise<void>}
+     */
+    static async visualizarPedidoServicoPdf(id) {
+        try {
+            const response = await fetch(
+                `${API_URL}/api/servicos/${id}/pdf/download`,
+                {
+                    headers: createAuthHeaders()
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Erro ao carregar PDF do pedido de serviço');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            window.open(url, '_blank');
+            
+            return true;
+        } catch (error) {
+            console.error('Erro ao visualizar PDF do pedido de serviço:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Busca pedidos de serviço com filtros opcionais (com fallback para dados de exemplo)
+     * @param {Object} filtros - Filtros para a busca
+     * @returns {Promise<Object>} - Objeto com total e lista de pedidos
+     */
+    static async buscarPedidosServico(filtros = {}) {
+        try {
+            const queryParams = new URLSearchParams(filtros).toString();
+            const url = `${API_URL}/api/servicos${queryParams ? `?${queryParams}` : ''}`;
+            
+            try {
+                const response = await fetch(url, {
+                    headers: createAuthHeaders()
+                });
+    
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar pedidos de serviço');
+                }
+    
+                const data = await response.json();
+                return data;
+            } catch (apiError) {
+                console.warn('Erro ao buscar da API, usando dados de exemplo:', apiError);
+                // Se a API falhar, carrega dados de exemplo
+                const dadosExemplo = await this.carregarDadosExemplo();
+                
+                // Aplica filtros nos dados de exemplo
+                if (Object.keys(filtros).length > 0) {
+                    return dadosExemplo.filter(pedido => {
+                        let match = true;
+                        if (filtros.id && pedido.id.toString() !== filtros.id.toString()) {
+                            match = false;
+                        }
+                        if (filtros.tipo && pedido.tipo !== 'servico') {
+                            match = false;
+                        }
+                        if (filtros.centroCusto && pedido.proposta_id.toString() !== filtros.centroCusto.toString()) {
+                            match = false;
+                        }
+                        return match;
+                    });
+                }
+                
+                return dadosExemplo.filter(pedido => pedido.tipo === 'servico');
+            }
+        } catch (error) {
+            console.error('Erro ao buscar pedidos de serviço:', error);
+            throw error;
+        }
+    }
 }
 
 export default ApiService; 
