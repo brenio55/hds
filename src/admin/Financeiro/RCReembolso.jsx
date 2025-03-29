@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import HeaderAdmin from '../HeaderAdmin';
 import ApiService from '../../services/ApiService';
+import './RCReembolso.css';
 
 function RCReembolso() {
     // Estados para controle de abas e formulário
@@ -9,6 +10,7 @@ function RCReembolso() {
     const [funcionarios, setFuncionarios] = useState([]);
     const [centrosCusto, setCentrosCusto] = useState([]);
     const [reembolsos, setReembolsos] = useState([]);
+    const [error, setError] = useState(null);
 
     // Estados para o formulário de registro
     const [formRegistro, setFormRegistro] = useState({
@@ -38,13 +40,42 @@ function RCReembolso() {
     const carregarDadosIniciais = async () => {
         try {
             setLoading(true);
-            // Aqui você deve implementar as chamadas à API para carregar funcionários e centros de custo
-            // const responseFuncionarios = await ApiService.buscarFuncionarios();
-            // const responseCentrosCusto = await ApiService.buscarCentrosCusto();
-            // setFuncionarios(responseFuncionarios);
-            // setCentrosCusto(responseCentrosCusto);
+            console.log("Carregando dados iniciais...");
+            
+            // Carrega funcionários
+            const responseFuncionarios = await ApiService.buscarFuncionarios();
+            console.log("Funcionários carregados:", responseFuncionarios);
+            setFuncionarios(Array.isArray(responseFuncionarios) ? responseFuncionarios : []);
+            
+            // Carrega centros de custo (propostas)
+            try {
+                const responseCentrosCusto = await ApiService.buscarPropostas();
+                console.log("Centros de custo carregados:", responseCentrosCusto);
+                
+                // Verifica se a resposta é um array ou se tem uma propriedade que contém o array
+                if (Array.isArray(responseCentrosCusto)) {
+                    setCentrosCusto(responseCentrosCusto);
+                } else if (responseCentrosCusto && responseCentrosCusto.propostas && Array.isArray(responseCentrosCusto.propostas)) {
+                    setCentrosCusto(responseCentrosCusto.propostas);
+                } else if (responseCentrosCusto && Object.keys(responseCentrosCusto).length > 0) {
+                    // Se for um objeto com itens, converte para array
+                    const centrosCustoArray = Object.values(responseCentrosCusto);
+                    setCentrosCusto(Array.isArray(centrosCustoArray) ? centrosCustoArray : []);
+                } else {
+                    // Fallback para array vazio
+                    setCentrosCusto([]);
+                    console.warn("Formato de resposta de centros de custo não reconhecido:", responseCentrosCusto);
+                }
+            } catch (centroError) {
+                console.error("Erro ao carregar centros de custo:", centroError);
+                setCentrosCusto([]);
+                setError("Não foi possível carregar os centros de custo. Alguns recursos podem estar limitados.");
+            }
+            
+            setError(null);
         } catch (error) {
             console.error('Erro ao carregar dados iniciais:', error);
+            setError('Falha ao carregar dados. Verifique sua conexão e tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -53,11 +84,23 @@ function RCReembolso() {
     const buscarReembolsos = async () => {
         try {
             setLoading(true);
-            // Implementar chamada à API para buscar reembolsos com filtros
-            // const response = await ApiService.buscarReembolsos(filtros);
-            // setReembolsos(response);
+            console.log("Buscando reembolsos com filtros:", filtros);
+            
+            // Constrói o objeto de filtro apenas com campos preenchidos
+            const filtrosPreenchidos = {};
+            if (filtros.dataInicial) filtrosPreenchidos.dataInicial = filtros.dataInicial;
+            if (filtros.dataFinal) filtrosPreenchidos.dataFinal = filtros.dataFinal;
+            if (filtros.centroCustoId) filtrosPreenchidos.centroCustoId = filtros.centroCustoId;
+            if (filtros.funcionarioId) filtrosPreenchidos.funcionarioId = filtros.funcionarioId;
+            
+            const response = await ApiService.buscarReembolsos(filtrosPreenchidos);
+            console.log("Reembolsos encontrados:", response);
+            setReembolsos(Array.isArray(response) ? response : []);
+            setError(null);
         } catch (error) {
             console.error('Erro ao buscar reembolsos:', error);
+            setError('Não foi possível carregar os reembolsos. Tente novamente mais tarde.');
+            setReembolsos([]);
         } finally {
             setLoading(false);
         }
@@ -67,13 +110,26 @@ function RCReembolso() {
         e.preventDefault();
         try {
             setLoading(true);
-            // Implementar chamada à API para registrar reembolso
-            // const formData = new FormData();
-            // Object.keys(formRegistro).forEach(key => {
-            //     formData.append(key, formRegistro[key]);
-            // });
-            // await ApiService.registrarReembolso(formData);
-            alert('Reembolso registrado com sucesso!');
+            console.log("Enviando dados de reembolso:", formRegistro);
+            
+            // Criar FormData para enviar o arquivo
+            const formData = new FormData();
+            
+            // Adicionar campos ao FormData
+            formData.append('funcionarioId', formRegistro.funcionarioId);
+            formData.append('valor', formRegistro.valor);
+            formData.append('dataVencimento', formRegistro.dataVencimento);
+            if (formRegistro.comprovante) {
+                formData.append('comprovante', formRegistro.comprovante);
+            }
+            formData.append('contaBancaria', formRegistro.contaBancaria);
+            formData.append('centroCustoId', formRegistro.centroCustoId);
+            
+            // Enviar para a API
+            const response = await ApiService.criarReembolso(formData);
+            console.log('Reembolso registrado com sucesso:', response);
+            
+            // Limpar formulário
             setFormRegistro({
                 funcionarioId: '',
                 valor: '',
@@ -82,8 +138,13 @@ function RCReembolso() {
                 contaBancaria: '',
                 centroCustoId: ''
             });
+            
+            // Mostrar mensagem de sucesso
+            alert('Reembolso registrado com sucesso!');
+            setError(null);
         } catch (error) {
             console.error('Erro ao registrar reembolso:', error);
+            setError('Erro ao registrar reembolso. Verifique os dados e tente novamente.');
             alert('Erro ao registrar reembolso. Tente novamente.');
         } finally {
             setLoading(false);
@@ -106,12 +167,19 @@ function RCReembolso() {
         return new Date(data).toLocaleDateString('pt-BR');
     };
 
+    // Verificação de segurança para renderização de listas
+    const centrosCustoArray = Array.isArray(centrosCusto) ? centrosCusto : [];
+    const funcionariosArray = Array.isArray(funcionarios) ? funcionarios : [];
+    const reembolsosArray = Array.isArray(reembolsos) ? reembolsos : [];
+
     return (
         <>
             <HeaderAdmin />
             <div className="admin-container">
                 <div className="pedido-container">
                     <h1>REGISTRO E CONSULTA - REEMBOLSO DE FUNCIONÁRIO</h1>
+
+                    {error && <div className="error-message">{error}</div>}
 
                     <div className="tabs-container">
                         <div 
@@ -142,9 +210,11 @@ function RCReembolso() {
                                         required
                                     >
                                         <option value="">Selecione um funcionário</option>
-                                        {funcionarios.map(func => (
+                                        {funcionariosArray.map(func => (
                                             <option key={func.id} value={func.id}>
-                                                {func.nome}
+                                                {typeof func.contato === 'string' 
+                                                    ? JSON.parse(func.contato).nome 
+                                                    : func.contato?.nome}
                                             </option>
                                         ))}
                                     </select>
@@ -215,9 +285,9 @@ function RCReembolso() {
                                         required
                                     >
                                         <option value="">Selecione um centro de custo</option>
-                                        {centrosCusto.map(centro => (
+                                        {centrosCustoArray.map(centro => (
                                             <option key={centro.id} value={centro.id}>
-                                                {centro.nome}
+                                                {'#' + centro.id + ' - ' + centro.client_info.nome + ' - ' + centro.descricao || centro.titulo || `Proposta #${centro.id}`}
                                             </option>
                                         ))}
                                     </select>
@@ -271,9 +341,9 @@ function RCReembolso() {
                                         })}
                                     >
                                         <option value="">Todos</option>
-                                        {centrosCusto.map(centro => (
+                                        {centrosCustoArray.map(centro => (
                                             <option key={centro.id} value={centro.id}>
-                                                {centro.nome}
+                                                {centro.descricao || centro.titulo || `Proposta #${centro.id}`}
                                             </option>
                                         ))}
                                     </select>
@@ -289,9 +359,11 @@ function RCReembolso() {
                                         })}
                                     >
                                         <option value="">Todos</option>
-                                        {funcionarios.map(func => (
+                                        {funcionariosArray.map(func => (
                                             <option key={func.id} value={func.id}>
-                                                {func.nome}
+                                                {typeof func.contato === 'string' 
+                                                    ? JSON.parse(func.contato).nome 
+                                                    : func.contato?.nome}
                                             </option>
                                         ))}
                                     </select>
@@ -307,40 +379,65 @@ function RCReembolso() {
                             </form>
 
                             <div className="table-container">
-                                <table className="itens-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Funcionário</th>
-                                            <th>Valor</th>
-                                            <th>Data de Vencimento</th>
-                                            <th>Centro de Custo</th>
-                                            <th>Dados Bancários</th>
-                                            <th>Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {reembolsos.map((reembolso) => (
-                                            <tr key={reembolso.id}>
-                                                <td>{reembolso.funcionario.nome}</td>
-                                                <td>{formatarValor(reembolso.valor)}</td>
-                                                <td>{formatarData(reembolso.dataVencimento)}</td>
-                                                <td>{reembolso.centroCusto.nome}</td>
-                                                <td>{reembolso.contaBancaria}</td>
-                                                <td className="acoes-cell">
-                                                    {reembolso.comprovante && (
-                                                        <button 
-                                                            onClick={() => window.open(reembolso.comprovante, '_blank')}
-                                                            className="action-button"
-                                                            title="Visualizar Comprovante"
-                                                        >
-                                                            Ver Comprovante
-                                                        </button>
-                                                    )}
-                                                </td>
+                                {loading ? (
+                                    <div className="loading-message">Carregando reembolsos...</div>
+                                ) : reembolsosArray.length === 0 ? (
+                                    <div className="no-data-message">Nenhum reembolso encontrado</div>
+                                ) : (
+                                    <table className="itens-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Funcionário</th>
+                                                <th>Valor</th>
+                                                <th>Data de Vencimento</th>
+                                                <th>Centro de Custo</th>
+                                                <th>Dados Bancários</th>
+                                                <th>Ações</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {reembolsosArray.map((reembolso) => {
+                                                // Buscar funcionário correspondente
+                                                const funcionario = funcionariosArray.find(f => f.id.toString() === reembolso.funcionarioId?.toString());
+                                                let nomeFuncionario = 'N/A';
+                                                if (funcionario) {
+                                                    const contato = typeof funcionario.contato === 'string' 
+                                                        ? JSON.parse(funcionario.contato) 
+                                                        : funcionario.contato;
+                                                    nomeFuncionario = contato?.nome || 'N/A';
+                                                }
+                                                
+                                                // Buscar centro de custo correspondente
+                                                const centroCusto = centrosCustoArray.find(c => c.id.toString() === reembolso.centroCustoId?.toString());
+                                                let nomeCentroCusto = 'N/A';
+                                                if (centroCusto) {
+                                                    nomeCentroCusto = centroCusto.descricao || centroCusto.titulo || `Proposta #${centroCusto.id}`;
+                                                }
+                                                
+                                                return (
+                                                    <tr key={reembolso.id}>
+                                                        <td>{nomeFuncionario}</td>
+                                                        <td>{formatarValor(reembolso.valor)}</td>
+                                                        <td>{formatarData(reembolso.dataVencimento)}</td>
+                                                        <td>{nomeCentroCusto}</td>
+                                                        <td>{reembolso.contaBancaria}</td>
+                                                        <td className="acoes-cell">
+                                                            {reembolso.comprovante && (
+                                                                <button 
+                                                                    onClick={() => window.open(reembolso.comprovante, '_blank')}
+                                                                    className="action-button"
+                                                                    title="Visualizar Comprovante"
+                                                                >
+                                                                    Ver Comprovante
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
                         </div>
                     )}

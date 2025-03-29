@@ -301,9 +301,9 @@ class PedidosConsolidadosController {
       } catch (errorCombine) {
         console.error('ERRO ao combinar pedidos, usando array simples:', errorCombine.message);
         todosPedidos = [
-          ...pedidosCompraFormatados,
-          ...pedidosLocacaoFormatados,
-          ...servicosFormatados
+        ...pedidosCompraFormatados,
+        ...pedidosLocacaoFormatados,
+        ...servicosFormatados
         ];
       }
 

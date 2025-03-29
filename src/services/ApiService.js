@@ -336,6 +336,8 @@ class ApiService {
             const queryParams = new URLSearchParams(filtros).toString();
             const url = `${API_URL}/api/propostas/search${queryParams ? `?${queryParams}` : ''}`;
             
+            console.log('Buscando propostas da API:', url);
+            
             const response = await fetch(url, {
                 headers: createAuthHeaders()
             });
@@ -345,10 +347,24 @@ class ApiService {
             }
 
             const data = await response.json();
-            return data;
+            console.log('Resposta da API propostas:', data);
+            
+            // Garantir que a resposta seja um array
+            if (Array.isArray(data)) {
+                return data;
+            } else if (data && data.propostas && Array.isArray(data.propostas)) {
+                return data.propostas;
+            } else if (data && typeof data === 'object') {
+                // Se for um objeto, retorna seus valores como array
+                return Object.values(data);
+            } else {
+                console.warn('Formato de resposta inesperado para propostas:', data);
+                return [];
+            }
         } catch (error) {
             console.error('Erro ao buscar propostas:', error);
-            throw error;
+            // Retorna array vazio em caso de erro para não quebrar a UI
+            return [];
         }
     }
 
@@ -1636,19 +1652,12 @@ class ApiService {
 
     static async atualizarReembolso(id, dadosReembolso) {
         try {
-            const response = await fetch(`${API_URL}/api/reembolso/${id}`, {
-                method: 'PUT',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosReembolso)
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro ao atualizar reembolso: ${response.statusText}`);
-            }
-
-            return await response.json();
+            console.log(`Atualizando reembolso ${id}:`, dadosReembolso);
+            const isFormData = dadosReembolso instanceof FormData;
+            const response = await this.put(`/reembolso/${id}`, dadosReembolso, { isFormData });
+            return response;
         } catch (error) {
-            console.error('Erro ao atualizar reembolso:', error);
+            console.error(`Erro ao atualizar reembolso ${id}:`, error);
             throw error;
         }
     }
