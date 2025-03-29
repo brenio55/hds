@@ -841,7 +841,7 @@ function PedidosDeLocacao() {
                             <div className="form-group">
                                 <label>Prazo de Entrega:</label>
                                 <input
-                                    type="text"
+                                    type="date"
                                     name="prazoEntrega"
                                     value={dadosPedido.prazoEntrega}
                                     onChange={handleDadosPedidoChange}
