@@ -968,24 +968,194 @@ class ApiService {
         return await this.get('/pedidos');
     }
 
-    static async faturarPedidoCompra(formData) {
-        return await this.post('/pedidos/faturar', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
+    static async faturarPedidoCompra(dadosFaturamento) {
+        try {
+            console.log('Preparando dados de faturamento para envio:', dadosFaturamento);
+            
+            // Se for FormData, convertemos para JSON com arquivos em base64
+            if (dadosFaturamento instanceof FormData) {
+                const dados = {};
+                
+                // Extrair campos básicos
+                dados.id_number = dadosFaturamento.get('pedidoId');
+                dados.id_type = 'compra'; // Definido como compra já que é faturamento de pedido de compra
+                dados.valor_total_pedido = await this.obterValorTotalPedido(dados.id_number);
+                dados.valor_faturado = await this.obterValorJaFaturado(dados.id_number);
+                dados.valor_a_faturar = dadosFaturamento.get('valorFaturamento');
+                dados.data_vencimento = dadosFaturamento.get('dataVencimento');
+                dados.nf = dadosFaturamento.get('numeroNF');
+                
+                // Configurar pagamento baseado no método
+                const metodoPagamento = dadosFaturamento.get('metodoPagamento');
+                dados.pagamento = {
+                    metodo: metodoPagamento
+                };
+                
+                if (metodoPagamento === 'boleto') {
+                    dados.pagamento.numero_boleto = dadosFaturamento.get('numeroBoleto');
+                    
+                    // Converter arquivo do boleto para base64 se existir
+                    const arquivoBoleto = dadosFaturamento.get('arquivoBoleto');
+                    if (arquivoBoleto) {
+                        dados.pagamento.boleto_anexo = await this.fileToBase64(arquivoBoleto);
+                    }
+                } else if (metodoPagamento === 'pix' || metodoPagamento === 'ted') {
+                    dados.pagamento.dados_conta = dadosFaturamento.get('dadosConta');
+                }
+                
+                // Converter arquivo NF para base64 se existir
+                const arquivoNF = dadosFaturamento.get('arquivoNF');
+                if (arquivoNF) {
+                    dados.nf_anexo = await this.fileToBase64(arquivoNF);
+                }
+                
+                console.log('Dados de faturamento formatados para API:', dados);
+                
+                // Enviar dados como JSON
+                const response = await fetch(`${API_URL}/api/faturamento`, {
+                    method: 'POST',
+                    headers: {
+                        ...createAuthHeaders(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dados)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Erro na resposta ao faturar pedido:', errorText);
+                    throw new Error(`Erro ao faturar pedido: ${response.statusText || errorText}`);
+                }
+                
+                return await response.json();
+            } else {
+                // Se já for um objeto, enviamos diretamente
+                const response = await fetch(`${API_URL}/api/faturamento`, {
+                    method: 'POST',
+                    headers: {
+                        ...createAuthHeaders(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dadosFaturamento)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Erro na resposta ao faturar pedido:', errorText);
+                    throw new Error(`Erro ao faturar pedido: ${response.statusText || errorText}`);
+                }
+                
+                return await response.json();
             }
+        } catch (error) {
+            console.error('Erro ao faturar pedido de compra:', error);
+            throw error;
+        }
+    }
+    
+    static async consultarFaturamentos(filtros = {}) {
+        try {
+            console.log('Consultando faturamentos com filtros:', filtros);
+            
+            // Construir query string com os filtros
+            const queryParams = new URLSearchParams();
+            
+            if (filtros.tipo && filtros.tipo !== 'todos') {
+                queryParams.append('campo', 'id_type');
+                queryParams.append('valor', filtros.tipo);
+            }
+            
+            if (filtros.numeroPedido) {
+                queryParams.append('campo', 'id_number');
+                queryParams.append('valor', filtros.numeroPedido);
+            }
+            
+            // Datas são tratadas no backend como filtros especiais
+            if (filtros.dataInicial) {
+                queryParams.append('data_inicial', filtros.dataInicial);
+            }
+            
+            if (filtros.dataFinal) {
+                queryParams.append('data_final', filtros.dataFinal);
+            }
+            
+            const url = `${API_URL}/api/faturamento${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            console.log('URL para consulta de faturamentos:', url);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Erro na resposta ao consultar faturamentos:', errorText);
+                throw new Error(`Erro ao consultar faturamentos: ${response.statusText || errorText}`);
+            }
+            
+            const faturamentos = await response.json();
+            console.log('Faturamentos recebidos:', faturamentos);
+            
+            // Mapear para o formato esperado pelo frontend
+            return faturamentos.map(fat => ({
+                id: fat.id,
+                numeroPedido: fat.id_number,
+                tipoPedido: fat.id_type,
+                valorTotal: fat.valor_total_pedido,
+                valorFaturado: fat.valor_a_faturar,
+                dataFaturamento: fat.created_at,
+                dataVencimento: fat.data_vencimento,
+                numeroNF: fat.nf,
+                arquivoNF: fat.nf_anexo,
+                metodoPagamento: fat.pagamento?.metodo || 'N/A',
+                codigoBoleto: fat.pagamento?.numero_boleto,
+                arquivoBoleto: fat.pagamento?.boleto_anexo,
+                dadosConta: fat.pagamento?.dados_conta
+            }));
+        } catch (error) {
+            console.error('Erro ao consultar faturamentos:', error);
+            return [];
+        }
+    }
+    
+    // Método auxiliar para converter arquivo para base64
+    static async fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            if (!file) {
+                resolve(null);
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
         });
     }
-
-    static async consultarFaturamentos(filtros = {}) {
-        const { tipo = 'todos', numeroPedido, dataInicial, dataFinal } = filtros;
-        const params = new URLSearchParams();
-        
-        if (tipo !== 'todos') params.append('tipo', tipo);
-        if (numeroPedido) params.append('numeroPedido', numeroPedido);
-        if (dataInicial) params.append('dataInicial', dataInicial);
-        if (dataFinal) params.append('dataFinal', dataFinal);
-
-        return await this.get(`/pedidos/faturamentos?${params.toString()}`);
+    
+    // Métodos auxiliares para informações de pedido
+    static async obterValorTotalPedido(pedidoId) {
+        try {
+            const pedido = await this.buscarPedidoCompraPorId(pedidoId);
+            return pedido?.valor_total || 0;
+        } catch (error) {
+            console.error('Erro ao obter valor total do pedido:', error);
+            return 0;
+        }
+    }
+    
+    static async obterValorJaFaturado(pedidoId) {
+        try {
+            const faturamentos = await this.consultarFaturamentos({
+                tipo: 'compra',
+                numeroPedido: pedidoId
+            });
+            
+            // Somar valores já faturados
+            return faturamentos.reduce((total, fat) => total + parseFloat(fat.valorFaturado || 0), 0);
+        } catch (error) {
+            console.error('Erro ao obter valor já faturado:', error);
+            return 0;
+        }
     }
 
     // Métodos relacionados a Aluguel de Casas
