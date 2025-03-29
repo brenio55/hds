@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedido de Compra</title>
     <style>
         @page {
@@ -11,8 +12,9 @@
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            margin: 0;
+            margin: 20px;
             padding: 0;
+            background-color: #fff;
         }
         .capa {
             position: relative;
@@ -121,134 +123,211 @@
             font-size: 12px;
             background-color: white;
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .page-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0;
+            flex-grow: 1;
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+        .header-right {
+            text-align: right;
+            font-size: 12px;
+        }
+        .header-right p {
+            margin: 5px 0;
+        }
+        .section-title {
+            background-color: #fff;
+            color: #FF0000;
+            padding: 5px 0;
+            margin: 20px 0 10px 0;
+            font-weight: bold;
+            border-bottom: 1px solid #FF0000;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+        }
+        .tabela-detalhes th,
+        .tabela-itens th {
+            background-color: #fff;
+            color: #000;
+            font-weight: bold;
+            border: 1px solid #000;
+        }
+        .tabela-detalhes td,
+        .tabela-itens td {
+            background-color: #fff;
+            border: 1px solid #000;
+        }
+        .tabela-valores td {
+            text-align: right;
+        }
+        .valor-celula {
+            text-align: right;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
-    <!-- Capa -->
-    <div class="capa">
-        <img src="{{logoSrc}}" alt="Logo" class="logo">
-        <div class="titulo-principal">
-            <h1>PEDIDO DE COMPRA</h1>
-            <div class="descricao-servico">
-                {{descricao}} - <span class="codigo-proposta">{{id}}/{{ano}}</span>
-            </div>
-        </div>
-        <div class="data-local">
-            Taubaté, {{dataEmissao}}
+    <div class="header">
+        <img src="{{logoBase64}}" alt="Logo" class="logo">
+        <h1 class="page-title">PEDIDO DE COMPRA</h1>
+        <div class="header-right">
+            <p>Pedido: {{id}}</p>
+            <p>Data: {{formatDate created_at}}</p>
+            <p>Revisão: 1.0</p>
         </div>
     </div>
 
-    <!-- Conteúdo -->
-    <div class="pagina-conteudo">
-        <div class="header-conteudo">
-            <img src="{{logoHorizontalSrc}}" alt="Logo" class="logo-horizontal">
-            <div>
-                <div>PEDIDO DE COMPRA</div>
-                <div>Emitido por: HDS SERVIÇOS LTDA</div>
-                <div>Data: {{dataEmissao}}</div>
-            </div>
-        </div>
+    <div class="section-title">DADOS DO CONTRATANTE</div>
+    <table>
+        <tr>
+            <th style="width: 80px">Empresa:</th>
+            <td style="width: 25%">Hds Serviço Ltda</td>
+            <th style="width: 60px">CNPJ:</th>
+            <td style="width: 25%">40.931.075/0001-00</td>
+            <th style="width: 140px">Inscrição Estadual:</th>
+            <td>688.578.880.111</td>
+            <th style="width: 140px">Inscrição Municipal:</th>
+            <td>000000000091587</td>
+        </tr>
+        <tr>
+            <th>Endereço:</th>
+            <td colspan="3">Av Dom Pedro I, 242</td>
+            <th>Bairro:</th>
+            <td>Campos Elíseos</td>
+            <th>Cidade/UF:</th>
+            <td>Taubaté/SP</td>
+        </tr>
+    </table>
 
-        <!-- Seção Contratante -->
-        <div class="secao">
-            <div class="secao-titulo">DADOS DO CONTRATANTE</div>
-            <div><strong>Empresa:</strong> Hds Serviço Ltda</div>
-            <div><strong>CNPJ:</strong> 40.931.075/0001-00</div>
-            <div><strong>Inscrição Estadual:</strong> 688.578.880.111</div>
-            <div><strong>Inscrição Municipal:</strong> 000000000091587</div>
-            <div><strong>Endereço:</strong> Av Dom Pedro I, 242</div>
-            <div><strong>Bairro:</strong> Campos Eliseos</div>
-            <div><strong>Cidade:</strong> Taubaté</div>
-            <div><strong>UF:</strong> SP</div>
-        </div>
+    <div class="section-title">DADOS DO FORNECEDOR</div>
+    <table>
+        <tr>
+            <th style="width: 120px">Razão Social:</th>
+            <td style="width: 40%">{{fornecedor.razao_social}}</td>
+            <th style="width: 60px">CNPJ:</th>
+            <td>{{fornecedor.cnpj}}</td>
+        </tr>
+        <tr>
+            <th>IE:</th>
+            <td>{{fornecedor.inscricao_estadual}}</td>
+            <th>IM:</th>
+            <td>{{fornecedor.inscricao_municipal}}</td>
+        </tr>
+        <tr>
+            <th>Contato:</th>
+            <td>{{fornecedor.contato}}</td>
+            <th>Telefone:</th>
+            <td>{{#if fornecedor.telefone}}{{fornecedor.telefone}}{{else}}{{fornecedor.celular}}{{/if}}</td>
+        </tr>
+        <tr>
+            <th>Endereço:</th>
+            <td>{{fornecedor.endereco}}</td>
+            <th>CEP:</th>
+            <td>{{fornecedor.cep}}</td>
+        </tr>
+        <tr>
+            <th>Cidade/UF:</th>
+            <td colspan="3">{{fornecedor.municipio_uf}}</td>
+        </tr>
+    </table>
 
-        <!-- Seção Contratada -->
-        <div class="secao">
-            <div class="secao-titulo">DADOS DO CONTRATADA</div>
-            <div><strong>Razão Social:</strong> {{fornecedor.razao_social}}</div>
-            <div><strong>Endereço:</strong> {{fornecedor.endereco}}</div>
-            <div><strong>CNPJ:</strong> {{fornecedor.cnpj}}</div>
-            <div><strong>Telefone:</strong> {{fornecedor.telefone}}</div>
-            <div><strong>Email:</strong> {{fornecedor.email}}</div>
-        </div>
+    <div class="section-title">DETALHES DO PEDIDO</div>
+    <table class="tabela-detalhes">
+        <tr>
+            <th>Pedido:</th>
+            <td>{{id}}</td>
+            <th>Data Vencimento:</th>
+            <td>{{formatDate data_vencimento}}</td>
+        </tr>
+        <tr>
+            <th>Cond. Pagto:</th>
+            <td>{{condicao_pagamento}}</td>
+            <th>Centro de Custo:</th>
+            <td>{{centro_custo}}</td>
+        </tr>
+        <tr>
+            <th>Data Final de Entrega:</th>
+            <td colspan="3">{{formatDate data_entrega}}</td>
+        </tr>
+    </table>
 
-        <!-- Seção Faturamento -->
-        <div class="secao">
-            <div class="secao-titulo">FATURAMENTO</div>
-            <div><strong>Empresa:</strong> Hds Serviço Ltda</div>
-            <div><strong>CNPJ:</strong> 40.931.075/0001-00</div>
-            <div><strong>Inscrição Estadual:</strong> 688.578.880.111</div>
-            <div><strong>Inscrição Municipal:</strong> 000000000091587</div>
-            <div><strong>Endereço:</strong> Rua João Scarpa, 18</div>
-            <div><strong>Bairro:</strong> Chacara São Silvestre</div>
-            <div><strong>Cidade:</strong> Taubaté</div>
-            <div><strong>UF:</strong> SP</div>
-            <div><strong>Condição de Pagamento:</strong> {{ddl}} dias</div>
-            <div><strong>Data de Vencimento:</strong> {{formatDate data_vencimento}}</div>
-            <div><strong>Centro de Custo:</strong> {{descricao}}</div>
-        </div>
+    <div class="section-title">TOTAIS</div>
+    <table class="tabela-detalhes">
+        <tr>
+            <th>Descontos:</th>
+            <td class="valor-celula">{{formatMoney desconto}}</td>
+            <th>Frete:</th>
+            <td class="valor-celula">{{formatMoney valor_frete}}</td>
+        </tr>
+        <tr>
+            <th>Outras Despesas:</th>
+            <td class="valor-celula">{{formatMoney outras_despesas}}</td>
+            <th>Total Bruto:</th>
+            <td class="valor-celula">{{formatMoney valor_total}}</td>
+        </tr>
+        <tr>
+            <th>Total Final:</th>
+            <td class="valor-celula" colspan="3"><strong>{{formatMoney valor_total_pedido}}</strong></td>
+        </tr>
+    </table>
 
-        <!-- Tabela de Produtos -->
-        <div class="secao">
-            <div class="secao-titulo">PRODUTOS SOLICITADOS</div>
-            <table class="tabela-materiais">
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Descrição</th>
-                        <th>Quantidade</th>
-                        <th>Valor Unitário</th>
-                        <th>Valor Total</th>
-                        <th>Data de Entrega</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each materiais}}
-                    <tr>
-                        <td>{{this.item}}</td>
-                        <td>{{this.descricao}}</td>
-                        <td>{{this.quantidade}} {{this.uni}}</td>
-                        <td>R$ {{this.valor_unit}}</td>
-                        <td>R$ {{this.valor_total}}</td>
-                        <td>{{this.data_entrega}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
-        </div>
+    <div class="section-title">DESCRIÇÃO DOS MATERIAIS</div>
+    <table class="tabela-itens">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Descrição do material</th>
+                <th>Un</th>
+                <th>Qntd.</th>
+                <th>Valor Unitário</th>
+                <th>Valor Total</th>
+                <th>%</th>
+                <th>Prev. Entrega</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each itens}}
+            <tr>
+                <td>{{@index}}</td>
+                <td>{{this.descricao}}</td>
+                <td>{{this.unidade}}</td>
+                <td>{{this.quantidade}}</td>
+                <td class="valor-celula">{{formatMoney this.valor_unitario}}</td>
+                <td class="valor-celula">{{formatMoney this.valor_total}}</td>
+                <td>{{this.percentual}}%</td>
+                <td>{{formatDate this.previsao_entrega}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
 
-        <!-- Tabela de Valores -->
-        <div class="secao">
-            <div class="secao-titulo">VALOR TOTAL DOS ITENS</div>
-            <table class="tabela-valores">
-                <tr>
-                    <th>Total Bruto</th>
-                    <td>R$ {{totalBruto}}</td>
-                </tr>
-                <tr>
-                    <th>Desconto</th>
-                    <td>R$ {{desconto}}</td>
-                </tr>
-                <tr>
-                    <th>Frete</th>
-                    <td>R$ {{frete.valor}}</td>
-                </tr>
-                <tr>
-                    <th>Outras Despesas</th>
-                    <td>R$ {{despesas_adicionais}}</td>
-                </tr>
-                <tr>
-                    <th>Total Final</th>
-                    <td>R$ {{totalFinal}}</td>
-                </tr>
-            </table>
-        </div>
+    {{#if observacoes}}
+    <div class="section-title">OBSERVAÇÕES</div>
+    <table>
+        <tr>
+            <td colspan="2">{{observacoes}}</td>
+        </tr>
+    </table>
+    {{/if}}
 
-        <!-- Prazo Final -->
-        <div class="secao">
-            <div class="secao-titulo">PRAZO FINAL</div>
-            <div>{{formatDate dataEntregaMaisDistante}}</div>
-        </div>
+    <div class="footer">
+        <p>Documento gerado automaticamente pelo sistema</p>
     </div>
 </body>
 </html>

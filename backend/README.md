@@ -1162,3 +1162,186 @@ curl -X DELETE http://localhost:3000/api/funcionarios/1 \
 - Datas são retornadas no formato ISO 8601
 - Para todas as requisições é necessário incluir o token JWT no header `Authorization`
 
+### Pedidos Consolidados
+
+Endpoint que centraliza e retorna dados de pedidos de compra, locação e serviços com seus relacionamentos.
+
+```http
+GET /api/pedidos-consolidados
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "total": 123,
+  "pedidos": [
+    {
+      "tipo": "compra", // Tipo pode ser: "compra", "locacao" ou "servico"
+      "id": 9,
+      "created_at": "2025-03-23T16:10:52.645Z",
+      "ativo": true,
+      "data_vencimento": "2025-03-23T00:00:00.000Z",
+      "ddl": 30,
+      "desconto": "0.00",
+      "valor_frete": "0.00",
+      "despesas_adicionais": "0.00",
+      "dados_adicionais": "",
+      "materiais": [],
+      "frete": {
+        "tipo": "CIF",
+        "valor": 0
+      },
+      // Dados do fornecedor relacionado
+      "fornecedor": {
+        "id": 1,
+        "razao_social": "NOME TESTE DE FORNECEDOR",
+        "cnpj": "12.123.123/0001-00",
+        "endereco": "ENDEREÇO TESTE",
+        "telefone": "81231231231",
+        // ... outros dados do fornecedor
+      },
+      // Dados do cliente relacionado (se houver)
+      "cliente": {
+        "id": "2",
+        "RazaoSocial": "Empresa Teste LTDA",
+        "CNPJ": "12.345.678/0001-90",
+        "Endereço": "Rua Teste, 123",
+        // ... outros dados do cliente
+      },
+      // Dados da proposta relacionada (se houver)
+      "proposta": {
+        "id": 1,
+        "descricao": "Proposta Teste",
+        // ... outros dados da proposta
+      }
+    }
+    // ... mais pedidos
+  ]
+}
+```
+
+**Observações:**
+- Os pedidos são retornados ordenados por data de criação (mais recentes primeiro)
+- O campo `tipo` indica a origem do pedido: "compra", "locacao" ou "servico"
+- Relacionamentos não encontrados retornam `null`
+- Datas são retornadas no formato ISO 8601
+- O endpoint consolida dados das tabelas:
+  - pedido_compra
+  - pedido_locacao
+  - servico
+  - fornecedores
+  - clientInfo
+  - propostas
+
+**Exemplo de Uso:**
+```bash
+# Listar todos os pedidos consolidados
+curl -X GET http://localhost:3000/api/pedidos-consolidados \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json"
+```
+
+**Exemplo com token específico:**
+```bash
+curl -X GET http://localhost:3000/api/pedidos-consolidados \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJ1c2VybmFtZSI6Imp1bGlvIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQzMDQwNzQ4LCJleHAiOjE3NDMxMjcxNDh9._ZgL7I7Fem0jw7Nqq4Bd4beSIRGwgFbYEnS9neqS2q0" \
+  -H "Content-Type: application/json"
+```
+
+### Faturamento
+
+Endpoint para gerenciar faturamentos dos pedidos (compra, locação e serviço).
+
+```http
+GET /api/faturamentos
+POST /api/faturamentos
+GET /api/faturamentos/:id
+PUT /api/faturamentos/:id
+DELETE /api/faturamentos/:id
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Corpo da Requisição (POST/PUT):**
+```json
+{
+  "id_number": 1,
+  "id_type": "compra", // "compra", "locacao" ou "servico"
+  "valor_total_pedido": 1000.00,
+  "valor_faturado": 50.00, // Porcentagem (0-100)
+  "valor_a_faturar": 500.00,
+  "data_vencimento": "2024-03-25",
+  "nf": "123456789",
+  "nf_anexo": "base64_string_do_anexo",
+  "pagamento": "pix" // "pix", "boleto" ou "ted"
+}
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "id": 1,
+  "id_number": 1,
+  "id_type": "compra",
+  "valor_total_pedido": "1000.00",
+  "valor_faturado": "50.00",
+  "valor_a_faturar": "500.00",
+  "data_vencimento": "2024-03-25",
+  "nf": "123456789",
+  "nf_anexo": "base64_string_do_anexo",
+  "pagamento": "pix",
+  "created_at": "2024-03-25T10:30:00Z"
+}
+```
+
+**Parâmetros de Busca:**
+- `campo`: Campo para filtrar (id_type, id_number, data_vencimento, nf, pagamento)
+- `valor`: Valor para buscar
+
+**Exemplo de Uso:**
+```bash
+# Criar novo faturamento
+curl -X POST http://localhost:3000/api/faturamentos \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id_number": 1,
+    "id_type": "compra",
+    "valor_total_pedido": 1000.00,
+    "valor_faturado": 50.00,
+    "valor_a_faturar": 500.00,
+    "data_vencimento": "2024-03-25",
+    "nf": "123456789",
+    "nf_anexo": "base64_string",
+    "pagamento": "pix"
+  }'
+
+# Listar todos os faturamentos
+curl -X GET http://localhost:3000/api/faturamentos \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por tipo de pedido
+curl -X GET "http://localhost:3000/api/faturamentos?campo=id_type&valor=compra" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por número da NF
+curl -X GET "http://localhost:3000/api/faturamentos?campo=nf&valor=123456789" \
+  -H "Authorization: Bearer seu_token"
+```
+
+**Observações:**
+- O campo `id_type` deve ser um dos valores: "compra", "locacao" ou "servico"
+- O campo `pagamento` deve ser um dos valores: "pix", "boleto" ou "ted"
+- O campo `valor_faturado` deve ser uma porcentagem entre 0 e 100
+- O campo `nf_anexo` deve ser uma string base64 válida
+- O sistema valida se o pedido (id_number + id_type) existe antes de criar/atualizar
+- Datas devem estar no formato YYYY-MM-DD
+
