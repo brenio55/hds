@@ -117,29 +117,35 @@ class PedidoLocacaoModel {
   }
 
   static async findAll() {
+    console.log('========== INÍCIO - PEDIDO LOCAÇÃO MODEL - FIND ALL ==========');
+    
     const query = `
-        SELECT 
-            pl.*,
-            f.razao_social as fornecedor_nome,
-            f.cnpj as fornecedor_cnpj,
-            f.inscricao_estadual as fornecedor_ie,
-            f.inscricao_municipal as fornecedor_im,
-            f.endereco as fornecedor_endereco,
-            f.telefone as fornecedor_telefone,
-            f.email as fornecedor_email,
-            f.contato as fornecedor_contato,
-            c."RazaoSocial" as cliente_nome,
-            c."Endereço" as cliente_endereco,
-            p.descricao as proposta_descricao,
-            p.valor_final as proposta_valor
-        FROM pedido_locacao pl
-        LEFT JOIN fornecedores f ON pl.fornecedor_id = f.id
-        LEFT JOIN "clientInfo" c ON pl."clientInfo_id" = c.id
-        LEFT JOIN propostas p ON pl.proposta_id = p.id
-        ORDER BY pl.created_at DESC
+      SELECT pl.*, f.razao_social as fornecedor_nome
+      FROM pedido_locacao pl
+      LEFT JOIN fornecedores f ON pl.fornecedor_id = f.id
+      ORDER BY pl.created_at DESC
     `;
-    const result = await db.query(query);
-    return result.rows;
+    
+    console.log('Executando query SQL:', query);
+    
+    try {
+      const result = await db.query(query);
+      console.log(`Resultados encontrados: ${result.rows.length}`);
+      
+      if (result.rows.length === 0) {
+        console.log('AVISO: Nenhum pedido de locação encontrado no banco de dados');
+      } else {
+        console.log(`Exemplo do primeiro resultado: ID=${result.rows[0].id}, Fornecedor=${result.rows[0].fornecedor_id}`);
+      }
+      
+      console.log('========== FIM - PEDIDO LOCAÇÃO MODEL - FIND ALL ==========');
+      return result.rows;
+    } catch (error) {
+      console.error('ERRO ao buscar pedidos de locação:', error);
+      console.error('Stack trace:', error.stack);
+      console.log('========== FIM COM ERRO - PEDIDO LOCAÇÃO MODEL - FIND ALL ==========');
+      throw error;
+    }
   }
 
   static async updatePdfUid(id, pdfUid) {

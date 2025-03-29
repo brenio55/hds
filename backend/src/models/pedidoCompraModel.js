@@ -40,14 +40,35 @@ class PedidoCompraModel {
   }
 
   static async findAll() {
+    console.log('========== INÍCIO - PEDIDO COMPRA MODEL - FIND ALL ==========');
+    
     const query = `
       SELECT pc.*, f.razao_social as fornecedor_nome
       FROM pedido_compra pc
       LEFT JOIN fornecedores f ON pc.fornecedores_id = f.id
       ORDER BY pc.created_at DESC
     `;
-    const result = await db.query(query);
-    return result.rows;
+    
+    console.log('Executando query SQL:', query);
+    
+    try {
+      const result = await db.query(query);
+      console.log(`Resultados encontrados: ${result.rows.length}`);
+      
+      if (result.rows.length === 0) {
+        console.log('AVISO: Nenhum pedido de compra encontrado no banco de dados');
+      } else {
+        console.log(`Exemplo do primeiro resultado: ID=${result.rows[0].id}, Cliente=${result.rows[0].clientinfo_id}, Fornecedor=${result.rows[0].fornecedores_id}`);
+      }
+      
+      console.log('========== FIM - PEDIDO COMPRA MODEL - FIND ALL ==========');
+      return result.rows;
+    } catch (error) {
+      console.error('ERRO ao buscar pedidos de compra:', error);
+      console.error('Stack trace:', error.stack);
+      console.log('========== FIM COM ERRO - PEDIDO COMPRA MODEL - FIND ALL ==========');
+      throw error;
+    }
   }
 
   static async findById(id) {

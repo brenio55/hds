@@ -65,19 +65,86 @@ class ServicoModel {
   }
 
   static async findAll() {
-    console.log("========== INÍCIO - FIND ALL SERVIÇOS ==========");
+    console.log('========== INÍCIO - SERVIÇO MODEL - FIND ALL ==========');
     
     const query = 'SELECT * FROM servico ORDER BY created_at DESC';
-    console.log("Query SQL:", query);
+    console.log('Executando query SQL:', query);
     
     try {
       const result = await db.query(query);
-      console.log(`Encontrados ${result.rows.length} serviços`);
-      console.log("========== FIM - FIND ALL SERVIÇOS ==========");
-      return result.rows;
+      console.log(`Resultados encontrados: ${result.rows.length}`);
+      
+      if (result.rows.length === 0) {
+        console.log('AVISO: Nenhum serviço encontrado no banco de dados');
+      } else {
+        // Vamos inspecionar detalhadamente o primeiro resultado para debug
+        const primeiroServico = result.rows[0];
+        console.log(`Exemplo do primeiro resultado: ID=${primeiroServico.id}, Fornecedor=${primeiroServico.fornecedor_id}`);
+        console.log('Estrutura completa do primeiro serviço:', JSON.stringify(primeiroServico, null, 2));
+        
+        // Verificar a estrutura de itens para entender se está no formato esperado
+        if (primeiroServico.itens) {
+          console.log('Tipo de dados do campo itens:', typeof primeiroServico.itens);
+          
+          try {
+            // Se for string, vamos tentar parsear para entender o conteúdo
+            if (typeof primeiroServico.itens === 'string') {
+              const itensParsed = JSON.parse(primeiroServico.itens);
+              console.log('Conteúdo do campo itens parseado:', JSON.stringify(itensParsed, null, 2));
+            } else {
+              console.log('Conteúdo do campo itens:', JSON.stringify(primeiroServico.itens, null, 2));
+            }
+          } catch (parseError) {
+            console.error('ERRO ao parsear campo itens:', parseError.message);
+          }
+        } else {
+          console.log('AVISO: Campo itens não existe ou é nulo no primeiro serviço');
+        }
+      }
+      
+      // Processar todos os serviços para garantir que o campo itens esteja no formato correto
+      const processedResults = result.rows.map(servico => {
+        try {
+          // Criar uma cópia do serviço para não modificar o original
+          const processedServico = { ...servico };
+          
+          // Verificar e processar o campo itens
+          if (processedServico.itens) {
+            // Se for string, tentar converter para objeto
+            if (typeof processedServico.itens === 'string') {
+              try {
+                processedServico.itens = JSON.parse(processedServico.itens);
+                console.log(`Serviço ID=${processedServico.id}: Campo itens convertido de string para objeto`);
+              } catch (parseError) {
+                console.error(`Serviço ID=${processedServico.id}: ERRO ao parsear campo itens:`, parseError.message);
+                // Manter como array vazio em caso de erro
+                processedServico.itens = [];
+              }
+            } 
+            // Se não for array após o parsing, converter para array vazio
+            if (!Array.isArray(processedServico.itens)) {
+              console.warn(`Serviço ID=${processedServico.id}: Campo itens não é um array, convertendo para array vazio`);
+              processedServico.itens = [];
+            }
+          } else {
+            // Se não existir, inicializar como array vazio
+            processedServico.itens = [];
+          }
+          
+          return processedServico;
+        } catch (error) {
+          console.error(`Erro ao processar serviço ID=${servico.id}:`, error);
+          // Retornar o serviço original em caso de erro
+          return servico;
+        }
+      });
+      
+      console.log('========== FIM - SERVIÇO MODEL - FIND ALL ==========');
+      return processedResults;
     } catch (error) {
-      console.error("Erro ao listar serviços:", error);
-      console.error("Stack trace:", error.stack);
+      console.error('ERRO ao buscar serviços:', error);
+      console.error('Stack trace:', error.stack);
+      console.log('========== FIM COM ERRO - SERVIÇO MODEL - FIND ALL ==========');
       throw error;
     }
   }

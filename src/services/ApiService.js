@@ -1361,6 +1361,70 @@ class ApiService {
             throw error;
         }
     }
+
+    /**
+     * Busca todos os pedidos consolidados (compra, locação e serviço)
+     * @param {Object} filtros - Filtros a serem aplicados na busca
+     * @returns {Promise<Object>} - Objeto com a lista de pedidos e total
+     */
+    static async buscarPedidosConsolidados(filtros = {}) {
+        try {
+            console.log("ApiService: Buscando pedidos consolidados");
+            
+            const queryParams = new URLSearchParams(filtros).toString();
+            const url = `${API_URL}/api/pedidos-consolidados${queryParams ? `?${queryParams}` : ''}`;
+            
+            console.log(`ApiService: URL da requisição: ${url}`);
+
+            const response = await fetch(url, {
+                headers: createAuthHeaders(),
+                method: 'GET',
+                timeout: 30000 // timeout maior para esta operação pesada (30 segundos)
+            });
+
+            if (!response.ok) {
+                console.error(`ApiService: Erro na resposta (status ${response.status}): ${response.statusText}`);
+                throw new Error(`Erro ao buscar pedidos consolidados: ${response.statusText}`);
+            }
+
+            console.log(`ApiService: Resposta recebida (status ${response.status})`);
+            
+            try {
+                // Converter para texto primeiro para debug
+                const responseText = await response.text();
+                console.log(`ApiService: Tamanho da resposta: ${responseText.length} caracteres`);
+                
+                if (!responseText || responseText.trim() === '') {
+                    console.error('ApiService: Resposta vazia recebida');
+                    return { total: 0, pedidos: [] };
+                }
+                
+                try {
+                    // Tentar converter o texto para JSON
+                    const data = JSON.parse(responseText);
+                    console.log(`ApiService: JSON parseado com sucesso. Total: ${data.total || 0}`);
+                    return data;
+                } catch (jsonError) {
+                    console.error('ApiService: Erro ao fazer parse do JSON:', jsonError);
+                    console.error('ApiService: Primeiros 200 caracteres da resposta:', responseText.substring(0, 200));
+                    throw new Error('Erro ao processar resposta do servidor');
+                }
+            } catch (textError) {
+                console.error('ApiService: Erro ao ler resposta como texto:', textError);
+                throw new Error('Erro ao ler resposta do servidor');
+            }
+        } catch (error) {
+            console.error('ApiService: Erro geral ao buscar pedidos consolidados:', error);
+            
+            // Retornar um objeto vazio em caso de erro para não quebrar a UI
+            return { 
+                total: 0, 
+                pedidos: [], 
+                erro: true,
+                mensagem: error.message 
+            };
+        }
+    }
 }
 
 export default ApiService; 
