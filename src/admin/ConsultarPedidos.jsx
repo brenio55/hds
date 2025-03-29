@@ -108,14 +108,44 @@ function ConsultarPedidos() {
         });
     };
 
+    const getTipoPedido = (tipo) => {
+        // Obter descrição adequada para display com base no tipo do backend
+        const tiposDisplay = {
+            'compra': 'Compra de Material',
+            'servico': 'Serviço',
+            'locacao': 'Locação',
+            'material': 'Compra de Material'
+        };
+        return tiposDisplay[tipo] || tipo || '-';
+    };
+
+    const getTipoBackend = (tipoFrontend) => {
+        // Mapear os valores do frontend para os valores esperados pelo backend
+        const tiposBackend = {
+            'material': 'compra', // Frontend usa 'material', backend usa 'compra'
+            'servico': 'servico',
+            'locacao': 'locacao'
+        };
+        return tiposBackend[tipoFrontend] || tipoFrontend;
+    };
+
     const handleSearch = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
         
         try {
+            // Criar uma cópia dos filtros para modificação
+            const filtrosAjustados = { ...filtros };
+            
+            // Converter o tipo para o formato esperado pelo backend
+            if (filtrosAjustados.tipo) {
+                filtrosAjustados.tipo = getTipoBackend(filtrosAjustados.tipo);
+                console.log(`Tipo ajustado para backend: ${filtrosAjustados.tipo}`);
+            }
+            
             const filtrosValidos = Object.fromEntries(
-                Object.entries(filtros).filter(([key, value]) => value !== '' && key !== 'dataDecrescente')
+                Object.entries(filtrosAjustados).filter(([key, value]) => value !== '' && key !== 'dataDecrescente')
             );
             
             console.log("Buscando pedidos com filtros:", filtrosValidos);
@@ -145,7 +175,7 @@ function ConsultarPedidos() {
                             if (filtrosValidos.tipo && pedido.tipo !== filtrosValidos.tipo) {
                                 match = false;
                             }
-                            if (filtrosValidos.centroCusto && pedido.proposta_id.toString() !== filtrosValidos.centroCusto.toString()) {
+                            if (filtrosValidos.centroCusto && pedido.proposta_id?.toString() !== filtrosValidos.centroCusto.toString()) {
                                 match = false;
                             }
                             return match;
@@ -252,16 +282,6 @@ function ConsultarPedidos() {
         }).format(valor);
     };
 
-    const getTipoPedido = (tipo) => {
-        const tipos = {
-            'Compra de Material': 'compra',
-            'Serviço': 'servico',
-            'Locação': 'locacao',
-            
-        };
-        return tipos[tipo] || tipo || '-';
-    };
-
     return (
         <>
             <HeaderAdmin />
@@ -281,7 +301,6 @@ function ConsultarPedidos() {
                             <option value="material">Compra de Material</option>
                             <option value="servico">Serviço</option>
                             <option value="locacao">Locação</option>
-                            
                         </select>
                     </div>
                     <div className="form-group">

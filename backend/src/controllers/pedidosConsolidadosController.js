@@ -301,13 +301,73 @@ class PedidosConsolidadosController {
       } catch (errorCombine) {
         console.error('ERRO ao combinar pedidos, usando array simples:', errorCombine.message);
         todosPedidos = [
-        ...pedidosCompraFormatados,
-        ...pedidosLocacaoFormatados,
-        ...servicosFormatados
+          ...pedidosCompraFormatados,
+          ...pedidosLocacaoFormatados,
+          ...servicosFormatados
         ];
       }
 
-      console.log(`Total de pedidos consolidados: ${todosPedidos.length}`);
+      // Aplicar filtros da query se existirem
+      console.log('Verificando filtros da query:', req.query);
+      const filtros = req.query;
+      let pedidosFiltrados = [...todosPedidos];
+      
+      try {
+        // Filtrar por tipo (material/compra, servico, locacao)
+        if (filtros.tipo) {
+          console.log(`Aplicando filtro por tipo: ${filtros.tipo}`);
+          // Mapeamento para garantir compatibilidade entre front e back
+          // Frontend pode enviar 'material' enquanto no backend é 'compra'
+          const tipoEquivalente = (pedidoTipo, filtroTipo) => {
+            if (filtroTipo === 'material' && pedidoTipo === 'compra') return true;
+            if (filtroTipo === 'compra' && pedidoTipo === 'material') return true;
+            return pedidoTipo === filtroTipo;
+          };
+          
+          pedidosFiltrados = pedidosFiltrados.filter(pedido => {
+            const match = tipoEquivalente(pedido.tipo, filtros.tipo);
+            if (match) {
+              console.log(`Pedido ${pedido.id} do tipo ${pedido.tipo} corresponde ao filtro ${filtros.tipo}`);
+            }
+            return match;
+          });
+          console.log(`Após filtro por tipo: ${pedidosFiltrados.length} pedidos`);
+        }
+        
+        // Filtrar por ID específico
+        if (filtros.id) {
+          console.log(`Aplicando filtro por ID: ${filtros.id}`);
+          pedidosFiltrados = pedidosFiltrados.filter(pedido => {
+            const match = pedido.id.toString() === filtros.id.toString();
+            if (match) {
+              console.log(`Pedido ID ${pedido.id} corresponde ao filtro`);
+            }
+            return match;
+          });
+          console.log(`Após filtro por ID: ${pedidosFiltrados.length} pedidos`);
+        }
+        
+        // Filtrar por proposta/centro de custo
+        if (filtros.centroCusto) {
+          console.log(`Aplicando filtro por centro de custo: ${filtros.centroCusto}`);
+          pedidosFiltrados = pedidosFiltrados.filter(pedido => {
+            const match = pedido.proposta_id && pedido.proposta_id.toString() === filtros.centroCusto.toString();
+            if (match) {
+              console.log(`Pedido ${pedido.id} com proposta ${pedido.proposta_id} corresponde ao filtro`);
+            }
+            return match;
+          });
+          console.log(`Após filtro por centro de custo: ${pedidosFiltrados.length} pedidos`);
+        }
+        
+        // Usar os pedidos filtrados para o resto do processamento
+        todosPedidos = pedidosFiltrados;
+      } catch (errorFiltros) {
+        console.error('ERRO ao aplicar filtros:', errorFiltros.message);
+        // Em caso de erro nos filtros, manter todos os pedidos
+      }
+
+      console.log(`Total de pedidos consolidados após filtros: ${todosPedidos.length}`);
       console.log(`Pedidos de compra: ${pedidosCompraFormatados.length}`);
       console.log(`Pedidos de locação: ${pedidosLocacaoFormatados.length}`);
       console.log(`Pedidos de serviço: ${servicosFormatados.length}`);
