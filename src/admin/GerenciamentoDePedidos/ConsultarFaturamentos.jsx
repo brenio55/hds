@@ -33,19 +33,47 @@ function ConsultarFaturamentos() {
             
             console.log("Filtros aplicados:", filtros);
             
-            const response = await ApiService.consultarFaturamentos(filtros);
-            console.log("Faturamentos recebidos:", response);
+            // Buscar pedidos faturados usando o método específico
+            const pedidosFaturados = await ApiService.consultarPedidosFaturados(filtros);
+            console.log("Pedidos faturados recebidos:", pedidosFaturados);
             
-            if (Array.isArray(response)) {
-                setFaturamentos(response);
-                if (response.length === 0) {
-                    setError('Nenhum faturamento encontrado com os filtros selecionados.');
+            // Buscar faturamentos detalhados para cada pedido
+            const faturamentosDetalhados = await ApiService.consultarFaturamentos(filtros);
+            console.log("Detalhes de faturamentos recebidos:", faturamentosDetalhados);
+            
+            // Combinar as informações
+            const faturamentosCompletos = faturamentosDetalhados.map(faturamento => {
+                // Encontrar o pedido correspondente
+                const pedidoRelacionado = pedidosFaturados.find(
+                    p => p.id.toString() === faturamento.numeroPedido.toString()
+                );
+                
+                // Extrair nome do fornecedor do pedido relacionado
+                let fornecedorNome = 'N/D';
+                if (pedidoRelacionado && pedidoRelacionado.fornecedor) {
+                    if (typeof pedidoRelacionado.fornecedor === 'object') {
+                        fornecedorNome = pedidoRelacionado.fornecedor.nome;
+                    } else {
+                        fornecedorNome = pedidoRelacionado.fornecedor;
+                    }
                 }
-            } else {
-                console.error("Resposta inválida da API:", response);
-                setFaturamentos([]);
-                setError('Formato de resposta inválido. Por favor, tente novamente.');
+                
+                return {
+                    ...faturamento,
+                    // Adicionar informações extras do pedido se disponíveis
+                    cliente: pedidoRelacionado?.cliente || 'N/D',
+                    fornecedor: fornecedorNome,
+                    numero: pedidoRelacionado?.numero || `PC-${faturamento.numeroPedido}`
+                };
+            });
+            
+            console.log("Faturamentos com dados combinados:", faturamentosCompletos);
+            
+            if (faturamentosCompletos.length === 0) {
+                setError('Nenhum faturamento encontrado com os filtros selecionados.');
             }
+            
+            setFaturamentos(faturamentosCompletos);
         } catch (error) {
             console.error('Erro ao carregar faturamentos:', error);
             setFaturamentos([]);

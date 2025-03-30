@@ -6,6 +6,8 @@ import './FaturarPedido.css';
 function FaturarPedido() {
     const [pedidoSelecionado, setPedidoSelecionado] = useState('');
     const [pedidosAtivos, setPedidosAtivos] = useState([]);
+    const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
+    const [termoBusca, setTermoBusca] = useState('');
     const [valorTotal, setValorTotal] = useState(0);
     const [valorFaturado, setValorFaturado] = useState(0);
     const [novoValorFaturamento, setNovoValorFaturamento] = useState('');
@@ -36,28 +38,98 @@ function FaturarPedido() {
             setNovoValorFaturamento('');
         }
     }, [pedidoSelecionado]);
+    
+    // Filtrar pedidos quando o termo de busca mudar
+    useEffect(() => {
+        filtrarPedidos();
+    }, [termoBusca, pedidosAtivos]);
+    
+    // Função para filtrar pedidos baseado no termo de busca
+    const filtrarPedidos = () => {
+        if (!termoBusca.trim()) {
+            // Se não houver termo de busca, mostrar todos os pedidos ativos
+            setPedidosFiltrados(pedidosAtivos);
+            return;
+        }
+        
+        const termo = termoBusca.toLowerCase();
+        
+        // Filtrar pedidos que contêm o termo na descrição, número, ID ou fornecedor
+        const filtrados = pedidosAtivos.filter(pedido => 
+            (pedido.numero && pedido.numero.toString().toLowerCase().includes(termo)) ||
+            (pedido.descricao && pedido.descricao.toLowerCase().includes(termo)) ||
+            (pedido.id && pedido.id.toString().toLowerCase().includes(termo)) ||
+            (pedido.fornecedor && pedido.fornecedor.toLowerCase().includes(termo))
+        );
+        
+        console.log(`Filtro aplicado com termo "${termo}": ${filtrados.length} resultados`);
+        setPedidosFiltrados(filtrados);
+    };
 
     const carregarPedidosAtivos = async () => {
         try {
             setLoading(true);
+            setError(null);
             console.log("Carregando pedidos ativos...");
             
-            const pedidos = await ApiService.consultarPedidos();
-            console.log("Pedidos recebidos:", pedidos);
+            const response = await ApiService.buscarPedidosConsolidados();
+            console.log("Pedidos consolidados recebidos:", response);
             
-            if (Array.isArray(pedidos)) {
-                const pedidosCompra = pedidos.filter(p => p.tipo === 'compra' && p.status === 'ativo');
-                console.log(`${pedidosCompra.length} pedidos de compra ativos encontrados`);
-                setPedidosAtivos(pedidosCompra);
+            if (response && Array.isArray(response.pedidos)) {
+                // Filtrar apenas pedidos de compra com status "ok"
+                const pedidosCompra = response.pedidos.filter(p => 
+                    p.tipo === 'compra' && p.status === 'ok'
+                );
+                
+                // Mapear para o formato esperado pelo componente
+                const pedidosFormatados = pedidosCompra.map(pedido => {
+                    // Extrair nome do fornecedor se disponível
+                    const fornecedorNome = pedido.fornecedor ? pedido.fornecedor.nome : 'Fornecedor não especificado';
+                    
+                    // Criar descrição significativa com os dados disponíveis
+                    let descricao = '';
+                    if (pedido.proposta && pedido.proposta.descricao) {
+                        descricao = pedido.proposta.descricao;
+                    } else {
+                        descricao = `Pedido para ${fornecedorNome}`;
+                    }
+                    
+                    // Formatar data se disponível
+                    let dataFormatada = '';
+                    if (pedido.data_vencimento) {
+                        try {
+                            dataFormatada = ` - Venc: ${new Date(pedido.data_vencimento).toLocaleDateString('pt-BR')}`;
+                        } catch (e) {
+                            console.error("Erro ao formatar data:", e);
+                        }
+                    }
+                    
+                    return {
+                        id: pedido.id,
+                        numero: `PC-${pedido.id}`,
+                        descricao: `${descricao}${dataFormatada}`,
+                        valor_total: pedido.valor_total || 0,
+                        status: pedido.status,
+                        fornecedor: fornecedorNome,
+                        data: pedido.data
+                    };
+                });
+                
+                console.log(`${pedidosFormatados.length} pedidos de compra ativos encontrados:`, pedidosFormatados);
+                setPedidosAtivos(pedidosFormatados);
+                setPedidosFiltrados(pedidosFormatados);
+                setError(null);
             } else {
-                console.error("A resposta da API não é um array:", pedidos);
+                console.error("A resposta da API não contém um array de pedidos:", response);
                 setPedidosAtivos([]);
+                setPedidosFiltrados([]);
                 setError("Erro ao carregar pedidos: formato de resposta inválido");
             }
         } catch (error) {
             console.error('Erro ao carregar pedidos:', error);
             setError("Erro ao carregar pedidos. Por favor, tente novamente.");
             setPedidosAtivos([]);
+            setPedidosFiltrados([]);
         } finally {
             setLoading(false);
         }
@@ -245,20 +317,50 @@ function FaturarPedido() {
                     
                     <form onSubmit={handleSubmit} className="pedido-form">
                         <div className="form-group" style={{gridColumn: 'span 2'}}>
+                            <label>BUSCAR PEDIDO DE COMPRA</label>
+                            <input 
+                                type="text"
+                                value={termoBusca}
+                                onChange={(e) => setTermoBusca(e.target.value)}
+                                placeholder="Digite o número ou descrição do pedido"
+                                className="search-input"
+                                disabled={loading}
+                            />
+                        </div>
+                        
+                        <div className="form-group" style={{gridColumn: 'span 2'}}>
                             <label>SELECIONE O PEDIDO DE COMPRA</label>
                             <select 
                                 value={pedidoSelecionado} 
-                                onChange={(e) => setPedidoSelecionado(e.target.value)}
+                                onChange={(e) => {
+                                    console.log(`Pedido selecionado: ID=${e.target.value}`);
+                                    setPedidoSelecionado(e.target.value);
+                                }}
                                 required
                                 disabled={loading}
                             >
                                 <option value="">Selecione um pedido...</option>
-                                {pedidosAtivos.map(pedido => (
-                                    <option key={pedido.id} value={pedido.id}>
-                                        {pedido.numero} - {pedido.descricao || 'Sem descrição'}
-                                    </option>
-                                ))}
+                                {pedidosFiltrados && pedidosFiltrados.length > 0 ? (
+                                    pedidosFiltrados.map(pedido => (
+                                        <option key={pedido.id} value={pedido.id}>
+                                            {pedido.numero} - {pedido.fornecedor ? `${pedido.fornecedor} - ` : ''}{pedido.descricao || 'Sem descrição'}
+                                        </option>
+                                    ))
+                                ) : (
+                                    <option value="" disabled>Nenhum pedido disponível</option>
+                                )}
                             </select>
+                            {pedidosFiltrados.length === 0 && !loading && (
+                                <p className="no-results-message">
+                                    {termoBusca ? 
+                                        'Nenhum pedido encontrado com este termo' : 
+                                        'Nenhum pedido ativo disponível'
+                                    }
+                                </p>
+                            )}
+                            <p className="info-message">
+                                {pedidosFiltrados.length > 0 && `${pedidosFiltrados.length} pedido(s) encontrado(s)`}
+                            </p>
                         </div>
 
                         <div className="form-group">

@@ -1881,6 +1881,75 @@ class ApiService {
             throw error;
         }
     }
+
+    /**
+     * Consulta os pedidos que já foram faturados
+     * @param {Object} filtros - Filtros opcionais para a consulta 
+     * @returns {Promise<Array>} - Lista de pedidos faturados
+     */
+    static async consultarPedidosFaturados(filtros = {}) {
+        try {
+            console.log('Consultando pedidos faturados com filtros:', filtros);
+            
+            // Construir query string com os filtros
+            const queryParams = new URLSearchParams();
+            
+            if (filtros.tipo && filtros.tipo !== 'todos') {
+                queryParams.append('tipo', filtros.tipo);
+            }
+            
+            if (filtros.numeroPedido) {
+                queryParams.append('numeroPedido', filtros.numeroPedido);
+            }
+            
+            if (filtros.dataInicial) {
+                queryParams.append('dataInicial', filtros.dataInicial);
+            }
+            
+            if (filtros.dataFinal) {
+                queryParams.append('dataFinal', filtros.dataFinal);
+            }
+            
+            // Adicionar flag específica para pedidos faturados
+            queryParams.append('faturado', 'true');
+            
+            const url = `${API_URL}/api/pedidos-faturados${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            console.log('URL para consulta de pedidos faturados:', url);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Erro na resposta ao consultar pedidos faturados:', errorText);
+                throw new Error(`Erro ao consultar pedidos faturados: ${response.statusText || errorText}`);
+            }
+            
+            const pedidosFaturados = await response.json();
+            console.log('Pedidos faturados recebidos:', pedidosFaturados);
+            
+            // Mapear para o formato esperado pelo frontend
+            return Array.isArray(pedidosFaturados) ? pedidosFaturados.map(pedido => ({
+                id: pedido.id,
+                numero: pedido.numero || pedido.id,
+                tipo: pedido.tipo || 'compra',
+                dataFaturamento: pedido.data_faturamento || pedido.created_at,
+                valorTotal: pedido.valor_total || 0,
+                valorFaturado: pedido.valor_faturado || 0,
+                porcentagemFaturada: pedido.valor_total > 0 
+                    ? (pedido.valor_faturado / pedido.valor_total * 100).toFixed(2) 
+                    : 0,
+                cliente: pedido.cliente || 'N/A',
+                fornecedor: pedido.fornecedor || 'N/A',
+                status: pedido.status || 'faturado',
+                faturamentos: pedido.faturamentos || []
+            })) : [];
+        } catch (error) {
+            console.error('Erro ao consultar pedidos faturados:', error);
+            return [];
+        }
+    }
 }
 
 export default ApiService; 
