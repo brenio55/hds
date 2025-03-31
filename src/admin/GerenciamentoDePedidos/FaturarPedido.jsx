@@ -291,58 +291,74 @@ function FaturarPedido() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!pedidoSelecionado) {
+            setError('Selecione um pedido válido para faturar');
+            return;
+        }
+
+        // Encontrar o pedido selecionado nos pedidos ativos
+        const pedido = pedidosAtivos.find(p => p.id.toString() === pedidoSelecionado.toString());
+        if (!pedido) {
+            setError('Pedido selecionado inválido');
+            return;
+        }
+
+        // Verificar se o valor de faturamento é válido
+        const valorFaturamentoNumerico = parseFloat(novoValorFaturamento.replace(',', '.'));
+        if (isNaN(valorFaturamentoNumerico) || valorFaturamentoNumerico <= 0) {
+            setError('Informe um valor de faturamento válido');
+            return;
+        }
+
+        // Calcular valor restante disponível para faturamento
+        const valorRestante = valorTotal - valorFaturado;
         
+        // Verificar se o valor de faturamento excede o valor restante
+        if (valorFaturamentoNumerico > valorRestante) {
+            setError(`O valor de faturamento (${valorFaturamentoNumerico.toLocaleString('pt-BR', {
+                style: 'currency', 
+                currency: 'BRL'
+            })}) não pode exceder o valor restante disponível (${valorRestante.toLocaleString('pt-BR', {
+                style: 'currency', 
+                currency: 'BRL'
+            })})`);
+            return;
+        }
+
+        if (!metodoPagamento) {
+            setError('Selecione um método de pagamento');
+            return;
+        }
+
+        if (metodoPagamento === 'boleto' && !numeroBoleto) {
+            setError('O número do boleto é obrigatório');
+            return;
+        }
+
+        if ((metodoPagamento === 'pix' || metodoPagamento === 'ted') && !dadosConta) {
+            setError('Os dados da conta são obrigatórios');
+            return;
+        }
+
+        if (!dataVencimento) {
+            setError('Informe a data de vencimento');
+            return;
+        }
+
+        if (!numeroNF) {
+            setError('O número da NF é obrigatório');
+            return;
+        }
+
         try {
             setLoading(true);
             setError(null);
             setMensagemSucesso('');
             
-            // Validações básicas
-            if (!pedidoSelecionado) {
-                setError("Selecione um pedido para faturar");
-                return;
-            }
-            
-            // Encontrar o pedido selecionado nos pedidos ativos
-            const pedidoSelecionadoObj = pedidosAtivos.find(p => p.id.toString() === pedidoSelecionado.toString());
-            if (!pedidoSelecionadoObj) {
-                setError("Pedido selecionado não encontrado");
-                return;
-            }
-            
-            if (!novoValorFaturamento || parseFloat(novoValorFaturamento) <= 0) {
-                setError("O valor a faturar deve ser maior que zero");
-                return;
-            }
-            
-            if (!dataVencimento) {
-                setError("A data de vencimento é obrigatória");
-                return;
-            }
-            
-            if (!numeroNF) {
-                setError("O número da NF é obrigatório");
-                return;
-            }
-            
-            if (!metodoPagamento) {
-                setError("Selecione um método de pagamento");
-                return;
-            }
-            
-            if (metodoPagamento === 'boleto' && !numeroBoleto) {
-                setError("O número do boleto é obrigatório");
-                return;
-            }
-            
-            if ((metodoPagamento === 'pix' || metodoPagamento === 'ted') && !dadosConta) {
-                setError("Os dados da conta são obrigatórios");
-                return;
-            }
-            
             const formData = new FormData();
             formData.append('pedidoId', pedidoSelecionado);
-            formData.append('tipoPedido', pedidoSelecionadoObj.tipo);
+            formData.append('tipoPedido', pedido.tipo);
             formData.append('valorFaturamento', novoValorFaturamento);
             formData.append('dataVencimento', dataVencimento);
             formData.append('numeroNF', numeroNF);
@@ -357,7 +373,7 @@ function FaturarPedido() {
     
             if (arquivoNF) formData.append('arquivoNF', arquivoNF);
     
-            console.log(`Enviando dados de faturamento para pedido ${pedidoSelecionadoObj.numero} (tipo: ${pedidoSelecionadoObj.tipo})...`);
+            console.log(`Enviando dados de faturamento para pedido ${pedido.numero} (tipo: ${pedido.tipo})...`);
             await ApiService.faturarPedidoCompra(formData);
             
             console.log("Faturamento registrado com sucesso!");
@@ -452,17 +468,28 @@ function FaturarPedido() {
                                 type="text" 
                                 value={formatarValor(valorTotal)} 
                                 disabled 
-                                className="read-only-field"
+                                className="input-valor-readonly"
                             />
                         </div>
-
+                        
                         <div className="form-group">
-                            <label>VALOR JÁ FATURADO ({porcentagemFaturada}%)</label>
+                            <label>VALOR JÁ FATURADO</label>
                             <input 
                                 type="text" 
                                 value={formatarValor(valorFaturado)} 
                                 disabled 
-                                className="read-only-field"
+                                className="input-valor-readonly"
+                            />
+                            <small>{porcentagemFaturada}% do valor total já faturado</small>
+                        </div>
+
+                        <div className="form-group">
+                            <label>VALOR DISPONÍVEL PARA FATURAMENTO</label>
+                            <input 
+                                type="text" 
+                                value={formatarValor(Math.max(0, valorTotal - valorFaturado))} 
+                                disabled 
+                                className="input-valor-readonly valor-disponivel"
                             />
                         </div>
 

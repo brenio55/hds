@@ -58,12 +58,19 @@ function ConsultarFaturamentos() {
                     }
                 }
                 
+                // Obter valor total do pedido e calcular valor a faturar
+                const valorTotal = pedidoRelacionado?.valorTotal || faturamento.valorTotal || 0;
+                const valorFaturado = parseFloat(faturamento.valorFaturado) || 0;
+                const valorAFaturar = Math.max(0, valorTotal - valorFaturado);
+                
                 return {
                     ...faturamento,
                     // Adicionar informações extras do pedido se disponíveis
                     cliente: pedidoRelacionado?.cliente || 'N/D',
                     fornecedor: fornecedorNome,
-                    numero: pedidoRelacionado?.numero || `PC-${faturamento.numeroPedido}`
+                    numero: pedidoRelacionado?.numero || `PC-${faturamento.numeroPedido}`,
+                    valorTotal: valorTotal,
+                    valorAFaturar: valorAFaturar
                 };
             });
             
@@ -145,7 +152,7 @@ function ConsultarFaturamentos() {
         <>
             <HeaderAdmin />
             <div className="admin-container">
-                <div className="pedido-container">
+                <div className="pedido-containerFaturamentos">
                     <h1>CONSULTA DE FATURAMENTOS</h1>
                     
                     {error && <div className="error-message">{error}</div>}
@@ -228,7 +235,9 @@ function ConsultarFaturamentos() {
                                         <tr>
                                             <th>Nº Pedido</th>
                                             <th>Tipo</th>
+                                            <th>Valor Total do Pedido</th>
                                             <th>Valor Faturado</th>
+                                            <th>Valor a Faturar</th>
                                             <th>Data de Faturamento</th>
                                             <th>Data de Vencimento</th>
                                             <th>Método de Pagamento</th>
@@ -240,7 +249,9 @@ function ConsultarFaturamentos() {
                                             <tr key={faturamento.id}>
                                                 <td>{faturamento.numeroPedido || 'N/D'}</td>
                                                 <td>{obterNomeTipoPedido(faturamento.tipoPedido)}</td>
+                                                <td>{formatarValor(faturamento.valorTotal)}</td>
                                                 <td>{formatarValor(faturamento.valorFaturado)}</td>
+                                                <td>{formatarValor(faturamento.valorAFaturar)}</td>
                                                 <td>{formatarData(faturamento.dataFaturamento)}</td>
                                                 <td>{formatarData(faturamento.dataVencimento)}</td>
                                                 <td>{faturamento.metodoPagamento || 'N/D'}</td>
@@ -305,6 +316,11 @@ function ConsultarFaturamentos() {
                                     <div className="detalhes-item">
                                         <strong>Valor Faturado:</strong>
                                         <span>{formatarValor(visualizandoDetalhes.valorFaturado)}</span>
+                                    </div>
+                                    
+                                    <div className="detalhes-item">
+                                        <strong>Valor a Faturar:</strong>
+                                        <span>{formatarValor(visualizandoDetalhes.valorAFaturar)}</span>
                                     </div>
                                     
                                     <div className="detalhes-item">

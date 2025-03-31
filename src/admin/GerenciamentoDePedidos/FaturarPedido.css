@@ -143,4 +143,29 @@ select option {
     .submit-button {
         grid-column: 1;
     }
+}
+
+.input-valor-readonly {
+    background-color: #f5f5f5;
+    color: #333;
+    font-weight: bold;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    font-size: 16px;
+}
+
+.valor-disponivel {
+    background-color: #e7f3e8;
+    border-color: #28a745;
+    color: #28a745;
+    font-size: 18px;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #6c757d;
+    font-style: italic;
 } 

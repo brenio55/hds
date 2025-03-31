@@ -1891,22 +1891,53 @@ class ApiService {
             const pedidosFaturados = await response.json();
             console.log('Pedidos faturados recebidos:', pedidosFaturados);
             
+            // Buscar informações de faturamento para cada pedido para calcular valores atualizados
+            const pedidosDetalhados = [];
+            
             // Mapear para o formato esperado pelo frontend
-            return Array.isArray(pedidosFaturados) ? pedidosFaturados.map(pedido => ({
-                id: pedido.id,
-                numero: pedido.numero || pedido.id,
-                tipo: pedido.tipo || 'compra',
-                dataFaturamento: pedido.data_faturamento || pedido.created_at,
-                valorTotal: pedido.valor_total || 0,
-                valorFaturado: pedido.valor_faturado || 0,
-                porcentagemFaturada: pedido.valor_total > 0 
-                    ? (pedido.valor_faturado / pedido.valor_total * 100).toFixed(2) 
-                    : 0,
-                cliente: pedido.cliente || 'N/A',
-                fornecedor: pedido.fornecedor || 'N/A',
-                status: pedido.status || 'faturado',
-                faturamentos: pedido.faturamentos || []
-            })) : [];
+            if (Array.isArray(pedidosFaturados)) {
+                for (const pedido of pedidosFaturados) {
+                    try {
+                        // Buscar faturamentos específicos do pedido para calcular valor faturado atual
+                        const faturamentosPedido = await this.consultarFaturamentos({
+                            tipo: pedido.tipo || 'compra',
+                            numeroPedido: pedido.id
+                        });
+                        
+                        // Calcular valor total faturado somando todos os faturamentos
+                        const valorFaturado = faturamentosPedido.reduce(
+                            (total, fat) => total + parseFloat(fat.valorFaturado || 0), 
+                            0
+                        );
+                        
+                        // Calcular valor total do pedido, valor faturado e valor restante
+                        const valorTotal = parseFloat(pedido.valor_total || 0);
+                        const valorRestante = Math.max(0, valorTotal - valorFaturado);
+                        const porcentagemFaturada = valorTotal > 0 
+                            ? Math.min(100, (valorFaturado / valorTotal * 100))
+                            : 0;
+                        
+                        pedidosDetalhados.push({
+                            id: pedido.id,
+                            numero: pedido.numero || pedido.id,
+                            tipo: pedido.tipo || 'compra',
+                            dataFaturamento: pedido.data_faturamento || pedido.created_at,
+                            valorTotal: valorTotal,
+                            valorFaturado: valorFaturado,
+                            valorAFaturar: valorRestante,
+                            porcentagemFaturada: porcentagemFaturada.toFixed(2),
+                            cliente: pedido.cliente || 'N/A',
+                            fornecedor: pedido.fornecedor || 'N/A',
+                            status: pedido.status || 'faturado',
+                            faturamentos: faturamentosPedido
+                        });
+                    } catch (err) {
+                        console.error(`Erro ao processar pedido ID ${pedido.id}:`, err);
+                    }
+                }
+            }
+            
+            return pedidosDetalhados;
         } catch (error) {
             console.error('Erro ao consultar pedidos faturados:', error);
             return [];
@@ -1955,22 +1986,67 @@ class ApiService {
             const faturamentos = await response.json();
             console.log('Faturamentos recebidos:', faturamentos);
             
-            // Mapear para o formato esperado pelo frontend
-            return faturamentos.map(fat => ({
-                id: fat.id,
-                numeroPedido: fat.id_number,
-                tipoPedido: fat.id_type,
-                valorTotal: fat.valor_total_pedido,
-                valorFaturado: fat.valor_a_faturar,
-                dataFaturamento: fat.created_at,
-                dataVencimento: fat.data_vencimento,
-                numeroNF: fat.nf,
-                arquivoNF: fat.nf_anexo,
-                metodoPagamento: fat.pagamento?.metodo || 'N/A',
-                codigoBoleto: fat.pagamento?.numero_boleto,
-                arquivoBoleto: fat.pagamento?.boleto_anexo,
-                dadosConta: fat.pagamento?.dados_conta
-            }));
+            // Para cada faturamento, buscar o valor total do pedido para calcular valor restante
+            const faturamentosDetalhados = [];
+            
+            for (const fat of faturamentos) {
+                try {
+                    // Obter valor total do pedido
+                    const valorTotalPedido = parseFloat(fat.valor_total_pedido || 0);
+                    
+                    // Obter todos os faturamentos deste pedido para calcular o total já faturado
+                    const todosDoMesmoPedido = faturamentos.filter(
+                        f => f.id_number === fat.id_number && f.id_type === fat.id_type
+                    );
+                    
+                    const valorTotalFaturado = todosDoMesmoPedido.reduce(
+                        (total, f) => total + parseFloat(f.valor_a_faturar || 0),
+                        0
+                    );
+                    
+                    // Calcular valor restante a faturar
+                    const valorAFaturar = Math.max(0, valorTotalPedido - valorTotalFaturado);
+                    
+                    faturamentosDetalhados.push({
+                        id: fat.id,
+                        numeroPedido: fat.id_number,
+                        tipoPedido: fat.id_type,
+                        valorTotal: valorTotalPedido,
+                        valorFaturado: parseFloat(fat.valor_a_faturar || 0),
+                        valorTotalFaturado: valorTotalFaturado,
+                        valorAFaturar: valorAFaturar,
+                        dataFaturamento: fat.created_at,
+                        dataVencimento: fat.data_vencimento,
+                        numeroNF: fat.nf,
+                        arquivoNF: fat.nf_anexo,
+                        metodoPagamento: fat.pagamento || 'N/A',
+                        codigoBoleto: fat.numero_boleto,
+                        arquivoBoleto: fat.boleto_anexo,
+                        dadosConta: fat.dados_conta
+                    });
+                } catch (err) {
+                    console.error(`Erro ao processar faturamento ID ${fat.id}:`, err);
+                    // Adicionar versão básica se ocorrer um erro
+                    faturamentosDetalhados.push({
+                        id: fat.id,
+                        numeroPedido: fat.id_number,
+                        tipoPedido: fat.id_type,
+                        valorTotal: parseFloat(fat.valor_total_pedido || 0),
+                        valorFaturado: parseFloat(fat.valor_a_faturar || 0),
+                        valorAFaturar: 0,
+                        dataFaturamento: fat.created_at,
+                        dataVencimento: fat.data_vencimento,
+                        numeroNF: fat.nf,
+                        arquivoNF: fat.nf_anexo,
+                        metodoPagamento: fat.pagamento || 'N/A',
+                        codigoBoleto: fat.numero_boleto,
+                        arquivoBoleto: fat.boleto_anexo,
+                        dadosConta: fat.dados_conta
+                    });
+                }
+            }
+            
+            return faturamentosDetalhados;
         } catch (error) {
             console.error('Erro ao consultar faturamentos:', error);
             return [];
