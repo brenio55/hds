@@ -70,28 +70,41 @@ function FaturarPedido() {
         try {
             setLoading(true);
             setError(null);
-            console.log("Carregando pedidos ativos...");
+            console.log("Carregando todos os pedidos ativos...");
             
             const response = await ApiService.buscarPedidosConsolidados();
             console.log("Pedidos consolidados recebidos:", response);
             
             if (response && Array.isArray(response.pedidos)) {
-                // Filtrar apenas pedidos de compra com status "ok"
-                const pedidosCompra = response.pedidos.filter(p => 
-                    p.tipo === 'compra' && p.status === 'ok'
-                );
+                // Filtrar apenas pedidos com status "ok"
+                const pedidosAtivados = response.pedidos.filter(p => p.status === 'ok');
+                console.log(`Total de pedidos ativos encontrados: ${pedidosAtivados.length}`);
                 
                 // Mapear para o formato esperado pelo componente
-                const pedidosFormatados = pedidosCompra.map(pedido => {
+                const pedidosFormatados = pedidosAtivados.map(pedido => {
                     // Extrair nome do fornecedor se disponível
-                    const fornecedorNome = pedido.fornecedor ? pedido.fornecedor.nome : 'Fornecedor não especificado';
+                    let fornecedorNome = 'Fornecedor não especificado';
+                    if (pedido.fornecedor) {
+                        fornecedorNome = typeof pedido.fornecedor === 'object' 
+                            ? pedido.fornecedor.nome || pedido.fornecedor.razao_social
+                            : pedido.fornecedor;
+                    }
+                    
+                    // Determinar o tipo de pedido para o prefixo
+                    let prefixo = '';
+                    switch (pedido.tipo) {
+                        case 'compra': prefixo = 'PC'; break;
+                        case 'locacao': prefixo = 'PL'; break;
+                        case 'servico': prefixo = 'PS'; break;
+                        default: prefixo = 'P'; break;
+                    }
                     
                     // Criar descrição significativa com os dados disponíveis
                     let descricao = '';
                     if (pedido.proposta && pedido.proposta.descricao) {
                         descricao = pedido.proposta.descricao;
                     } else {
-                        descricao = `Pedido para ${fornecedorNome}`;
+                        descricao = `Pedido de ${pedido.tipo} para ${fornecedorNome}`;
                     }
                     
                     // Formatar data se disponível
@@ -106,16 +119,17 @@ function FaturarPedido() {
                     
                     return {
                         id: pedido.id,
-                        numero: `PC-${pedido.id}`,
+                        numero: `${prefixo}-${pedido.id}`,
                         descricao: `${descricao}${dataFormatada}`,
+                        tipo: pedido.tipo,
                         valor_total: pedido.valor_total || 0,
                         status: pedido.status,
                         fornecedor: fornecedorNome,
-                        data: pedido.data
+                        data: pedido.data,
+                        data_vencimento: pedido.data_vencimento
                     };
                 });
                 
-                console.log(`${pedidosFormatados.length} pedidos de compra ativos encontrados:`, pedidosFormatados);
                 setPedidosAtivos(pedidosFormatados);
                 setPedidosFiltrados(pedidosFormatados);
                 setError(null);
@@ -145,12 +159,69 @@ function FaturarPedido() {
             console.log("Detalhes do pedido:", pedido);
             
             if (pedido) {
-                const valorTotalPedido = parseFloat(pedido.valor_total) || 0;
+                // Calcular valor total considerando o formato do pedido recebido da API
+                let valorTotalPedido = 0;
+                
+                // Somar valores dos materiais
+                if (pedido.materiais && Array.isArray(pedido.materiais)) {
+                    valorTotalPedido = pedido.materiais.reduce(
+                        (total, material) => total + parseFloat(material.valor_total || 0), 
+                        0
+                    );
+                    console.log(`Valor total de materiais: ${valorTotalPedido}`);
+                }
+                
+                // Adicionar frete, se existir
+                if (pedido.valor_frete) {
+                    const valorFrete = parseFloat(pedido.valor_frete);
+                    if (!isNaN(valorFrete)) {
+                        valorTotalPedido += valorFrete;
+                        console.log(`Adicionando frete: ${valorFrete}`);
+                    }
+                } else if (pedido.frete && typeof pedido.frete === 'object' && pedido.frete.valor) {
+                    const valorFrete = parseFloat(pedido.frete.valor);
+                    if (!isNaN(valorFrete)) {
+                        valorTotalPedido += valorFrete;
+                        console.log(`Adicionando frete (objeto): ${valorFrete}`);
+                    }
+                }
+                
+                // Adicionar despesas adicionais, se existirem
+                if (pedido.despesas_adicionais) {
+                    const despesasAdicionais = parseFloat(pedido.despesas_adicionais);
+                    if (!isNaN(despesasAdicionais)) {
+                        valorTotalPedido += despesasAdicionais;
+                        console.log(`Adicionando despesas adicionais: ${despesasAdicionais}`);
+                    }
+                }
+                
+                // Subtrair descontos, se existirem
+                if (pedido.desconto) {
+                    const valorDesconto = parseFloat(pedido.desconto);
+                    if (!isNaN(valorDesconto)) {
+                        valorTotalPedido -= valorDesconto;
+                        console.log(`Subtraindo desconto: ${valorDesconto}`);
+                    }
+                }
+                
+                // Usar valor da proposta se valor calculado for zero
+                if (valorTotalPedido <= 0 && pedido.proposta && pedido.proposta.valor_final) {
+                    valorTotalPedido = parseFloat(pedido.proposta.valor_final);
+                    console.log(`Usando valor da proposta: ${valorTotalPedido}`);
+                }
+                
+                // Verificar se existe um valor_total direto no pedido
+                if (valorTotalPedido <= 0 && pedido.valor_total) {
+                    valorTotalPedido = parseFloat(pedido.valor_total);
+                    console.log(`Usando valor_total direto do pedido: ${valorTotalPedido}`);
+                }
+                
+                console.log(`Valor total calculado do pedido: ${valorTotalPedido}`);
                 setValorTotal(valorTotalPedido);
                 
                 // Buscar faturamentos existentes para este pedido
                 const faturamentos = await ApiService.consultarFaturamentos({ 
-                    tipo: 'compra',
+                    tipo: pedido.tipo || 'compra',
                     numeroPedido: pedidoId 
                 });
                 
@@ -232,6 +303,13 @@ function FaturarPedido() {
                 return;
             }
             
+            // Encontrar o pedido selecionado nos pedidos ativos
+            const pedidoSelecionadoObj = pedidosAtivos.find(p => p.id.toString() === pedidoSelecionado.toString());
+            if (!pedidoSelecionadoObj) {
+                setError("Pedido selecionado não encontrado");
+                return;
+            }
+            
             if (!novoValorFaturamento || parseFloat(novoValorFaturamento) <= 0) {
                 setError("O valor a faturar deve ser maior que zero");
                 return;
@@ -264,6 +342,7 @@ function FaturarPedido() {
             
             const formData = new FormData();
             formData.append('pedidoId', pedidoSelecionado);
+            formData.append('tipoPedido', pedidoSelecionadoObj.tipo);
             formData.append('valorFaturamento', novoValorFaturamento);
             formData.append('dataVencimento', dataVencimento);
             formData.append('numeroNF', numeroNF);
@@ -278,7 +357,7 @@ function FaturarPedido() {
     
             if (arquivoNF) formData.append('arquivoNF', arquivoNF);
     
-            console.log("Enviando dados de faturamento...");
+            console.log(`Enviando dados de faturamento para pedido ${pedidoSelecionadoObj.numero} (tipo: ${pedidoSelecionadoObj.tipo})...`);
             await ApiService.faturarPedidoCompra(formData);
             
             console.log("Faturamento registrado com sucesso!");
@@ -310,26 +389,26 @@ function FaturarPedido() {
             <HeaderAdmin />
             <div className="admin-container">
                 <div className="pedido-container">
-                    <h1>FATURAR PEDIDO DE COMPRA</h1>
+                    <h1>FATURAR PEDIDO</h1>
                     
                     {error && <div className="error-message">{error}</div>}
                     {mensagemSucesso && <div className="success-message">{mensagemSucesso}</div>}
                     
                     <form onSubmit={handleSubmit} className="pedido-form">
                         <div className="form-group" style={{gridColumn: 'span 2'}}>
-                            <label>BUSCAR PEDIDO DE COMPRA</label>
+                            <label>BUSCAR PEDIDO</label>
                             <input 
                                 type="text"
                                 value={termoBusca}
                                 onChange={(e) => setTermoBusca(e.target.value)}
-                                placeholder="Digite o número ou descrição do pedido"
+                                placeholder="Digite o número, fornecedor ou descrição"
                                 className="search-input"
                                 disabled={loading}
                             />
                         </div>
                         
                         <div className="form-group" style={{gridColumn: 'span 2'}}>
-                            <label>SELECIONE O PEDIDO DE COMPRA</label>
+                            <label>SELECIONE O PEDIDO PARA FATURAR</label>
                             <select 
                                 value={pedidoSelecionado} 
                                 onChange={(e) => {
@@ -342,8 +421,8 @@ function FaturarPedido() {
                                 <option value="">Selecione um pedido...</option>
                                 {pedidosFiltrados && pedidosFiltrados.length > 0 ? (
                                     pedidosFiltrados.map(pedido => (
-                                        <option key={pedido.id} value={pedido.id}>
-                                            {pedido.numero} - {pedido.fornecedor ? `${pedido.fornecedor} - ` : ''}{pedido.descricao || 'Sem descrição'}
+                                        <option key={pedido.id} value={pedido.id} className={`pedido-tipo-${pedido.tipo}`}>
+                                            {pedido.numero} | {pedido.fornecedor} | {pedido.descricao}
                                         </option>
                                     ))
                                 ) : (
@@ -359,7 +438,11 @@ function FaturarPedido() {
                                 </p>
                             )}
                             <p className="info-message">
-                                {pedidosFiltrados.length > 0 && `${pedidosFiltrados.length} pedido(s) encontrado(s)`}
+                                {pedidosFiltrados.length > 0 && 
+                                    `${pedidosFiltrados.length} pedido(s) encontrado(s) | Compra: ${pedidosFiltrados.filter(p => p.tipo === 'compra').length} | 
+                                    Locação: ${pedidosFiltrados.filter(p => p.tipo === 'locacao').length} | 
+                                    Serviço: ${pedidosFiltrados.filter(p => p.tipo === 'servico').length}`
+                                }
                             </p>
                         </div>
 

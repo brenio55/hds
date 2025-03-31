@@ -978,29 +978,31 @@ class ApiService {
                 
                 // Extrair campos básicos
                 dados.id_number = dadosFaturamento.get('pedidoId');
-                dados.id_type = 'compra'; // Definido como compra já que é faturamento de pedido de compra
-                dados.valor_total_pedido = await this.obterValorTotalPedido(dados.id_number);
-                dados.valor_faturado = await this.obterValorJaFaturado(dados.id_number);
+                dados.id_type = dadosFaturamento.get('tipoPedido') || 'compra'; // Usar o tipo especificado ou padrão 'compra'
+                dados.valor_total_pedido = await this.obterValorTotalPedido(dados.id_number, dados.id_type);
+                dados.valor_faturado = await this.obterValorJaFaturado(dados.id_number, dados.id_type);
                 dados.valor_a_faturar = dadosFaturamento.get('valorFaturamento');
                 dados.data_vencimento = dadosFaturamento.get('dataVencimento');
-                dados.nf = dadosFaturamento.get('numeroNF');
+                
+                // Formatar número da NF para conter apenas números
+                const numeroNF = dadosFaturamento.get('numeroNF');
+                dados.nf = numeroNF ? numeroNF.replace(/\D/g, '') : ''; // Remove todos os não-dígitos
                 
                 // Configurar pagamento baseado no método
                 const metodoPagamento = dadosFaturamento.get('metodoPagamento');
-                dados.pagamento = {
-                    metodo: metodoPagamento
-                };
+                // Enviar apenas o método de pagamento como string para o campo pagamento (enum)
+                dados.pagamento = metodoPagamento;
                 
                 if (metodoPagamento === 'boleto') {
-                    dados.pagamento.numero_boleto = dadosFaturamento.get('numeroBoleto');
+                    dados.numero_boleto = dadosFaturamento.get('numeroBoleto');
                     
                     // Converter arquivo do boleto para base64 se existir
                     const arquivoBoleto = dadosFaturamento.get('arquivoBoleto');
                     if (arquivoBoleto) {
-                        dados.pagamento.boleto_anexo = await this.fileToBase64(arquivoBoleto);
+                        dados.boleto_anexo = await this.fileToBase64(arquivoBoleto);
                     }
                 } else if (metodoPagamento === 'pix' || metodoPagamento === 'ted') {
-                    dados.pagamento.dados_conta = dadosFaturamento.get('dadosConta');
+                    dados.dados_conta = dadosFaturamento.get('dadosConta');
                 }
                 
                 // Converter arquivo NF para base64 se existir
@@ -1012,7 +1014,7 @@ class ApiService {
                 console.log('Dados de faturamento formatados para API:', dados);
                 
                 // Enviar dados como JSON
-                const response = await fetch(`${API_URL}/api/faturamento`, {
+                const response = await fetch(`${API_URL}/api/faturamentos`, {
                     method: 'POST',
                     headers: {
                         ...createAuthHeaders(),
@@ -1030,7 +1032,30 @@ class ApiService {
                 return await response.json();
             } else {
                 // Se já for um objeto, enviamos diretamente
-                const response = await fetch(`${API_URL}/api/faturamento`, {
+                // Formatar o número da NF para conter apenas números
+                if (dadosFaturamento.numeroNF) {
+                    dadosFaturamento.nf = dadosFaturamento.numeroNF.replace(/\D/g, '');
+                    delete dadosFaturamento.numeroNF; // Remover a propriedade original
+                }
+                
+                // Converter o objeto de pagamento para o formato esperado pelo backend
+                if (dadosFaturamento.pagamento && typeof dadosFaturamento.pagamento === 'object') {
+                    // Extrair método de pagamento e informações adicionais
+                    const metodoPagamento = dadosFaturamento.pagamento.metodo;
+                    
+                    // Extrair dados adicionais antes de sobrescrever o objeto pagamento
+                    if (metodoPagamento === 'boleto') {
+                        dadosFaturamento.numero_boleto = dadosFaturamento.pagamento.numero_boleto;
+                        dadosFaturamento.boleto_anexo = dadosFaturamento.pagamento.boleto_anexo;
+                    } else if (metodoPagamento === 'pix' || metodoPagamento === 'ted') {
+                        dadosFaturamento.dados_conta = dadosFaturamento.pagamento.dados_conta;
+                    }
+                    
+                    // Sobrescrever campo pagamento com apenas o método
+                    dadosFaturamento.pagamento = metodoPagamento;
+                }
+                
+                const response = await fetch(`${API_URL}/api/faturamentos`, {
                     method: 'POST',
                     headers: {
                         ...createAuthHeaders(),
@@ -1048,112 +1073,49 @@ class ApiService {
                 return await response.json();
             }
         } catch (error) {
-            console.error('Erro ao faturar pedido de compra:', error);
+            console.error('Erro ao faturar pedido:', error);
             throw error;
         }
     }
     
-    static async consultarFaturamentos(filtros = {}) {
-        try {
-            console.log('Consultando faturamentos com filtros:', filtros);
-            
-            // Construir query string com os filtros
-            const queryParams = new URLSearchParams();
-            
-            if (filtros.tipo && filtros.tipo !== 'todos') {
-                queryParams.append('campo', 'id_type');
-                queryParams.append('valor', filtros.tipo);
-            }
-            
-            if (filtros.numeroPedido) {
-                queryParams.append('campo', 'id_number');
-                queryParams.append('valor', filtros.numeroPedido);
-            }
-            
-            // Datas são tratadas no backend como filtros especiais
-            if (filtros.dataInicial) {
-                queryParams.append('data_inicial', filtros.dataInicial);
-            }
-            
-            if (filtros.dataFinal) {
-                queryParams.append('data_final', filtros.dataFinal);
-            }
-            
-            const url = `${API_URL}/api/faturamento${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-            console.log('URL para consulta de faturamentos:', url);
-            
-            const response = await fetch(url, {
-                headers: createAuthHeaders()
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Erro na resposta ao consultar faturamentos:', errorText);
-                throw new Error(`Erro ao consultar faturamentos: ${response.statusText || errorText}`);
-            }
-            
-            const faturamentos = await response.json();
-            console.log('Faturamentos recebidos:', faturamentos);
-            
-            // Mapear para o formato esperado pelo frontend
-            return faturamentos.map(fat => ({
-                id: fat.id,
-                numeroPedido: fat.id_number,
-                tipoPedido: fat.id_type,
-                valorTotal: fat.valor_total_pedido,
-                valorFaturado: fat.valor_a_faturar,
-                dataFaturamento: fat.created_at,
-                dataVencimento: fat.data_vencimento,
-                numeroNF: fat.nf,
-                arquivoNF: fat.nf_anexo,
-                metodoPagamento: fat.pagamento?.metodo || 'N/A',
-                codigoBoleto: fat.pagamento?.numero_boleto,
-                arquivoBoleto: fat.pagamento?.boleto_anexo,
-                dadosConta: fat.pagamento?.dados_conta
-            }));
-        } catch (error) {
-            console.error('Erro ao consultar faturamentos:', error);
-            return [];
-        }
-    }
-    
-    // Método auxiliar para converter arquivo para base64
-    static async fileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            if (!file) {
-                resolve(null);
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-        });
-    }
-    
     // Métodos auxiliares para informações de pedido
-    static async obterValorTotalPedido(pedidoId) {
+    static async obterValorTotalPedido(pedidoId, tipoPedido = 'compra') {
         try {
-            const pedido = await this.buscarPedidoCompraPorId(pedidoId);
+            let pedido;
+            
+            // Buscar o pedido de acordo com seu tipo
+            switch(tipoPedido) {
+                case 'compra':
+                    pedido = await this.buscarPedidoCompraPorId(pedidoId);
+                    break;
+                case 'locacao':
+                    pedido = await this.buscarPedidoLocacaoPorId(pedidoId);
+                    break;
+                case 'servico':
+                    pedido = await this.buscarPedidoServicoPorId(pedidoId);
+                    break;
+                default:
+                    throw new Error(`Tipo de pedido não suportado: ${tipoPedido}`);
+            }
+            
             return pedido?.valor_total || 0;
         } catch (error) {
-            console.error('Erro ao obter valor total do pedido:', error);
+            console.error(`Erro ao obter valor total do pedido ${tipoPedido}:`, error);
             return 0;
         }
     }
     
-    static async obterValorJaFaturado(pedidoId) {
+    static async obterValorJaFaturado(pedidoId, tipoPedido = 'compra') {
         try {
             const faturamentos = await this.consultarFaturamentos({
-                tipo: 'compra',
+                tipo: tipoPedido,
                 numeroPedido: pedidoId
             });
             
             // Somar valores já faturados
             return faturamentos.reduce((total, fat) => total + parseFloat(fat.valorFaturado || 0), 0);
         } catch (error) {
-            console.error('Erro ao obter valor já faturado:', error);
+            console.error(`Erro ao obter valor já faturado de ${tipoPedido}:`, error);
             return 0;
         }
     }
@@ -1635,7 +1597,7 @@ class ApiService {
     static async buscarFaturamentos(filtros = {}) {
         try {
             const queryParams = new URLSearchParams(filtros).toString();
-            const url = `${API_URL}/api/faturamentos${queryParams ? `?${queryParams}` : ''}`;
+            const url = `${API_URL}/api/faturamentos${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
             
             const response = await fetch(url, {
                 headers: createAuthHeaders()
@@ -1913,7 +1875,7 @@ class ApiService {
             // Adicionar flag específica para pedidos faturados
             queryParams.append('faturado', 'true');
             
-            const url = `${API_URL}/api/pedidos-faturados${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            const url = `${API_URL}/api/pedidos-consolidados${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
             console.log('URL para consulta de pedidos faturados:', url);
             
             const response = await fetch(url, {
@@ -1949,6 +1911,85 @@ class ApiService {
             console.error('Erro ao consultar pedidos faturados:', error);
             return [];
         }
+    }
+
+    static async consultarFaturamentos(filtros = {}) {
+        try {
+            console.log('Consultando faturamentos com filtros:', filtros);
+            
+            // Construir query string com os filtros
+            const queryParams = new URLSearchParams();
+            
+            if (filtros.tipo && filtros.tipo !== 'todos') {
+                queryParams.append('campo', 'id_type');
+                queryParams.append('valor', filtros.tipo);
+            }
+            
+            if (filtros.numeroPedido) {
+                queryParams.append('campo', 'id_number');
+                queryParams.append('valor', filtros.numeroPedido);
+            }
+            
+            // Datas são tratadas no backend como filtros especiais
+            if (filtros.dataInicial) {
+                queryParams.append('data_inicial', filtros.dataInicial);
+            }
+            
+            if (filtros.dataFinal) {
+                queryParams.append('data_final', filtros.dataFinal);
+            }
+            
+            const url = `${API_URL}/api/faturamentos${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            console.log('URL para consulta de faturamentos:', url);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Erro na resposta ao consultar faturamentos:', errorText);
+                throw new Error(`Erro ao consultar faturamentos: ${response.statusText || errorText}`);
+            }
+            
+            const faturamentos = await response.json();
+            console.log('Faturamentos recebidos:', faturamentos);
+            
+            // Mapear para o formato esperado pelo frontend
+            return faturamentos.map(fat => ({
+                id: fat.id,
+                numeroPedido: fat.id_number,
+                tipoPedido: fat.id_type,
+                valorTotal: fat.valor_total_pedido,
+                valorFaturado: fat.valor_a_faturar,
+                dataFaturamento: fat.created_at,
+                dataVencimento: fat.data_vencimento,
+                numeroNF: fat.nf,
+                arquivoNF: fat.nf_anexo,
+                metodoPagamento: fat.pagamento?.metodo || 'N/A',
+                codigoBoleto: fat.pagamento?.numero_boleto,
+                arquivoBoleto: fat.pagamento?.boleto_anexo,
+                dadosConta: fat.pagamento?.dados_conta
+            }));
+        } catch (error) {
+            console.error('Erro ao consultar faturamentos:', error);
+            return [];
+        }
+    }
+    
+    // Método auxiliar para converter arquivo para base64
+    static async fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            if (!file) {
+                resolve(null);
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+        });
     }
 }
 
