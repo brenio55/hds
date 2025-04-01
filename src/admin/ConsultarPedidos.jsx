@@ -34,16 +34,32 @@ function ConsultarPedidos() {
         setLoading(true);
         setError(null);
         try {
+            console.log("Iniciando busca de pedidos consolidados...");
             let data;
             try {
-                data = await ApiService.buscarPedidosCompra();
+                // Usar o método de pedidos consolidados para obter todos os tipos de pedidos
+                data = await ApiService.buscarPedidosConsolidados();
+                console.log("Resposta da API pedidos consolidados:", data);
             } catch (apiError) {
-                console.warn('Erro ao buscar pedidos da API, usando dados de exemplo:', apiError);
-                data = await ApiService.carregarDadosExemplo();
+                console.error('Erro ao buscar pedidos consolidados:', apiError);
+                try {
+                    console.log("Tentando fallback para buscarPedidosCompra...");
+                    data = await ApiService.buscarPedidosCompra();
+                } catch (fallbackError) {
+                    console.error('Erro no fallback para pedidos de compra:', fallbackError);
+                    console.warn('Usando dados de exemplo como último recurso');
+                    data = await ApiService.carregarDadosExemplo();
+                }
             }
             
             // Se a resposta for um array direto, usamos ele, senão procuramos a propriedade pedidos
             const pedidosData = Array.isArray(data) ? data : (data.pedidos || []);
+            console.log(`Pedidos encontrados: ${pedidosData.length}`);
+            
+            if (pedidosData.length === 0) {
+                console.warn("Nenhum pedido encontrado na resposta");
+            }
+            
             const pedidosProcessados = processarPedidos(pedidosData);
             const pedidosOrdenados = ordenarPedidosPorData(pedidosProcessados);
             setPedidos(pedidosOrdenados);
@@ -58,20 +74,59 @@ function ConsultarPedidos() {
     // Função para processar os pedidos e calcular valores totais
     const processarPedidos = (pedidosData) => {
         return pedidosData.map(pedido => {
-            // Calcular o valor total somando todos os itens
-            const valorTotal = pedido.materiais?.reduce((total, item) => {
-                return total + (parseFloat(item.valor_total) || 0);
-            }, 0) || 0;
-
-            // Determinar o tipo de pedido (assumindo que é material por padrão)
-            const tipo = pedido.tipo || 'material';
-
+            console.log("Processando pedido:", pedido);
+            
+            // Pedidos consolidados já vêm com o campo tipo definido
+            const tipo = pedido.tipo || 'compra';
+            
+            // Calcular o valor total baseado na estrutura do pedido
+            let valorTotal = 0;
+            
+            if (pedido.valor_total) {
+                // Se já tiver valor_total, usamos ele diretamente
+                valorTotal = parseFloat(pedido.valor_total) || 0;
+            } else if (pedido.materiais && Array.isArray(pedido.materiais)) {
+                // Para pedidos de compra, somamos os materiais
+                valorTotal = pedido.materiais.reduce((total, item) => {
+                    return total + (parseFloat(item.valor_total) || 0);
+                }, 0);
+            } else if (pedido.itens && Array.isArray(pedido.itens)) {
+                // Para pedidos de locação ou serviço, somamos os itens
+                valorTotal = pedido.itens.reduce((total, item) => {
+                    return total + (parseFloat(item.valor_total) || 0);
+                }, 0);
+            }
+            
+            // Estruturar dados formatados para exibição
             return {
                 ...pedido,
                 valor_total: valorTotal,
-                tipo: tipo
+                tipo: tipo,
+                data_formatada: formatarData(pedido.created_at || pedido.data_criacao || pedido.data),
+                fornecedor_nome: pedido.fornecedor?.nome || pedido.fornecedor?.razao_social || 'N/A'
             };
         });
+    };
+
+    const getTipoPedido = (tipo) => {
+        // Obter descrição adequada para display com base no tipo do backend
+        const tiposDisplay = {
+            'compra': 'Compra de Material',
+            'servico': 'Serviço',
+            'locacao': 'Locação',
+            'material': 'Compra de Material'
+        };
+        return tiposDisplay[tipo] || tipo || '-';
+    };
+
+    const getTipoBackend = (tipoFrontend) => {
+        // Mapear os valores do frontend para os valores esperados pelo backend
+        const tiposBackend = {
+            'material': 'compra', // Frontend usa 'material', backend usa 'compra'
+            'servico': 'servico',
+            'locacao': 'locacao'
+        };
+        return tiposBackend[tipoFrontend] || tipoFrontend;
     };
 
     const handleSearch = async (e) => {
@@ -80,36 +135,58 @@ function ConsultarPedidos() {
         setError(null);
         
         try {
+            // Criar uma cópia dos filtros para modificação
+            const filtrosAjustados = { ...filtros };
+            
+            // Converter o tipo para o formato esperado pelo backend
+            if (filtrosAjustados.tipo) {
+                filtrosAjustados.tipo = getTipoBackend(filtrosAjustados.tipo);
+                console.log(`Tipo ajustado para backend: ${filtrosAjustados.tipo}`);
+            }
+            
             const filtrosValidos = Object.fromEntries(
-                Object.entries(filtros).filter(([key, value]) => value !== '' && key !== 'dataDecrescente')
+                Object.entries(filtrosAjustados).filter(([key, value]) => value !== '' && key !== 'dataDecrescente')
             );
             
+            console.log("Buscando pedidos com filtros:", filtrosValidos);
             let data;
             try {
-                data = await ApiService.buscarPedidosCompra(filtrosValidos);
+                // Usar o método de pedidos consolidados que retorna todos os tipos
+                data = await ApiService.buscarPedidosConsolidados(filtrosValidos);
+                console.log("Resposta da API com filtros:", data);
             } catch (apiError) {
-                console.warn('Erro ao buscar pedidos da API, usando dados de exemplo:', apiError);
-                data = await ApiService.carregarDadosExemplo();
+                console.error('Erro ao buscar pedidos consolidados com filtros:', apiError);
                 
-                // Aplicar filtros manualmente aos dados de exemplo
-                if (Object.keys(filtrosValidos).length > 0) {
-                    data = data.filter(pedido => {
-                        let match = true;
-                        if (filtrosValidos.id && pedido.id.toString() !== filtrosValidos.id.toString()) {
-                            match = false;
-                        }
-                        if (filtrosValidos.tipo && pedido.tipo !== filtrosValidos.tipo) {
-                            match = false;
-                        }
-                        if (filtrosValidos.centroCusto && pedido.proposta_id.toString() !== filtrosValidos.centroCusto.toString()) {
-                            match = false;
-                        }
-                        return match;
-                    });
+                try {
+                    console.log("Tentando fallback para buscarPedidosCompra...");
+                    data = await ApiService.buscarPedidosCompra(filtrosValidos);
+                } catch (fallbackError) {
+                    console.error('Erro no fallback para pedidos de compra:', fallbackError);
+                    console.warn('Usando dados de exemplo como último recurso');
+                    data = await ApiService.carregarDadosExemplo();
+                    
+                    // Aplicar filtros manualmente aos dados de exemplo
+                    if (Object.keys(filtrosValidos).length > 0) {
+                        data = data.filter(pedido => {
+                            let match = true;
+                            if (filtrosValidos.id && pedido.id.toString() !== filtrosValidos.id.toString()) {
+                                match = false;
+                            }
+                            if (filtrosValidos.tipo && pedido.tipo !== filtrosValidos.tipo) {
+                                match = false;
+                            }
+                            if (filtrosValidos.centroCusto && pedido.proposta_id?.toString() !== filtrosValidos.centroCusto.toString()) {
+                                match = false;
+                            }
+                            return match;
+                        });
+                    }
                 }
             }
             
             const pedidosData = Array.isArray(data) ? data : (data.pedidos || []);
+            console.log(`Pedidos filtrados encontrados: ${pedidosData.length}`);
+            
             const pedidosProcessados = processarPedidos(pedidosData);
             
             let pedidosOrdenados = pedidosProcessados;
@@ -142,10 +219,20 @@ function ConsultarPedidos() {
         }));
     };
 
-    const handleVisualizarPedido = async (id) => {
+    const handleVisualizarPedido = async (id, tipo) => {
         try {
             setVisualizandoId(id);
-            await ApiService.visualizarPedidoPdf(id);
+            console.log(`Visualizando pedido ${id} do tipo ${tipo}`);
+            
+            // Escolher o método correto com base no tipo de pedido
+            if (tipo === 'servico') {
+                await ApiService.visualizarPedidoServicoPdf(id);
+            } else if (tipo === 'locacao') {
+                await ApiService.visualizarPedidoLocacaoPdf(id);
+            } else {
+                // Default para pedidos de compra
+                await ApiService.visualizarPedidoPdf(id);
+            }
         } catch (error) {
             console.error('Erro ao visualizar PDF do pedido:', error);
             alert('Erro ao visualizar o PDF do pedido. Por favor, tente novamente.');
@@ -154,10 +241,20 @@ function ConsultarPedidos() {
         }
     };
 
-    const handleDownloadPedido = async (id) => {
+    const handleDownloadPedido = async (id, tipo) => {
         try {
             setDownloadingId(id);
-            await ApiService.downloadPedidoPdf(id);
+            console.log(`Baixando pedido ${id} do tipo ${tipo}`);
+            
+            // Escolher o método correto com base no tipo de pedido
+            if (tipo === 'servico') {
+                await ApiService.downloadPedidoServicoPdf(id);
+            } else if (tipo === 'locacao') {
+                await ApiService.downloadPedidoLocacaoPdf(id);
+            } else {
+                // Default para pedidos de compra
+                await ApiService.downloadPedidoPdf(id);
+            }
         } catch (error) {
             console.error('Erro ao baixar PDF do pedido:', error);
             alert('Erro ao baixar o PDF do pedido. Por favor, tente novamente.');
@@ -185,21 +282,11 @@ function ConsultarPedidos() {
         }).format(valor);
     };
 
-    const getTipoPedido = (tipo) => {
-        const tipos = {
-            'material': 'Material',
-            'servico': 'Serviço',
-            'locacao': 'Locação',
-            'faturamento': 'Faturamento'
-        };
-        return tipos[tipo] || tipo || '-';
-    };
-
     return (
         <>
             <HeaderAdmin />
             <div className="consultar-propostas-container">
-                <h2>Consultar Pedidos C-L-S e Faturamentos</h2>
+                <h2>Consultar Pedidos C-L-S</h2>
                 
                 <form onSubmit={handleSearch} className="search-form">
                     <div className="form-group">
@@ -211,10 +298,9 @@ function ConsultarPedidos() {
                             onChange={handleInputChange}
                         >
                             <option value="">Todos</option>
-                            <option value="material">Material</option>
+                            <option value="material">Compra de Material</option>
                             <option value="servico">Serviço</option>
                             <option value="locacao">Locação</option>
-                            <option value="faturamento">Faturamento</option>
                         </select>
                     </div>
                     <div className="form-group">
@@ -290,23 +376,23 @@ function ConsultarPedidos() {
                                         <tr key={pedido.id}>
                                             <td>{pedido.id}</td>
                                             <td>{getTipoPedido(pedido.tipo)}</td>
-                                            <td>{pedido.fornecedor_nome || `ID: ${pedido.fornecedores_id}` || '-'}</td>
-                                            <td>{pedido.clientinfo_id || '-'}</td>
+                                            <td>{pedido.fornecedor_nome || `ID: ${pedido.fornecedor_id || pedido.fornecedores_id}` || '-'}</td>
+                                            <td>{pedido.cliente_id || pedido.clientinfo_id || '-'}</td>
                                             <td>{pedido.proposta_id || '-'}</td>
                                             <td>{formatarValor(pedido.valor_total)}</td>
-                                            <td>{formatarData(pedido.created_at || pedido.data_criacao)}</td>
+                                            <td>{pedido.data_formatada || formatarData(pedido.created_at || pedido.data_criacao)}</td>
                                             <td className="actions-column">
                                                 <div className="action-buttons">
                                                     <button 
                                                         className="view-button"
-                                                        onClick={() => handleVisualizarPedido(pedido.id)}
+                                                        onClick={() => handleVisualizarPedido(pedido.id, pedido.tipo)}
                                                         disabled={visualizandoId === pedido.id}
                                                     >
                                                         {visualizandoId === pedido.id ? 'Abrindo...' : 'Visualizar'}
                                                     </button>
                                                     <button 
                                                         className="download-button"
-                                                        onClick={() => handleDownloadPedido(pedido.id)}
+                                                        onClick={() => handleDownloadPedido(pedido.id, pedido.tipo)}
                                                         disabled={downloadingId === pedido.id}
                                                     >
                                                         {downloadingId === pedido.id ? 'Baixando...' : 'Download'}

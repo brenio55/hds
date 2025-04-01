@@ -347,42 +347,57 @@ function PedidosDeServico() {
             const totalDescontos = calcularTotalDescontos();
             const totalFinal = calcularTotalFinal();
 
-            const pedidoParaSalvar = {
-                codigo: document.querySelector('[name="codigo"]')?.value || '',
-                fornecedor_id: fornecedorId,
-                cnpj: cnpj,
-                endereco: endereco,
-                contato: contato,
-                dataVencto: document.querySelector('[name="dataVencto"]')?.value || '',
-                condPagto: dadosPedido.condPagto || '30',
-                frete: dadosPedido.frete || 'CIF',
-                totalBruto,
-                totalDescontos,
-                valorFrete: dadosPedido.valorFrete,
-                outrasDespesas: dadosPedido.outrasDespesas,
-                informacoesImportantes: dadosPedido.informacoesImportantes,
-                totalFinal,
-                proposta_id: centroCusto,
-                previsaoEntrega: new Date().toISOString().split('T')[0]
+            // Obtém valores dos campos adicionais específicos para serviços
+            const escopoContratacao = document.querySelector('[name="escopoContratacao"]')?.value || '';
+            const respContratada = document.querySelector('[name="respContratada"]')?.value || '';
+            const respContratante = document.querySelector('[name="respContratante"]')?.value || '';
+
+            // Formatar o pedido de serviço no formato esperado pelo backend
+            const pedidoServico = {
+                fornecedor_id: parseInt(fornecedorId),
+                data_vencimento: document.querySelector('[name="dataVencto"]')?.value || new Date().toISOString().split('T')[0],
+                proposta_id: parseInt(centroCusto) || null,
+                itens: {
+                    materiais: itens.map((item, index) => ({
+                        item: index + 1,
+                        descricao: item.descricao,
+                        unidade: item.unidade,
+                        quantidade: parseFloat(item.quantidade.replace(',', '.')) || 0,
+                        ipi: parseFloat(item.ipi.replace(',', '.')) || 0,
+                        valor_unitario: parseFloat(item.valorUnitario.replace(',', '.')) || 0,
+                        valor_total: parseFloat(item.valorTotal.replace(',', '.')) || 0,
+                        desconto: parseFloat(item.desconto.replace(',', '.')) || 0,
+                        previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+                    })),
+                    total_bruto: parseFloat(totalBruto.replace(',', '.')) || 0,
+                    total_ipi: parseFloat(ipiTotal.replace(',', '.')) || 0,
+                    total_descontos: parseFloat(totalDescontos.replace(',', '.')) || 0,
+                    valor_frete: parseFloat(dadosPedido.valorFrete.replace(',', '.')) || 0,
+                    outras_despesas: parseFloat(dadosPedido.outrasDespesas.replace(',', '.')) || 0,
+                    total_final: parseFloat(totalFinal.replace(',', '.')) || 0,
+                    frete: dadosPedido.frete || 'CIF',
+                    condicao_pagamento: dadosPedido.condPagto || '30',
+                    informacoes_importantes: dadosPedido.informacoesImportantes || '',
+                    escopo_contratacao: escopoContratacao,
+                    responsabilidade_contratada: respContratada.split(/\r?\n/).filter(item => item.trim() !== ''),
+                    responsabilidade_contratante: respContratante.split(/\r?\n/).filter(item => item.trim() !== '')
+                }
             };
 
-            // Preparar os itens no formato esperado
-            const itensFormatados = itens.map((item, index) => ({
-                ...item,
-                item: index + 1, // Garantir que os itens estão numerados sequencialmente
-                previsaoEntrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-            }));
-
-            const resultado = await ApiService.criarPedido(pedidoParaSalvar, itensFormatados);
+            // Chamar o método específico para criar pedido de serviço
+            const resultado = await ApiService.criarPedidoServico(pedidoServico);
             
             // Exibir popup de sucesso
             const successPopup = document.createElement('div');
             successPopup.className = 'success-popup';
             successPopup.innerHTML = `
                 <div class="success-popup-content">
-                    <h3>Pedido Gerado com Sucesso!</h3>
+                    <h3>Pedido de Serviço Gerado com Sucesso!</h3>
                     <p>O pedido foi criado com o ID: ${resultado.id || 'N/A'}</p>
-                    <button id="closeSuccessPopup">Fechar</button>
+                    <div class="success-buttons">
+                        <button id="closeSuccessPopup">Fechar</button>
+                        <button id="viewPdfButton">Visualizar PDF</button>
+                    </div>
                 </div>
             `;
             document.body.appendChild(successPopup);
@@ -391,168 +406,18 @@ function PedidosDeServico() {
             document.getElementById('closeSuccessPopup').addEventListener('click', () => {
                 document.body.removeChild(successPopup);
             });
-
-            const formatarValorMonetario = (valor) => {
-                if (!valor) return '0,00';
-                return typeof valor === 'string' ? valor : valor.toString().replace('.', ',');
-            };
-
-            const logoResponse = await fetch('/docs/admin/LOGO.png');
-            const logoBlob = await logoResponse.blob();
-            const logoBase64 = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(logoBlob);
-            });
-
-            const response = await fetch('/docs/admin/pedidoDeServicoTemplateCode.html');
-            let templateHtml = await response.text();
-
-            templateHtml = templateHtml.replace(
-                /<img[^>]*>/,
-                `<img src="${logoBase64}" alt="Logo" class="logo" style="height: 80px;">`
-            );
-
-            const hoje = new Date();
-            const dataFormatada = `${hoje.getDate().toString().padStart(2, '0')}/${(hoje.getMonth() + 1).toString().padStart(2, '0')}/${hoje.getFullYear()}`;
             
-            templateHtml = templateHtml.replace(
-                /<td>20000001<\/td>\s*<td>12\/12\/2024<\/td>\s*<td>1<\/td>/,
-                `<td>${resultado.id}</td><td>${dataFormatada}</td><td>1</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<td>12345<\/td>\s*<td>Fornecedor XYZ<\/td>\s*<td>00\.000\.000\/0000-00<\/td>\s*<td>Rua Exemplo, 123<\/td>\s*<td>12000-000<\/td>\s*<td>\(12\) 3456-7890<\/td>/,
-                `<td>${document.querySelector('[name="codigo"]').value}</td>
-                <td>${document.querySelector('[name="fornecedor"]').value}</td>
-                <td>${cnpj}</td>
-                <td>${document.querySelector('[name="endereco"]').value}</td>
-                <td>${cep}</td>
-                <td>${contato}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<td>001<\/td>\s*<td>01\/01\/2024<\/td>\s*<td>À vista<\/td>\s*<td>Financeiro<\/td>/,
-                `<td>${document.querySelector('[name="pedido"]').value}</td>
-                <td>${formatarData(document.querySelector('[name="dataVencto"]').value)}</td>
-                <td>${dadosPedido.condPagto || 'N/A'}</td>
-                <td>${document.querySelector('[name="centroCusto"]')?.value || 'N/A'}</td>`
-            );
-
-            const tabelaItens = itens.map((item, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${item.descricao}</td>
-                    <td>${item.unidade}</td>
-                    <td>${item.quantidade}</td>
-                    <td>R$ ${formatarValorMonetario(item.valorUnitario)}</td>
-                    <td>R$ ${formatarValorMonetario(item.valorTotal)}</td>
-                    <td>${item.ipi}%</td>
-                    <td>${formatarData(item.previsaoEntrega)}</td>
-                </tr>
-            `).join('');
-
-            templateHtml = templateHtml.replace(
-                /<tbody>\s*{{#each items}}[\s\S]*?{{\/each}}\s*<\/tbody>/,
-                `<tbody>${tabelaItens}</tbody>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<th>Total Bruto<\/th>\s*<td>R\$ 2\.144,00<\/td>/,
-                `<th>Total Bruto</th><td>R$ ${calcularTotalBruto()}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<th>\(\+\) IPI<\/th>\s*<td>R\$ -<\/td>/,
-                `<th>(+) IPI</th><td>R$ ${calcularTotalIPI()}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<th>\(\+\) Frete<\/th>\s*<td>R\$ 100,00<\/td>/,
-                `<th>(+) Frete</th><td>R$ ${formatarValorMonetario(dadosPedido.valorFrete)}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<th>\(\+\) Outras despesas<\/th>\s*<td>R\$ -<\/td>/,
-                `<th>(+) Outras despesas</th><td>R$ ${formatarValorMonetario(dadosPedido.outrasDespesas)}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<th>\(-\) Desconto<\/th>\s*<td>R\$ -<\/td>/,
-                `<th>(-) Desconto</th><td>R$ ${calcularTotalDescontos()}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<th>\(=\) Total Final<\/th>\s*<td>R\$ 2\.244,00<\/td>/,
-                `<th>(=) Total Final</th><td>R$ ${calcularTotalFinal()}</td>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /<h2>Dados Adicionais<\/h2>\s*<table>\s*<tr>\s*<td><\/td>\s*<\/tr>\s*<\/table>/,
-                `<h2>Dados Adicionais</h2>
-                <table>
-                    <tr>
-                        <td>${(dadosPedido.informacoesImportantes || 'Nenhuma informação adicional').replace(/\n/g, '<br>')}</td>
-                    </tr>
-                </table>`
-            );
-
-            templateHtml = templateHtml.replace(
-                /Frete \(  \) CIF     \(   \) FOB/,
-                `Frete (${dadosPedido.frete === 'CIF' ? 'X' : '  '}) CIF     (${dadosPedido.frete === 'FOB' ? 'X' : '  '}) FOB`
-            );
-
-            // ===== NOVOS CAMPOS =====
-            // Atualiza a seção de Escopo da Contratação
-            templateHtml = templateHtml.replace(
-                /<h2>CARACTERÍSTICAS TÉCNICAS DA OBRA \(Escopo da Contratação\)<\/h2>\s*<table>[\s\S]*?<\/table>/,
-                `<h2>CARACTERÍSTICAS TÉCNICAS DA OBRA (Escopo da Contratação)</h2>
-                 <table>
-                   <tr>
-                     <td>${document.querySelector('[name="escopoContratacao"]').value || ''}</td>
-                   </tr>
-                 </table>`
-            );
-
-            // Atualiza a seção de Responsabilidade da Contratada
-            const respContratadaInput = document.querySelector('[name="respContratada"]').value || '';
-            const respContratadaList = respContratadaInput.split(/\r?\n/).map(item => `<li>${item}</li>`).join('');
-            templateHtml = templateHtml.replace(
-                /<h2>RESPONSABILIDADE DA CONTRATADA<\/h2>\s*<table>[\s\S]*?<\/table>/,
-                `<h2>RESPONSABILIDADE DA CONTRATADA</h2>
-                 <table>
-                   <tr>
-                     <td>
-                       <ul>
-                         ${respContratadaList}
-                       </ul>
-                     </td>
-                   </tr>
-                 </table>`
-            );
-
-            // Atualiza a seção de Responsabilidades da Contratante
-            const respContratanteInput = document.querySelector('[name="respContratante"]').value || '';
-            const respContratanteList = respContratanteInput.split(/\r?\n/).map(item => `<li>${item}</li>`).join('');
-            templateHtml = templateHtml.replace(
-                /<h2>RESPONSABILIDADES DA CONTRATANTE<\/h2>\s*<table>[\s\S]*?<\/table>/,
-                `<h2>RESPONSABILIDADES DA CONTRATANTE</h2>
-                 <table>
-                   <tr>
-                     <td>
-                       <ul>
-                         ${respContratanteList}
-                       </ul>
-                     </td>
-                   </tr>
-                 </table>`
-            );
-            // ==========================
-
-            const blob = new Blob([templateHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            URL.revokeObjectURL(url);
+            // Adicionar evento para visualizar o PDF
+            if (resultado && resultado.id) {
+                document.getElementById('viewPdfButton').addEventListener('click', async () => {
+                    try {
+                        await ApiService.visualizarPedidoServicoPdf(resultado.id);
+                    } catch (error) {
+                        console.error('Erro ao visualizar PDF:', error);
+                        alert('Erro ao visualizar o PDF. Tente novamente mais tarde.');
+                    }
+                });
+            }
         } catch (error) {
             console.error('Erro ao gerar pedido:', error);
             alert('Erro ao gerar pedido. Por favor, tente novamente.');
@@ -916,7 +781,7 @@ function PedidosDeServico() {
                             <div className="form-group">
                                 <label>Prazo de Entrega:</label>
                                 <input
-                                    type="text"
+                                    type="date"
                                     name="prazoEntrega"
                                     value={dadosPedido.prazoEntrega}
                                     onChange={handleDadosPedidoChange}
