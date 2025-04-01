@@ -13,7 +13,7 @@ class PdfService {
       const template = await fs.readFile(templatePath, 'utf-8');
 
       // Tenta parsear cada campo individualmente com logs
-      let clientInfo, especificacoes_html, afazerHds, afazerContratante, naoFazerHds;
+      let clientInfo, especificacoes_html, especificacoes_document, afazerHds, afazerContratante, naoFazerHds;
       
       try {
         clientInfo = typeof propostaData.client_info === 'string' 
@@ -27,16 +27,14 @@ class PdfService {
       }
 
       try {
-        const docText = propostaData.documento_text || '{}';
-        console.log('documento_text bruto:', docText);
-        const docParsed = JSON.parse(docText);
-        console.log('documento_text parseado:', docParsed);
-        especificacoes_html = docParsed;
+        especificacoes_document = propostaData.documento_text || 'Nada'; 
       } catch (e) {
         console.error('Erro ao parsear documento_text:', e);
-        especificacoes_html = {};
+        especificacoes_document = 'Nada';
       }
 
+      especificacoes_html =  propostaData.especificacoes_html || '- Sem especificações';
+      
       try {
         afazerHds = JSON.parse(propostaData.afazer_hds || '[]');
         console.log('afazerHds parseado:', afazerHds);
