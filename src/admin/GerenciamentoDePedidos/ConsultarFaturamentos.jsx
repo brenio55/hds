@@ -33,53 +33,51 @@ function ConsultarFaturamentos() {
             
             console.log("Filtros aplicados:", filtros);
             
-            // Buscar pedidos faturados usando o método específico
+            // Fator importante: não faça várias chamadas simultâneas que possam interferir uma na outra
+            // Primeiro buscar todos os faturamentos
+            const faturamentosDetalhados = await ApiService.consultarFaturamentos(filtros);
+            console.log("Faturamentos recebidos:", faturamentosDetalhados);
+            
+            if (faturamentosDetalhados.length === 0) {
+                setError('Nenhum faturamento encontrado com os filtros selecionados.');
+                setFaturamentos([]);
+                setLoading(false);
+                return;
+            }
+            
+            // Depois, buscar detalhes dos pedidos relacionados a esses faturamentos
             const pedidosFaturados = await ApiService.consultarPedidosFaturados(filtros);
             console.log("Pedidos faturados recebidos:", pedidosFaturados);
-            
-            // Buscar faturamentos detalhados para cada pedido
-            const faturamentosDetalhados = await ApiService.consultarFaturamentos(filtros);
-            console.log("Detalhes de faturamentos recebidos:", faturamentosDetalhados);
             
             // Combinar as informações
             const faturamentosCompletos = faturamentosDetalhados.map(faturamento => {
                 // Encontrar o pedido correspondente
                 const pedidoRelacionado = pedidosFaturados.find(
-                    p => p.id.toString() === faturamento.numeroPedido.toString()
+                    p => p.id.toString() === faturamento.numeroPedido.toString() && 
+                         p.tipo === faturamento.tipoPedido
                 );
                 
                 // Extrair nome do fornecedor do pedido relacionado
                 let fornecedorNome = 'N/D';
                 if (pedidoRelacionado && pedidoRelacionado.fornecedor) {
                     if (typeof pedidoRelacionado.fornecedor === 'object') {
-                        fornecedorNome = pedidoRelacionado.fornecedor.nome;
+                        fornecedorNome = pedidoRelacionado.fornecedor.nome || pedidoRelacionado.fornecedor.razao_social;
                     } else {
                         fornecedorNome = pedidoRelacionado.fornecedor;
                     }
                 }
                 
-                // Obter valor total do pedido e calcular valor a faturar
-                const valorTotal = pedidoRelacionado?.valorTotal || faturamento.valorTotal || 0;
-                const valorFaturado = parseFloat(faturamento.valorFaturado) || 0;
-                const valorAFaturar = Math.max(0, valorTotal - valorFaturado);
-                
+                // Usar valores do faturamento, complementando com os do pedido quando necessário
                 return {
                     ...faturamento,
                     // Adicionar informações extras do pedido se disponíveis
                     cliente: pedidoRelacionado?.cliente || 'N/D',
                     fornecedor: fornecedorNome,
-                    numero: pedidoRelacionado?.numero || `PC-${faturamento.numeroPedido}`,
-                    valorTotal: valorTotal,
-                    valorAFaturar: valorAFaturar
+                    numero: pedidoRelacionado?.numero || `${faturamento.tipoPedido.toUpperCase().substring(0,1)}C-${faturamento.numeroPedido}`
                 };
             });
             
             console.log("Faturamentos com dados combinados:", faturamentosCompletos);
-            
-            if (faturamentosCompletos.length === 0) {
-                setError('Nenhum faturamento encontrado com os filtros selecionados.');
-            }
-            
             setFaturamentos(faturamentosCompletos);
         } catch (error) {
             console.error('Erro ao carregar faturamentos:', error);

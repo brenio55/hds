@@ -979,21 +979,30 @@ class ApiService {
                 // Extrair campos básicos
                 dados.id_number = dadosFaturamento.get('pedidoId');
                 dados.id_type = dadosFaturamento.get('tipoPedido') || 'compra'; // Usar o tipo especificado ou padrão 'compra'
-                dados.valor_total_pedido = await this.obterValorTotalPedido(dados.id_number, dados.id_type);
-                dados.valor_faturado = await this.obterValorJaFaturado(dados.id_number, dados.id_type);
-                dados.valor_a_faturar = dadosFaturamento.get('valorFaturamento');
+                
+                // Obter valores totais e calcular a porcentagem
+                const valorTotalPedido = await this.obterValorTotalPedido(dados.id_number, dados.id_type);
+                const valorJaFaturado = await this.obterValorJaFaturado(dados.id_number, dados.id_type);
+                const valorAFaturar = parseFloat(dadosFaturamento.get('valorFaturamento').replace(',', '.'));
+                
+                // Calcular a porcentagem do valor a faturar em relação ao valor total
+                const porcentagemFaturada = valorTotalPedido > 0 
+                    ? (valorAFaturar / valorTotalPedido) * 100 
+                    : 0;
+                
+                dados.valor_total_pedido = valorTotalPedido;
+                dados.valor_faturado = porcentagemFaturada; // Valor em porcentagem (0-100)
+                dados.valor_a_faturar = valorAFaturar; // Valor absoluto
                 dados.data_vencimento = dadosFaturamento.get('dataVencimento');
                 
                 // Formatar número da NF para conter apenas números
                 const numeroNF = dadosFaturamento.get('numeroNF');
                 dados.nf = numeroNF ? numeroNF.replace(/\D/g, '') : ''; // Remove todos os não-dígitos
                 
-                // Configurar pagamento baseado no método
-                const metodoPagamento = dadosFaturamento.get('metodoPagamento');
                 // Enviar apenas o método de pagamento como string para o campo pagamento (enum)
-                dados.pagamento = metodoPagamento;
+                dados.pagamento = dadosFaturamento.get('metodoPagamento');
                 
-                if (metodoPagamento === 'boleto') {
+                if (dados.pagamento === 'boleto') {
                     dados.numero_boleto = dadosFaturamento.get('numeroBoleto');
                     
                     // Converter arquivo do boleto para base64 se existir
@@ -1001,7 +1010,7 @@ class ApiService {
                     if (arquivoBoleto) {
                         dados.boleto_anexo = await this.fileToBase64(arquivoBoleto);
                     }
-                } else if (metodoPagamento === 'pix' || metodoPagamento === 'ted') {
+                } else if (dados.pagamento === 'pix' || dados.pagamento === 'ted') {
                     dados.dados_conta = dadosFaturamento.get('dadosConta');
                 }
                 
@@ -1054,6 +1063,38 @@ class ApiService {
                     // Sobrescrever campo pagamento com apenas o método
                     dadosFaturamento.pagamento = metodoPagamento;
                 }
+                
+                // Garantir que id_type e id_number estejam definidos
+                if (!dadosFaturamento.id_type && dadosFaturamento.tipoPedido) {
+                    dadosFaturamento.id_type = dadosFaturamento.tipoPedido;
+                    delete dadosFaturamento.tipoPedido;
+                }
+                
+                if (!dadosFaturamento.id_number && dadosFaturamento.pedidoId) {
+                    dadosFaturamento.id_number = dadosFaturamento.pedidoId;
+                    delete dadosFaturamento.pedidoId;
+                }
+                
+                // Certificar-se de que valor_faturado está em porcentagem (0-100)
+                if (dadosFaturamento.valorFaturamento) {
+                    const valorAFaturar = parseFloat(dadosFaturamento.valorFaturamento);
+                    const valorTotal = dadosFaturamento.valor_total_pedido || await this.obterValorTotalPedido(dadosFaturamento.id_number, dadosFaturamento.id_type);
+                    
+                    if (valorTotal > 0) {
+                        dadosFaturamento.valor_a_faturar = valorAFaturar;
+                        dadosFaturamento.valor_faturado = (valorAFaturar / valorTotal) * 100;
+                    }
+                    
+                    delete dadosFaturamento.valorFaturamento;
+                }
+                
+                // Garantir data_vencimento no formato correto
+                if (dadosFaturamento.dataVencimento) {
+                    dadosFaturamento.data_vencimento = dadosFaturamento.dataVencimento;
+                    delete dadosFaturamento.dataVencimento;
+                }
+                
+                console.log('Enviando dados de faturamento (objeto direto):', dadosFaturamento);
                 
                 const response = await fetch(`${API_URL}/api/faturamentos`, {
                     method: 'POST',
@@ -1951,23 +1992,17 @@ class ApiService {
             // Construir query string com os filtros
             const queryParams = new URLSearchParams();
             
+            // Backend espera um formato específico de filtros: campo e valor
             if (filtros.tipo && filtros.tipo !== 'todos') {
                 queryParams.append('campo', 'id_type');
                 queryParams.append('valor', filtros.tipo);
-            }
-            
-            if (filtros.numeroPedido) {
+            } else if (filtros.numeroPedido) {
                 queryParams.append('campo', 'id_number');
                 queryParams.append('valor', filtros.numeroPedido);
-            }
-            
-            // Datas são tratadas no backend como filtros especiais
-            if (filtros.dataInicial) {
-                queryParams.append('data_inicial', filtros.dataInicial);
-            }
-            
-            if (filtros.dataFinal) {
-                queryParams.append('data_final', filtros.dataFinal);
+            } else if (filtros.dataInicial && filtros.dataFinal) {
+                // Para data, usamos uma abordagem diferente: buscar tudo e filtrar no cliente
+                // já que o backend não suporta filtragem por data diretamente
+                console.log("Filtragem por data será aplicada após buscar os resultados");
             }
             
             const url = `${API_URL}/api/faturamentos${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
@@ -1983,46 +2018,52 @@ class ApiService {
                 throw new Error(`Erro ao consultar faturamentos: ${response.statusText || errorText}`);
             }
             
-            const faturamentos = await response.json();
-            console.log('Faturamentos recebidos:', faturamentos);
+            let faturamentos = await response.json();
+            console.log('Faturamentos recebidos do backend:', faturamentos);
+            
+            // Filtrar por data se necessário (já que o backend não suporta isso diretamente)
+            if (filtros.dataInicial && filtros.dataFinal) {
+                const dataInicial = new Date(filtros.dataInicial);
+                const dataFinal = new Date(filtros.dataFinal);
+                dataFinal.setHours(23, 59, 59); // Incluir todo o último dia
+                
+                faturamentos = faturamentos.filter(fat => {
+                    const dataFaturamento = new Date(fat.created_at);
+                    return dataFaturamento >= dataInicial && dataFaturamento <= dataFinal;
+                });
+                
+                console.log(`Após filtro de data: ${faturamentos.length} faturamentos`);
+            }
             
             // Para cada faturamento, buscar o valor total do pedido para calcular valor restante
             const faturamentosDetalhados = [];
             
             for (const fat of faturamentos) {
                 try {
-                    // Obter valor total do pedido
+                    // Mapear as propriedades do objeto retornado pelo backend para o formato esperado pelo frontend
                     const valorTotalPedido = parseFloat(fat.valor_total_pedido || 0);
+                    const valorAFaturar = parseFloat(fat.valor_a_faturar || 0);
                     
-                    // Obter todos os faturamentos deste pedido para calcular o total já faturado
-                    const todosDoMesmoPedido = faturamentos.filter(
-                        f => f.id_number === fat.id_number && f.id_type === fat.id_type
-                    );
-                    
-                    const valorTotalFaturado = todosDoMesmoPedido.reduce(
-                        (total, f) => total + parseFloat(f.valor_a_faturar || 0),
-                        0
-                    );
-                    
-                    // Calcular valor restante a faturar
-                    const valorAFaturar = Math.max(0, valorTotalPedido - valorTotalFaturado);
+                    // Obter valor faturado em valor monetário a partir da porcentagem
+                    const porcentagemFaturada = parseFloat(fat.valor_faturado || 0); // 0-100
+                    const valorFaturadoCalculado = (porcentagemFaturada / 100) * valorTotalPedido;
                     
                     faturamentosDetalhados.push({
                         id: fat.id,
                         numeroPedido: fat.id_number,
                         tipoPedido: fat.id_type,
                         valorTotal: valorTotalPedido,
-                        valorFaturado: parseFloat(fat.valor_a_faturar || 0),
-                        valorTotalFaturado: valorTotalFaturado,
-                        valorAFaturar: valorAFaturar,
+                        valorFaturado: valorAFaturar, // Usar valor monetário, não porcentagem
+                        valorTotalFaturado: valorFaturadoCalculado,
+                        valorAFaturar: Math.max(0, valorTotalPedido - valorFaturadoCalculado),
                         dataFaturamento: fat.created_at,
                         dataVencimento: fat.data_vencimento,
                         numeroNF: fat.nf,
                         arquivoNF: fat.nf_anexo,
-                        metodoPagamento: fat.pagamento || 'N/A',
-                        codigoBoleto: fat.numero_boleto,
-                        arquivoBoleto: fat.boleto_anexo,
-                        dadosConta: fat.dados_conta
+                        metodoPagamento: fat.pagamento, // Agora é string no backend, não objeto
+                        codigoBoleto: fat.numero_boleto, // Movido para o nível principal
+                        arquivoBoleto: fat.boleto_anexo, // Movido para o nível principal
+                        dadosConta: fat.dados_conta // Movido para o nível principal
                     });
                 } catch (err) {
                     console.error(`Erro ao processar faturamento ID ${fat.id}:`, err);
