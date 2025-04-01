@@ -1613,6 +1613,32 @@ class ApiService {
             throw error;
         }
     }
+
+    static async criarPedidoServico(pedidoData) {
+        try {
+            console.log('Enviando pedido de serviço para API:', pedidoData);
+            const response = await fetch(`${API_URL}/api/servicos`, {
+                method: 'POST',
+                headers: {
+                    ...await createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(pedidoData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao criar pedido de serviço');
+            }
+
+            const data = await response.json();
+            console.log('Resposta da API ao criar pedido de serviço:', data);
+            return data;
+        } catch (error) {
+            console.error('Erro ao criar pedido de serviço:', error);
+            throw error;
+        }
+    }
 }
 
 export default ApiService; 

@@ -4,6 +4,52 @@ import HeaderAdmin from './HeaderAdmin';
 import './pedidos.scss';
 import ApiService from '../services/ApiService';
 
+// Estilos para o popup de sucesso
+const styles = `
+.success-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.success-popup-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 400px;
+    text-align: center;
+}
+
+.success-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.success-buttons button {
+    min-width: 120px;
+    height: 35px;
+    font-size: 14px;
+    border-radius: 3px;
+}
+
+#viewPdfButton {
+    background-color: #4284c5;
+}
+
+#viewPdfButton:hover {
+    background-color: #3573b0;
+}
+`;
+
 function PedidosDeServico() {
     const [itens, setItens] = useState([]);
     const [itemAtual, setItemAtual] = useState({
@@ -103,6 +149,24 @@ function PedidosDeServico() {
         
         // Carregar lista de propostas para o centro de custo
         carregarPropostas();
+    }, []);
+
+    useEffect(() => {
+        // Adiciona os estilos apenas se eles ainda não existirem
+        if (!document.getElementById('servico-styles')) {
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'servico-styles';
+            styleSheet.textContent = styles;
+            document.head.appendChild(styleSheet);
+            
+            // Limpar estilos ao desmontar o componente
+            return () => {
+                const styleElement = document.getElementById('servico-styles');
+                if (styleElement) {
+                    document.head.removeChild(styleElement);
+                }
+            };
+        }
     }, []);
 
     const carregarFornecedores = async () => {
@@ -465,58 +529,37 @@ function PedidosDeServico() {
             const valorFrete = formatarValorNumerico(dadosPedido.valorFrete);
             const outrasDespesas = formatarValorNumerico(dadosPedido.outrasDespesas);
 
-            console.log("Valores calculados e formatados:", {
-                totalBruto,
-                ipiTotal,
-                totalDescontos,
-                totalFinal,
-                valorFrete,
-                outrasDespesas
-            });
-
-            // Obtém valores dos campos adicionais específicos para serviços
-            const escopoContratacao = document.querySelector('[name="escopoContratacao"]')?.value || '';
-            const respContratada = document.querySelector('[name="respContratada"]')?.value || '';
-            const respContratante = document.querySelector('[name="respContratante"]')?.value || '';
+            // Formatar os itens para o formato esperado pela API
+            const itensFormatados = itens.map((item, index) => ({
+                item: index + 1,
+                descricao: item.descricao || '',
+                unidade: item.unidade || '',
+                quantidade: formatarValorNumerico(item.quantidade),
+                ipi: formatarValorNumerico(item.ipi),
+                valor_unitario: formatarValorNumerico(item.valorUnitario),
+                valor_total: formatarValorNumerico(item.valorTotal),
+                desconto: formatarValorNumerico(item.desconto),
+                previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+            }));
 
             // Formatar o pedido de serviço no formato esperado pelo backend
             const pedidoServico = {
-                fornecedor_id: parseInt(fornecedorId) || 0,
+                fornecedor_id: parseInt(fornecedorId) || null,
                 data_vencimento: document.querySelector('[name="dataVencto"]')?.value || new Date().toISOString().split('T')[0],
                 proposta_id: parseInt(centroCusto) || null,
-                itens: {
-                    materiais: itens.map((item, index) => {
-                        const quantidade = formatarValorNumerico(item.quantidade);
-                        const ipi = formatarValorNumerico(item.ipi);
-                        const valorUnitario = formatarValorNumerico(item.valorUnitario);
-                        const valorTotal = formatarValorNumerico(item.valorTotal);
-                        const desconto = formatarValorNumerico(item.desconto);
-                        
-                        return {
-                            item: index + 1,
-                            descricao: item.descricao || '',
-                            unidade: item.unidade || '',
-                            quantidade,
-                            ipi,
-                            valor_unitario: valorUnitario,
-                            valor_total: valorTotal,
-                            desconto,
-                            previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-                        };
-                    }),
-                    total_bruto: totalBruto,
-                    total_ipi: ipiTotal,
-                    total_descontos: totalDescontos,
-                    valor_frete: valorFrete,
-                    outras_despesas: outrasDespesas,
-                    total_final: totalFinal,
-                    frete: dadosPedido.frete || 'CIF',
-                    condicao_pagamento: dadosPedido.condPagto || '30',
-                    informacoes_importantes: dadosPedido.informacoesImportantes || '',
-                    escopo_contratacao: escopoContratacao,
-                    responsabilidade_contratada: respContratada.split(/\r?\n/).filter(item => item.trim() !== ''),
-                    responsabilidade_contratante: respContratante.split(/\r?\n/).filter(item => item.trim() !== '')
-                }
+                itens: itensFormatados, // Não converter para string aqui, deixar a API fazer isso
+                total_bruto: totalBruto,
+                total_ipi: ipiTotal,
+                total_descontos: totalDescontos,
+                valor_frete: valorFrete,
+                outras_despesas: outrasDespesas,
+                total_final: totalFinal,
+                frete: dadosPedido.frete || 'CIF',
+                condicao_pagamento: dadosPedido.condPagto || '30',
+                informacoes_importantes: dadosPedido.informacoesImportantes || '',
+                escopo_contratacao: document.querySelector('[name="escopoContratacao"]')?.value || '',
+                responsabilidade_contratada: document.querySelector('[name="respContratada"]')?.value?.split(/\r?\n/).filter(item => item.trim() !== '') || [],
+                responsabilidade_contratante: document.querySelector('[name="respContratante"]')?.value?.split(/\r?\n/).filter(item => item.trim() !== '') || []
             };
 
             console.log("Dados formatados para envio:", pedidoServico);
