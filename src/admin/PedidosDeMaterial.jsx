@@ -4,6 +4,52 @@ import HeaderAdmin from './HeaderAdmin';
 import './pedidos.scss';
 import ApiService from '../services/ApiService';
 
+// Estilos para o popup de sucesso
+const styles = `
+.success-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.success-popup-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 400px;
+    text-align: center;
+}
+
+.success-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.success-buttons button {
+    min-width: 120px;
+    height: 35px;
+    font-size: 14px;
+    border-radius: 3px;
+}
+
+#viewPdfButton {
+    background-color: #4284c5;
+}
+
+#viewPdfButton:hover {
+    background-color: #3573b0;
+}
+`;
+
 function PedidosDeMaterial() {
     const [itens, setItens] = useState([]);
     const [itemAtual, setItemAtual] = useState({
@@ -31,7 +77,7 @@ function PedidosDeMaterial() {
     const [loadingFornecedor, setLoadingFornecedor] = useState(false);
     const [errorFornecedor, setErrorFornecedor] = useState('');
     const [dadosPedido, setDadosPedido] = useState({
-        valorFrete: '0,00',
+        valorFrete: '0',
         outrasDespesas: '0,00',
         informacoesImportantes: '',
         condPagto: '30',
@@ -103,6 +149,24 @@ function PedidosDeMaterial() {
         
         // Carregar lista de propostas para o centro de custo
         carregarPropostas();
+    }, []);
+
+    useEffect(() => {
+        // Adiciona os estilos apenas se eles ainda não existirem
+        if (!document.getElementById('material-styles')) {
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'material-styles';
+            styleSheet.textContent = styles;
+            document.head.appendChild(styleSheet);
+            
+            // Limpar estilos ao desmontar o componente
+            return () => {
+                const styleElement = document.getElementById('material-styles');
+                if (styleElement) {
+                    document.head.removeChild(styleElement);
+                }
+            };
+        }
     }, []);
 
     const carregarFornecedores = async () => {
@@ -381,9 +445,12 @@ function PedidosDeMaterial() {
             successPopup.className = 'success-popup';
             successPopup.innerHTML = `
                 <div class="success-popup-content">
-                    <h3>Pedido Gerado com Sucesso!</h3>
+                    <h3>Pedido de Material Gerado com Sucesso!</h3>
                     <p>O pedido foi criado com o ID: ${resultado.id || 'N/A'}</p>
-                    <button id="closeSuccessPopup">Fechar</button>
+                    <div class="success-buttons">
+                        <button id="closeSuccessPopup">Fechar</button>
+                        <button id="viewPdfButton">Visualizar PDF</button>
+                    </div>
                 </div>
             `;
             document.body.appendChild(successPopup);
@@ -392,6 +459,18 @@ function PedidosDeMaterial() {
             document.getElementById('closeSuccessPopup').addEventListener('click', () => {
                 document.body.removeChild(successPopup);
             });
+            
+            // Adicionar evento para visualizar o PDF
+            if (resultado && resultado.id) {
+                document.getElementById('viewPdfButton').addEventListener('click', async () => {
+                    try {
+                        await ApiService.visualizarPedidoPdf(resultado.id);
+                    } catch (error) {
+                        console.error('Erro ao visualizar PDF:', error);
+                        alert('Erro ao visualizar o PDF. Tente novamente mais tarde.');
+                    }
+                });
+            }
             
             // Limpar o formulário ou redirecionar
             // window.location.href = '/pedidosDeCompra';

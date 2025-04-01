@@ -1563,6 +1563,56 @@ class ApiService {
             throw error;
         }
     }
+
+    static async visualizarPedidoLocacaoPdf(id) {
+        try {
+            const response = await fetch(`${API_URL}/api/pedidos-locacao/${id}/pdf/download`, {
+                method: 'GET',
+                headers: {
+                    ...createAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao baixar PDF');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('Erro ao visualizar PDF:', error);
+            throw error;
+        }
+    }
+
+    static async downloadPedidoLocacaoPdf(id) {
+        try {
+            const response = await fetch(`${API_URL}/api/pedidos-locacao/${id}/pdf/download`, {
+                method: 'GET',
+                headers: {
+                    ...createAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao baixar PDF');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pedido-locacao-${id}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Erro ao baixar PDF:', error);
+            throw error;
+        }
+    }
 }
 
 export default ApiService; 
