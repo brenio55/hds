@@ -82,7 +82,7 @@ function PedidosDeLocacao() {
         informacoesImportantes: '',
         condPagto: '',
         prazoEntrega: '',
-        frete: ''
+        frete: '0,00'
     });
     const [listaFornecedores, setListaFornecedores] = useState([]);
     const [loadingListaFornecedores, setLoadingListaFornecedores] = useState(false);
@@ -533,7 +533,7 @@ function PedidosDeLocacao() {
             // Formatar o pedido de locação no formato esperado pelo backend
             const pedidoLocacao = {
                 fornecedor_id: parseInt(fornecedorId) || 0,
-                clientInfo_id: propostaSelecionada?.client_info?.id,
+                clientInfo_id: propostaSelecionada?.client_info?.id ? parseInt(propostaSelecionada.client_info.id) : null,
                 data_vencimento: document.querySelector('[name="dataVencto"]')?.value || new Date().toISOString().split('T')[0],
                 proposta_id: parseInt(centroCusto) || null,
                 itens: JSON.stringify(itensFormatados), // Garantir que itens seja uma string JSON

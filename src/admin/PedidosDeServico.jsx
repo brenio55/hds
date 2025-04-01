@@ -36,7 +36,7 @@ function PedidosDeServico() {
         informacoesImportantes: '',
         condPagto: '',
         prazoEntrega: '',
-        frete: ''
+        frete: '0,00'
     });
     const [listaFornecedores, setListaFornecedores] = useState([]);
     const [loadingListaFornecedores, setLoadingListaFornecedores] = useState(false);
