@@ -5,6 +5,7 @@ const PropostaModel = require('../models/propostaModel');
 const FornecedorModel = require('../models/fornecedorModel');
 const path = require('path');
 const fs = require('fs').promises;
+const db = require('../config/database');
 
 
 class PedidoCompraController {
@@ -28,47 +29,95 @@ class PedidoCompraController {
       const { campo, valor } = req.query;
 
       // Se não houver parâmetros de busca, retorna todos os pedidos
+      let pedidos = [];
       if (!campo || !valor) {
-        const pedidos = await PedidoCompraModel.findAll();
-        return res.json(pedidos);
+        pedidos = await PedidoCompraModel.findAll();
+      } else {
+        // Validar campos permitidos para busca (apenas colunas da tabela)
+        const camposPermitidos = [
+          'id',
+          'clientinfo_id',
+          'fornecedores_id',
+          'ddl',
+          'data_vencimento',
+          'proposta_id',
+          'materiais',
+          'desconto',
+          'valor_frete',
+          'despesas_adicionais',
+          'dados_adicionais',
+          'frete',
+          'created_at',
+          'ativo'
+        ];
+
+        if (!camposPermitidos.includes(campo)) {
+          return res.status(400).json({ 
+            error: `Campo de busca inválido. Campos permitidos: ${camposPermitidos.join(', ')}`,
+            exemplo: 'Use /api/pedidos-compra?campo=id&valor=1'
+          });
+        }
+
+        // Busca pedidos com o filtro
+        pedidos = await PedidoCompraModel.findByField(campo, valor);
+        
+        if (!pedidos || pedidos.length === 0) {
+          return res.status(404).json({ 
+            message: 'Nenhum pedido encontrado com os critérios informados',
+            exemplo: 'Tente outro valor ou verifique se o campo está correto'
+          });
+        }
       }
 
-      // Validar campos permitidos para busca (apenas colunas da tabela)
-      const camposPermitidos = [
-        'id',
-        'clientinfo_id',
-        'fornecedores_id',
-        'ddl',
-        'data_vencimento',
-        'proposta_id',
-        'materiais',
-        'desconto',
-        'valor_frete',
-        'despesas_adicionais',
-        'dados_adicionais',
-        'frete',
-        'created_at',
-        'ativo'
-      ];
+      // Buscar informações de faturamento para cada pedido
+      const pedidosEnriquecidos = await Promise.all(pedidos.map(async (pedido) => {
+        try {
+          // Calcular valor total
+          let valorTotal = 0;
+          if (pedido.materiais && typeof pedido.materiais === 'string') {
+            try {
+              const materiais = JSON.parse(pedido.materiais);
+              if (Array.isArray(materiais)) {
+                valorTotal = materiais.reduce((sum, item) => 
+                  sum + (parseFloat(item.valor_total) || 0), 0);
+              }
+            } catch (e) {
+              console.error(`Erro ao parsear materiais para pedido ID=${pedido.id}:`, e);
+            }
+          } else if (Array.isArray(pedido.materiais)) {
+            valorTotal = pedido.materiais.reduce((sum, item) => 
+              sum + (parseFloat(item.valor_total) || 0), 0);
+          }
+          
+          // Buscar informações de faturamento
+          const faturamentos = await db.query(
+            'SELECT * FROM faturamento WHERE id_type = $1 AND id_number = $2 ORDER BY created_at DESC LIMIT 1',
+            ['compra', pedido.id]
+          );
+          
+          let valorFaturado = 0;
+          let valorAFaturar = valorTotal;
+          
+          if (faturamentos.rows.length > 0) {
+            const faturamento = faturamentos.rows[0];
+            valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
+            valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+          }
+          
+          // Retornar pedido com campos adicionais
+          return {
+            ...pedido,
+            valor_total: valorTotal,
+            valor_faturado: valorFaturado,
+            valor_a_faturar: valorAFaturar
+          };
+        } catch (error) {
+          console.error(`Erro ao processar pedido ID=${pedido.id}:`, error);
+          return pedido; // Em caso de erro, manter o pedido original
+        }
+      }));
 
-      if (!camposPermitidos.includes(campo)) {
-        return res.status(400).json({ 
-          error: `Campo de busca inválido. Campos permitidos: ${camposPermitidos.join(', ')}`,
-          exemplo: 'Use /api/pedidos-compra?campo=id&valor=1'
-        });
-      }
-
-      // Busca pedidos com o filtro
-      const pedidos = await PedidoCompraModel.findByField(campo, valor);
-      
-      if (!pedidos || pedidos.length === 0) {
-        return res.status(404).json({ 
-          message: 'Nenhum pedido encontrado com os critérios informados',
-          exemplo: 'Tente outro valor ou verifique se o campo está correto'
-        });
-      }
-
-      res.json(pedidos);
+      res.json(pedidosEnriquecidos);
     } catch (error) {
       console.error('Erro ao listar pedidos:', error);
       res.status(400).json({ error: error.message });
@@ -81,7 +130,48 @@ class PedidoCompraController {
       if (!pedido) {
         return res.status(404).json({ error: 'Pedido não encontrado' });
       }
-      res.json(pedido);
+      
+      // Calcular valor total
+      let valorTotal = 0;
+      if (pedido.materiais && typeof pedido.materiais === 'string') {
+        try {
+          const materiais = JSON.parse(pedido.materiais);
+          if (Array.isArray(materiais)) {
+            valorTotal = materiais.reduce((sum, item) => 
+              sum + (parseFloat(item.valor_total) || 0), 0);
+          }
+        } catch (e) {
+          console.error(`Erro ao parsear materiais para pedido ID=${pedido.id}:`, e);
+        }
+      } else if (Array.isArray(pedido.materiais)) {
+        valorTotal = pedido.materiais.reduce((sum, item) => 
+          sum + (parseFloat(item.valor_total) || 0), 0);
+      }
+      
+      // Buscar informações de faturamento
+      const faturamentos = await db.query(
+        'SELECT * FROM faturamento WHERE id_type = $1 AND id_number = $2 ORDER BY created_at DESC LIMIT 1',
+        ['compra', pedido.id]
+      );
+      
+      let valorFaturado = 0;
+      let valorAFaturar = valorTotal;
+      
+      if (faturamentos.rows.length > 0) {
+        const faturamento = faturamentos.rows[0];
+        valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
+        valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+      }
+      
+      // Retornar pedido com campos adicionais
+      const pedidoEnriquecido = {
+        ...pedido,
+        valor_total: valorTotal,
+        valor_faturado: valorFaturado,
+        valor_a_faturar: valorAFaturar
+      };
+      
+      res.json(pedidoEnriquecido);
     } catch (error) {
       console.error('Erro ao buscar pedido:', error);
       res.status(400).json({ error: error.message });
