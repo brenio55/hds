@@ -13,19 +13,44 @@ class PedidoLocacaoController {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      // Garante que itens seja um JSON string
-      const data = {
-        ...req.body,
-        itens: JSON.stringify(req.body.itens)
-      };
+      console.log('Dados recebidos no controller:', req.body);
 
-      console.log('Dados recebidos:', data); // Log para debug
+      // Garantir que itens seja um JSON string válido
+      let data = { ...req.body };
+      
+      if (data.itens) {
+        try {
+          // Se itens já é uma string, tentar fazer parse para validar
+          if (typeof data.itens === 'string') {
+            JSON.parse(data.itens); // Apenas para validação
+          } else {
+            // Se não é string, converter para string JSON
+            data.itens = JSON.stringify(data.itens);
+          }
+        } catch (e) {
+          console.error('Erro ao processar itens:', e);
+          return res.status(400).json({ error: 'Formato inválido para o campo itens' });
+        }
+      }
+
+      console.log('Dados processados para criação:', data);
 
       const pedido = await PedidoLocacaoModel.create(data);
+      console.log('Pedido criado:', pedido);
       
-      // Gera o PDF
-      const pdfUid = await PedidoLocacaoPdfService.generatePdf(pedido);
-      await PedidoLocacaoModel.updatePdfUid(pedido.id, pdfUid);
+      try {
+        // Gera o PDF
+        console.log('Gerando PDF para o pedido:', pedido.id);
+        const pdfUid = await PedidoLocacaoPdfService.generatePdf(pedido);
+        console.log('PDF gerado com sucesso. UID:', pdfUid);
+        
+        await PedidoLocacaoModel.updatePdfUid(pedido.id, pdfUid);
+        pedido.pdf_uid = pdfUid;
+      } catch (pdfError) {
+        console.error('Erro ao gerar PDF:', pdfError);
+        // Não falhar a criação do pedido se o PDF falhar
+        pedido.pdf_error = pdfError.message;
+      }
 
       res.status(201).json(pedido);
     } catch (error) {

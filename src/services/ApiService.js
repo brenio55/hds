@@ -652,77 +652,34 @@ class ApiService {
     
     /**
      * Cria um novo pedido de locação
-     * @param {Object} dadosPedido - Dados do pedido de locação
+     * @param {Object} pedidoData - Dados do pedido de locação
      * @returns {Promise<Object>} - Dados do pedido criado
      */
-    static async criarPedidoLocacao(dadosPedido) {
-        console.log('ApiService: criarPedidoLocacao iniciado', dadosPedido);
+    static async criarPedidoLocacao(pedidoData) {
         try {
-            // Função para formatar valores numéricos
-            const formatarValorNumerico = (valor, casasDecimais = 2) => {
-                if (typeof valor === 'string') {
-                    // Remover símbolos de moeda e substituir vírgula por ponto
-                    valor = valor.replace(/[^\d,-]/g, '').replace(',', '.');
-                }
-                
-                // Converter para número e limitar a precisão
-                let numero = parseFloat(valor);
-                
-                // Verificar se é um número válido
-                if (isNaN(numero)) {
-                    console.warn('Valor não numérico encontrado:', valor);
-                    return 0;
-                }
-                
-                // Limitar o tamanho para evitar numeric overflow (assumindo campo numeric(10,2))
-                // Máximo: 99.999.999,99
-                numero = Math.min(numero, 99999999.99);
-                
-                // Retornar com precisão fixa
-                return parseFloat(numero.toFixed(casasDecimais));
-            };
+            console.log('ApiService: Enviando pedido de locação:', pedidoData);
             
-            // Processar dados numéricos nos itens
-            if (dadosPedido.itens && dadosPedido.itens.materiais) {
-                dadosPedido.itens.materiais = dadosPedido.itens.materiais.map(item => ({
-                    ...item,
-                    quantidade: formatarValorNumerico(item.quantidade),
-                    ipi: formatarValorNumerico(item.ipi),
-                    valor_unitario: formatarValorNumerico(item.valor_unitario),
-                    valor_total: formatarValorNumerico(item.valor_total),
-                    desconto: formatarValorNumerico(item.desconto)
-                }));
+            // Garantir que os itens estejam em formato string JSON
+            if (pedidoData.itens && typeof pedidoData.itens !== 'string') {
+                pedidoData.itens = JSON.stringify(pedidoData.itens);
             }
             
-            // Processar valores totais
-            if (dadosPedido.itens) {
-                dadosPedido.itens.total_bruto = formatarValorNumerico(dadosPedido.itens.total_bruto);
-                dadosPedido.itens.total_ipi = formatarValorNumerico(dadosPedido.itens.total_ipi);
-                dadosPedido.itens.total_descontos = formatarValorNumerico(dadosPedido.itens.total_descontos);
-                dadosPedido.itens.valor_frete = formatarValorNumerico(dadosPedido.itens.valor_frete);
-                dadosPedido.itens.outras_despesas = formatarValorNumerico(dadosPedido.itens.outras_despesas);
-                dadosPedido.itens.total_final = formatarValorNumerico(dadosPedido.itens.total_final);
-            }
-            
-            console.log('ApiService: dados processados para envio:', dadosPedido);
-
             const response = await fetch(`${API_URL}/api/pedidos-locacao`, {
                 method: 'POST',
                 headers: {
                     ...createAuthHeaders(),
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(dadosPedido)
+                body: JSON.stringify(pedidoData)
             });
 
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Erro na resposta da API:', response.status, errorText);
-                throw new Error(`Erro ao criar pedido de locação: ${response.status} - ${errorText}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao criar pedido de locação');
             }
 
             const data = await response.json();
-            console.log('ApiService: criarPedidoLocacao concluído com sucesso', data);
+            console.log('ApiService: Pedido de locação criado com sucesso:', data);
             return data;
         } catch (error) {
             console.error('ApiService: Erro ao criar pedido de locação:', error);

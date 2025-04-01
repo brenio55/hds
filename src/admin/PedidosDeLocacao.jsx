@@ -517,41 +517,36 @@ function PedidosDeLocacao() {
                 outrasDespesas
             });
 
+            // Formatar os itens no formato esperado
+            const itensFormatados = itens.map((item, index) => ({
+                item: index + 1,
+                descricao: item.descricao || '',
+                unidade: item.unidade || '',
+                quantidade: formatarValorNumerico(item.quantidade),
+                ipi: formatarValorNumerico(item.ipi),
+                valor_unitario: formatarValorNumerico(item.valorUnitario),
+                valor_total: formatarValorNumerico(item.valorTotal),
+                desconto: formatarValorNumerico(item.desconto),
+                previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+            }));
+
             // Formatar o pedido de locação no formato esperado pelo backend
             const pedidoLocacao = {
                 fornecedor_id: parseInt(fornecedorId) || 0,
+                clientInfo_id: propostaSelecionada?.client_info?.id,
                 data_vencimento: document.querySelector('[name="dataVencto"]')?.value || new Date().toISOString().split('T')[0],
                 proposta_id: parseInt(centroCusto) || null,
-                itens: {
-                    materiais: itens.map((item, index) => {
-                        const quantidade = formatarValorNumerico(item.quantidade);
-                        const ipi = formatarValorNumerico(item.ipi);
-                        const valorUnitario = formatarValorNumerico(item.valorUnitario);
-                        const valorTotal = formatarValorNumerico(item.valorTotal);
-                        const desconto = formatarValorNumerico(item.desconto);
-                        
-                        return {
-                            item: index + 1,
-                            descricao: item.descricao || '',
-                            unidade: item.unidade || '',
-                            quantidade,
-                            ipi,
-                            valor_unitario: valorUnitario,
-                            valor_total: valorTotal,
-                            desconto,
-                            previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-                        };
-                    }),
-                    total_bruto: totalBruto,
-                    total_ipi: ipiTotal,
-                    total_descontos: totalDescontos,
-                    valor_frete: valorFrete,
-                    outras_despesas: outrasDespesas,
-                    total_final: totalFinal,
-                    frete: dadosPedido.frete || 'CIF',
-                    condicao_pagamento: dadosPedido.condPagto || '30DDL',
-                    informacoes_importantes: dadosPedido.informacoesImportantes || ''
-                }
+                itens: JSON.stringify(itensFormatados), // Garantir que itens seja uma string JSON
+                total_bruto: totalBruto,
+                total_ipi: ipiTotal,
+                total_descontos: totalDescontos,
+                valor_frete: valorFrete,
+                outras_despesas: outrasDespesas,
+                total_final: totalFinal,
+                informacoes_importantes: dadosPedido.informacoesImportantes || '',
+                cond_pagto: dadosPedido.condPagto || '30',
+                prazo_entrega: dadosPedido.prazoEntrega || new Date().toISOString().split('T')[0],
+                frete: dadosPedido.frete || 'CIF'
             };
 
             console.log("Dados formatados para envio:", pedidoLocacao);
