@@ -77,50 +77,81 @@ class ApiService {
     }
 
     static async criarPedido(dadosPedido, itens) {
+        console.log('ApiService: criarPedido iniciado', { dadosPedido, itens });
         try {
-            // Transformar os dados para o novo formato
-            const pedidoFormatado = {
-                clientinfo_id: parseInt(dadosPedido.codigo) || 1,
-                fornecedores_id: parseInt(dadosPedido.fornecedor_id) || 1,
-                ddl: parseInt(dadosPedido.condPagto) || 30,
-                data_vencimento: dadosPedido.dataVencto,
-                proposta_id: parseInt(dadosPedido.proposta_id) || 1,
-                materiais: itens.map((item, index) => ({
-                    item: index + 1,
-                    descricao: item.descricao,
-                    uni: item.unidade,
-                    quantidade: parseFloat(item.quantidade.replace(',', '.')) || 0,
-                    ipi: parseFloat(item.ipi.replace(',', '.')) || 0,
-                    valor_unit: parseFloat(item.valorUnitario.replace(',', '.')) || 0,
-                    valor_total: parseFloat(item.valorTotal.replace(',', '.')) || 0,
-                    porcentagem: parseFloat(item.desconto.replace(',', '.')) || 0,
-                    data_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-                })),
-                desconto: parseFloat(dadosPedido.totalDescontos?.replace(',', '.')) || 0,
-                valor_frete: parseFloat(dadosPedido.valorFrete?.replace(',', '.')) || 0,
-                despesas_adicionais: parseFloat(dadosPedido.outrasDespesas?.replace(',', '.')) || 0,
-                dados_adicionais: dadosPedido.informacoesImportantes || '',
-                frete: {
-                    tipo: dadosPedido.frete || 'CIF',
-                    valor: parseFloat(dadosPedido.valorFrete?.replace(',', '.')) || 0
+            // Processar valores numéricos para garantir formato correto e limitar tamanho
+            // Função para formatar valores numéricos
+            const formatarValorNumerico = (valor, casasDecimais = 2) => {
+                if (typeof valor === 'string') {
+                    // Remover símbolos de moeda e substituir vírgula por ponto
+                    valor = valor.replace(/[^\d,-]/g, '').replace(',', '.');
                 }
+                
+                // Converter para número e limitar a precisão
+                let numero = parseFloat(valor);
+                
+                // Verificar se é um número válido
+                if (isNaN(numero)) {
+                    console.warn('Valor não numérico encontrado:', valor);
+                    return 0;
+                }
+                
+                // Limitar o tamanho para evitar numeric overflow (assumindo campo numeric(10,2))
+                // Máximo: 99.999.999,99
+                numero = Math.min(numero, 99999999.99);
+                
+                // Retornar com precisão fixa
+                return parseFloat(numero.toFixed(casasDecimais));
             };
-    
-            // Enviar para a API
+
+            // Formatar valores numéricos no pedido
+            const pedidoProcessado = {
+                ...dadosPedido,
+                totalBruto: formatarValorNumerico(dadosPedido.totalBruto),
+                totalDescontos: formatarValorNumerico(dadosPedido.totalDescontos),
+                valorFrete: formatarValorNumerico(dadosPedido.valorFrete),
+                outrasDespesas: formatarValorNumerico(dadosPedido.outrasDespesas),
+                totalFinal: formatarValorNumerico(dadosPedido.totalFinal)
+            };
+            
+            // Formatar valores numéricos nos itens
+            const itensProcessados = itens.map(item => ({
+                ...item,
+                quantidade: formatarValorNumerico(item.quantidade),
+                ipi: formatarValorNumerico(item.ipi),
+                valorUnitario: formatarValorNumerico(item.valorUnitario),
+                valorTotal: formatarValorNumerico(item.valorTotal),
+                desconto: formatarValorNumerico(item.desconto)
+            }));
+            
+            console.log('ApiService: Dados formatados para envio:', { 
+                pedidoProcessado, 
+                itensProcessados 
+            });
+
             const response = await fetch(`${API_URL}/api/pedidos-compra`, {
                 method: 'POST',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(pedidoFormatado)
+                headers: {
+                    ...createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    pedido: pedidoProcessado,
+                    itens: itensProcessados
+                })
             });
-    
+
             if (!response.ok) {
-                throw new Error('Erro ao criar pedido');
+                const errorText = await response.text();
+                console.error('Erro na resposta da API:', response.status, errorText);
+                throw new Error(`Erro ao criar pedido: ${response.status} - ${errorText}`);
             }
-    
-            const data = await response.json();
-            return data;
+
+            const result = await response.json();
+            console.log('ApiService: criarPedido concluído com sucesso', result);
+            return result;
         } catch (error) {
-            console.error('Erro ao salvar pedido completo:', error);
+            console.error('ApiService: Erro ao criar pedido:', error);
             throw error;
         }
     }
@@ -625,20 +656,76 @@ class ApiService {
      * @returns {Promise<Object>} - Dados do pedido criado
      */
     static async criarPedidoLocacao(dadosPedido) {
+        console.log('ApiService: criarPedidoLocacao iniciado', dadosPedido);
         try {
+            // Função para formatar valores numéricos
+            const formatarValorNumerico = (valor, casasDecimais = 2) => {
+                if (typeof valor === 'string') {
+                    // Remover símbolos de moeda e substituir vírgula por ponto
+                    valor = valor.replace(/[^\d,-]/g, '').replace(',', '.');
+                }
+                
+                // Converter para número e limitar a precisão
+                let numero = parseFloat(valor);
+                
+                // Verificar se é um número válido
+                if (isNaN(numero)) {
+                    console.warn('Valor não numérico encontrado:', valor);
+                    return 0;
+                }
+                
+                // Limitar o tamanho para evitar numeric overflow (assumindo campo numeric(10,2))
+                // Máximo: 99.999.999,99
+                numero = Math.min(numero, 99999999.99);
+                
+                // Retornar com precisão fixa
+                return parseFloat(numero.toFixed(casasDecimais));
+            };
+            
+            // Processar dados numéricos nos itens
+            if (dadosPedido.itens && dadosPedido.itens.materiais) {
+                dadosPedido.itens.materiais = dadosPedido.itens.materiais.map(item => ({
+                    ...item,
+                    quantidade: formatarValorNumerico(item.quantidade),
+                    ipi: formatarValorNumerico(item.ipi),
+                    valor_unitario: formatarValorNumerico(item.valor_unitario),
+                    valor_total: formatarValorNumerico(item.valor_total),
+                    desconto: formatarValorNumerico(item.desconto)
+                }));
+            }
+            
+            // Processar valores totais
+            if (dadosPedido.itens) {
+                dadosPedido.itens.total_bruto = formatarValorNumerico(dadosPedido.itens.total_bruto);
+                dadosPedido.itens.total_ipi = formatarValorNumerico(dadosPedido.itens.total_ipi);
+                dadosPedido.itens.total_descontos = formatarValorNumerico(dadosPedido.itens.total_descontos);
+                dadosPedido.itens.valor_frete = formatarValorNumerico(dadosPedido.itens.valor_frete);
+                dadosPedido.itens.outras_despesas = formatarValorNumerico(dadosPedido.itens.outras_despesas);
+                dadosPedido.itens.total_final = formatarValorNumerico(dadosPedido.itens.total_final);
+            }
+            
+            console.log('ApiService: dados processados para envio:', dadosPedido);
+
             const response = await fetch(`${API_URL}/api/pedidos-locacao`, {
                 method: 'POST',
-                headers: createAuthHeaders(),
+                headers: {
+                    ...createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(dadosPedido)
             });
 
             if (!response.ok) {
-                throw new Error('Erro ao criar pedido de locação');
+                const errorText = await response.text();
+                console.error('Erro na resposta da API:', response.status, errorText);
+                throw new Error(`Erro ao criar pedido de locação: ${response.status} - ${errorText}`);
             }
 
-            return await response.json();
+            const data = await response.json();
+            console.log('ApiService: criarPedidoLocacao concluído com sucesso', data);
+            return data;
         } catch (error) {
-            console.error('Erro ao criar pedido de locação:', error);
+            console.error('ApiService: Erro ao criar pedido de locação:', error);
             throw error;
         }
     }
@@ -677,735 +764,6 @@ class ApiService {
         try {
             const queryParams = new URLSearchParams(filtros).toString();
             const url = `${API_URL}/api/pedidos-locacao${queryParams ? `?${queryParams}` : ''}`;
-            
-            const response = await fetch(url, {
-                headers: createAuthHeaders()
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao listar pedidos de locação');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao listar pedidos de locação:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Busca um pedido de locação por ID
-     * @param {number} id - ID do pedido a ser buscado
-     * @returns {Promise<Object>} - Dados do pedido 
-     */
-    static async buscarPedidoLocacaoPorId(id) {
-        try {
-            const response = await fetch(`${API_URL}/api/pedidos-locacao/${id}`, {
-                headers: createAuthHeaders()
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar pedido de locação');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao buscar pedido de locação:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Faz o download do PDF de um pedido de locação
-     * @param {number} id - ID do pedido 
-     * @returns {Promise<Blob>} - Blob contendo o PDF
-     */
-    static async downloadPedidoLocacaoPdf(id) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/pedidos-locacao/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Erro ao baixar PDF do pedido de locação');
-            }
-
-            // Obtém o nome do arquivo do header Content-Disposition
-            const contentDisposition = response.headers.get('content-disposition');
-            let filename = 'pedido-locacao.pdf';
-            
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                if (filenameMatch && filenameMatch[1]) {
-                    filename = filenameMatch[1].replace(/['"]/g, '');
-                }
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            
-            // Cria um link temporário para download
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            
-            // Limpa após o download
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            
-            return true;
-        } catch (error) {
-            console.error('Erro ao baixar PDF do pedido de locação:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Visualiza o PDF de um pedido de locação em nova aba
-     * @param {number} id - ID do pedido 
-     * @returns {Promise<void>}
-     */
-    static async visualizarPedidoLocacaoPdf(id) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/pedidos-locacao/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Erro ao carregar PDF do pedido de locação');
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            
-            return true;
-        } catch (error) {
-            console.error('Erro ao visualizar PDF do pedido de locação:', error);
-            throw error;
-        }
-    }
-
-
-    static async buscarPedidoCompraPorId(id) {
-        try {
-            try {
-                const response = await fetch(`${API_URL}/api/pedidos-compra/${id}`, {
-                    headers: createAuthHeaders()
-                });
-    
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar pedido de compra');
-                }
-    
-                const data = await response.json();
-                return data;
-            } catch (apiError) {
-                console.warn('Erro ao buscar da API, usando dados de exemplo:', apiError);
-                // Se a API falhar, carrega dados de exemplo
-                const dadosExemplo = await this.carregarDadosExemplo();
-                const pedido = dadosExemplo.find(p => p.id.toString() === id.toString());
-                
-                if (!pedido) {
-                    throw new Error('Pedido não encontrado');
-                }
-                
-                return pedido;
-            }
-        } catch (error) {
-            console.error('Erro ao buscar pedido de compra:', error);
-            throw error;
-        }
-    }
-
-    // Método para carregar dados de exemplo quando a API não estiver disponível
-    static async carregarDadosExemplo() {
-        return [
-            {
-                "id": 2,
-                "clientinfo_id": 1,
-                "fornecedores_id": 1,
-                "ddl": 30,
-                "data_vencimento": "2025-03-04T00:00:00.000Z",
-                "proposta_id": 1,
-                "materiais": [
-                    {
-                        "ipi": 10,
-                        "uni": "UN",
-                        "item": 1,
-                        "descricao": "Material de Teste",
-                        "quantidade": 10,
-                        "valor_unit": 100,
-                        "porcentagem": 5,
-                        "valor_total": 1000,
-                        "data_entrega": "2025-03-04"
-                    },
-                    {
-                        "ipi": 10,
-                        "uni": "UN",
-                        "item": 2,
-                        "descricao": "Material de Teste",
-                        "quantidade": 10,
-                        "valor_unit": 100,
-                        "porcentagem": 5,
-                        "valor_total": 1000,
-                        "data_entrega": "2025-03-04"
-                    }
-                ],
-                "desconto": "100.00",
-                "valor_frete": "1231.00",
-                "despesas_adicionais": "0.00",
-                "dados_adicionais": "testestestetes",
-                "frete": {
-                    "tipo": "CIF",
-                    "valor": 1231
-                },
-                "created_at": "2025-03-04T20:18:29.148Z",
-                "fornecedor_nome": null
-            },
-            {
-                "id": 1,
-                "clientinfo_id": 1,
-                "fornecedores_id": 30,
-                "ddl": 30,
-                "data_vencimento": "2025-07-22T00:00:00.000Z",
-                "proposta_id": 8,
-                "materiais": [
-                    {
-                        "ipi": 5,
-                        "uni": "pç",
-                        "item": 1,
-                        "descricao": "Material A",
-                        "quantidade": 10,
-                        "valor_unit": 100,
-                        "porcentagem": 10,
-                        "valor_total": 1000,
-                        "data_entrega": "2024-04-01"
-                    }
-                ],
-                "desconto": "22.00",
-                "valor_frete": "2.00",
-                "despesas_adicionais": null,
-                "dados_adicionais": "pdf gerado automaticamente, aqui estariam com observações gerai",
-                "frete": 400,
-                "created_at": "2025-02-06T21:20:15.445Z",
-                "fornecedor_nome": "CONSTRUCAP CCPS ENGENHARIA E COMERCIO SA"
-            }
-        ];
-    }
-
-    // Métodos relacionados a Fornecedores
-    static async buscarFornecedores(filtros = {}) {
-        try {
-            // Construir a URL com os parâmetros de consulta
-            const queryParams = new URLSearchParams();
-            Object.entries(filtros)
-                .filter(([_, value]) => value && value.trim() !== '')
-                .forEach(([key, value]) => {
-                    queryParams.append(key, value);
-                });
-
-            const url = `${API_URL}/api/fornecedores${queryParams.toString() ? `?${queryParams}` : ''}`;
-            
-            const response = await fetch(url, {
-                headers: createAuthHeaders()
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar fornecedores');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao buscar fornecedores:', error);
-            throw error;
-        }
-    }
-
-    static async buscarFornecedorPorId(id) {
-        try {
-            const response = await fetch(`${API_URL}/api/fornecedores/${id}`, {
-                headers: createAuthHeaders()
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar fornecedor');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao buscar fornecedor:', error);
-            throw error;
-        }
-    }
-
-    static async criarFornecedor(dadosFornecedor) {
-        try {
-            const response = await fetch(`${API_URL}/api/fornecedores`, {
-                method: 'POST',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosFornecedor)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erro ao criar fornecedor');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao criar fornecedor:', error);
-            throw error;
-        }
-    }
-
-    static async atualizarFornecedor(id, dadosFornecedor) {
-        try {
-            const response = await fetch(`${API_URL}/api/fornecedores/${id}`, {
-                method: 'PUT',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosFornecedor)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erro ao atualizar fornecedor');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao atualizar fornecedor:', error);
-            throw error;
-        }
-    }
-
-    static async consultarPedidos() {
-        return await this.get('/pedidos');
-    }
-
-    static async faturarPedidoCompra(dadosFaturamento) {
-        try {
-            console.log('Preparando dados de faturamento para envio:', dadosFaturamento);
-            
-            // Se for FormData, convertemos para JSON com arquivos em base64
-            if (dadosFaturamento instanceof FormData) {
-                const dados = {};
-                
-                // Extrair campos básicos
-                dados.id_number = dadosFaturamento.get('pedidoId');
-                dados.id_type = dadosFaturamento.get('tipoPedido') || 'compra'; // Usar o tipo especificado ou padrão 'compra'
-                
-                // Obter valores totais e calcular a porcentagem
-                const valorTotalPedido = await this.obterValorTotalPedido(dados.id_number, dados.id_type);
-                const valorJaFaturado = await this.obterValorJaFaturado(dados.id_number, dados.id_type);
-                const valorAFaturar = parseFloat(dadosFaturamento.get('valorFaturamento').replace(',', '.'));
-                
-                // Calcular a porcentagem do valor a faturar em relação ao valor total
-                const porcentagemFaturada = valorTotalPedido > 0 
-                    ? (valorAFaturar / valorTotalPedido) * 100 
-                    : 0;
-                
-                dados.valor_total_pedido = valorTotalPedido;
-                dados.valor_faturado = porcentagemFaturada; // Valor em porcentagem (0-100)
-                dados.valor_a_faturar = valorAFaturar; // Valor absoluto
-                dados.data_vencimento = dadosFaturamento.get('dataVencimento');
-                
-                // Formatar número da NF para conter apenas números
-                const numeroNF = dadosFaturamento.get('numeroNF');
-                dados.nf = numeroNF ? numeroNF.replace(/\D/g, '') : ''; // Remove todos os não-dígitos
-                
-                // Enviar apenas o método de pagamento como string para o campo pagamento (enum)
-                dados.pagamento = dadosFaturamento.get('metodoPagamento');
-                
-                if (dados.pagamento === 'boleto') {
-                    dados.numero_boleto = dadosFaturamento.get('numeroBoleto');
-                    
-                    // Converter arquivo do boleto para base64 se existir
-                    const arquivoBoleto = dadosFaturamento.get('arquivoBoleto');
-                    if (arquivoBoleto) {
-                        dados.boleto_anexo = await this.fileToBase64(arquivoBoleto);
-                    }
-                } else if (dados.pagamento === 'pix' || dados.pagamento === 'ted') {
-                    dados.dados_conta = dadosFaturamento.get('dadosConta');
-                }
-                
-                // Converter arquivo NF para base64 se existir
-                const arquivoNF = dadosFaturamento.get('arquivoNF');
-                if (arquivoNF) {
-                    dados.nf_anexo = await this.fileToBase64(arquivoNF);
-                }
-                
-                console.log('Dados de faturamento formatados para API:', dados);
-                
-                // Enviar dados como JSON
-                const response = await fetch(`${API_URL}/api/faturamentos`, {
-                    method: 'POST',
-                    headers: {
-                        ...createAuthHeaders(),
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dados)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Erro na resposta ao faturar pedido:', errorText);
-                    throw new Error(`Erro ao faturar pedido: ${response.statusText || errorText}`);
-                }
-                
-                return await response.json();
-            } else {
-                // Se já for um objeto, enviamos diretamente
-                // Formatar o número da NF para conter apenas números
-                if (dadosFaturamento.numeroNF) {
-                    dadosFaturamento.nf = dadosFaturamento.numeroNF.replace(/\D/g, '');
-                    delete dadosFaturamento.numeroNF; // Remover a propriedade original
-                }
-                
-                // Converter o objeto de pagamento para o formato esperado pelo backend
-                if (dadosFaturamento.pagamento && typeof dadosFaturamento.pagamento === 'object') {
-                    // Extrair método de pagamento e informações adicionais
-                    const metodoPagamento = dadosFaturamento.pagamento.metodo;
-                    
-                    // Extrair dados adicionais antes de sobrescrever o objeto pagamento
-                    if (metodoPagamento === 'boleto') {
-                        dadosFaturamento.numero_boleto = dadosFaturamento.pagamento.numero_boleto;
-                        dadosFaturamento.boleto_anexo = dadosFaturamento.pagamento.boleto_anexo;
-                    } else if (metodoPagamento === 'pix' || metodoPagamento === 'ted') {
-                        dadosFaturamento.dados_conta = dadosFaturamento.pagamento.dados_conta;
-                    }
-                    
-                    // Sobrescrever campo pagamento com apenas o método
-                    dadosFaturamento.pagamento = metodoPagamento;
-                }
-                
-                // Garantir que id_type e id_number estejam definidos
-                if (!dadosFaturamento.id_type && dadosFaturamento.tipoPedido) {
-                    dadosFaturamento.id_type = dadosFaturamento.tipoPedido;
-                    delete dadosFaturamento.tipoPedido;
-                }
-                
-                if (!dadosFaturamento.id_number && dadosFaturamento.pedidoId) {
-                    dadosFaturamento.id_number = dadosFaturamento.pedidoId;
-                    delete dadosFaturamento.pedidoId;
-                }
-                
-                // Certificar-se de que valor_faturado está em porcentagem (0-100)
-                if (dadosFaturamento.valorFaturamento) {
-                    const valorAFaturar = parseFloat(dadosFaturamento.valorFaturamento);
-                    const valorTotal = dadosFaturamento.valor_total_pedido || await this.obterValorTotalPedido(dadosFaturamento.id_number, dadosFaturamento.id_type);
-                    
-                    if (valorTotal > 0) {
-                        dadosFaturamento.valor_a_faturar = valorAFaturar;
-                        dadosFaturamento.valor_faturado = (valorAFaturar / valorTotal) * 100;
-                    }
-                    
-                    delete dadosFaturamento.valorFaturamento;
-                }
-                
-                // Garantir data_vencimento no formato correto
-                if (dadosFaturamento.dataVencimento) {
-                    dadosFaturamento.data_vencimento = dadosFaturamento.dataVencimento;
-                    delete dadosFaturamento.dataVencimento;
-                }
-                
-                console.log('Enviando dados de faturamento (objeto direto):', dadosFaturamento);
-                
-                const response = await fetch(`${API_URL}/api/faturamentos`, {
-                    method: 'POST',
-                    headers: {
-                        ...createAuthHeaders(),
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dadosFaturamento)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Erro na resposta ao faturar pedido:', errorText);
-                    throw new Error(`Erro ao faturar pedido: ${response.statusText || errorText}`);
-                }
-                
-                return await response.json();
-            }
-        } catch (error) {
-            console.error('Erro ao faturar pedido:', error);
-            throw error;
-        }
-    }
-    
-    // Métodos auxiliares para informações de pedido
-    static async obterValorTotalPedido(pedidoId, tipoPedido = 'compra') {
-        try {
-            let pedido;
-            
-            // Buscar o pedido de acordo com seu tipo
-            switch(tipoPedido) {
-                case 'compra':
-                    pedido = await this.buscarPedidoCompraPorId(pedidoId);
-                    break;
-                case 'locacao':
-                    pedido = await this.buscarPedidoLocacaoPorId(pedidoId);
-                    break;
-                case 'servico':
-                    pedido = await this.buscarPedidoServicoPorId(pedidoId);
-                    break;
-                default:
-                    throw new Error(`Tipo de pedido não suportado: ${tipoPedido}`);
-            }
-            
-            return pedido?.valor_total || 0;
-        } catch (error) {
-            console.error(`Erro ao obter valor total do pedido ${tipoPedido}:`, error);
-            return 0;
-        }
-    }
-    
-    static async obterValorJaFaturado(pedidoId, tipoPedido = 'compra') {
-        try {
-            const faturamentos = await this.consultarFaturamentos({
-                tipo: tipoPedido,
-                numeroPedido: pedidoId
-            });
-            
-            // Somar valores já faturados
-            return faturamentos.reduce((total, fat) => total + parseFloat(fat.valorFaturado || 0), 0);
-        } catch (error) {
-            console.error(`Erro ao obter valor já faturado de ${tipoPedido}:`, error);
-            return 0;
-        }
-    }
-
-    // Métodos relacionados a Aluguel de Casas
-    static async registrarAluguel(formData) {
-        return await this.post('/api/alugueis', formData);
-    }
-
-    /**
-     * Atualiza os dados de um aluguel existente
-     * @param {Number} id - ID do aluguel a ser atualizado
-     * @param {Object} formData - Dados do aluguel a serem atualizados
-     * @returns {Promise<Object>} - Aluguel atualizado
-     */
-    static async atualizarAluguel(id, formData) {
-        return await this.put(`/api/alugueis/${id}`, formData);
-    }
-
-    /**
-     * Busca aluguéis com filtros opcionais
-     * @param {Object} filtros - Filtros opcionais (campo, valor)
-     * @returns {Promise<Array>} - Lista de aluguéis
-     */
-    static async buscarAlugueis(filtros = {}) {
-        try {
-            let endpoint = '/api/alugueis';
-            const params = new URLSearchParams();
-            
-            // Adicionar filtros se existirem
-            if (filtros.campo && filtros.valor) {
-                params.append('campo', filtros.campo);
-                params.append('valor', filtros.valor);
-            } else if (filtros.dataInicial && filtros.dataFinal) {
-                // Suporte para filtro por período de data
-                params.append('campo', 'detalhes');
-                params.append('valor', JSON.stringify({
-                    data_inicio: filtros.dataInicial,
-                    data_fim: filtros.dataFinal
-                }));
-            } else if (filtros.obraId) {
-                // Suporte para filtro por obra
-                params.append('campo', 'detalhes');
-                params.append('valor', `"obra_id":${filtros.obraId}`);
-            }
-            
-            const queryString = params.toString();
-            if (queryString) {
-                endpoint += `?${queryString}`;
-            }
-            
-            return await this.get(endpoint);
-        } catch (error) {
-            console.error('Erro ao buscar aluguéis:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Busca um aluguel pelo ID
-     * @param {Number} id - ID do aluguel a ser buscado
-     * @returns {Promise<Object>} - Aluguel encontrado
-     */
-    static async buscarAluguelPorId(id) {
-        return await this.get(`/api/alugueis/${id}`);
-    }
-
-    static async buscarCentrosCusto() {
-        return await this.get('/centros-custo');
-    }
-
-    // Método para finalizar aluguel
-    static async finalizarAluguel(id) {
-        return await this.put(`/api/alugueis/${id}/finalizar`);
-    }
-
-    // Método auxiliar para requisições GET
-    static async get(endpoint, options = {}) {
-        try {
-            const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-            
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: createAuthHeaders(),
-                ...options
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro na requisição GET para ${url}: ${response.status} ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error(`Erro na requisição GET para ${endpoint}:`, error);
-            throw error;
-        }
-    }
-
-    // Método auxiliar para requisições POST
-    static async post(endpoint, data = {}, options = {}) {
-        try {
-            const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-            const isFormData = data instanceof FormData;
-            
-            const headers = isFormData 
-                ? { ...createAuthHeaders(), ...options.headers } 
-                : { ...createAuthHeaders(), 'Content-Type': 'application/json', ...options.headers };
-            
-            // Removemos Content-Type para FormData pois o navegador define automaticamente com boundary
-            if (isFormData && headers['Content-Type']) {
-                delete headers['Content-Type'];
-            }
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers,
-                body: isFormData ? data : JSON.stringify(data),
-                ...options
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro na requisição POST para ${url}: ${response.status} ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error(`Erro na requisição POST para ${endpoint}:`, error);
-            throw error;
-        }
-    }
-
-    // Método auxiliar para requisições PUT
-    static async put(endpoint, data = {}, options = {}) {
-        try {
-            const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-            const isFormData = data instanceof FormData;
-            
-            const headers = isFormData 
-                ? { ...createAuthHeaders(), ...options.headers } 
-                : { ...createAuthHeaders(), 'Content-Type': 'application/json', ...options.headers };
-            
-            // Removemos Content-Type para FormData pois o navegador define automaticamente com boundary
-            if (isFormData && headers['Content-Type']) {
-                delete headers['Content-Type'];
-            }
-            
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers,
-                body: Object.keys(data).length > 0 ? (isFormData ? data : JSON.stringify(data)) : undefined,
-                ...options
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro na requisição PUT para ${url}: ${response.status} ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error(`Erro na requisição PUT para ${endpoint}:`, error);
-            throw error;
-        }
-    }
-
-    /**
-     * Métodos relacionados a Pedidos de Serviço
-     */
-    
-    /**
-     * Cria um novo pedido de serviço
-     * @param {Object} dadosPedido - Dados do pedido de serviço
-     * @returns {Promise<Object>} - Dados do pedido criado
-     */
-    static async criarPedidoServico(dadosPedido) {
-        try {
-            const response = await fetch(`${API_URL}/api/servicos`, {
-                method: 'POST',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosPedido)
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao criar pedido de serviço');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao criar pedido de serviço:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Atualiza um pedido de serviço existente
-     * @param {number} id - ID do pedido a ser atualizado
-     * @param {Object} dadosPedido - Novos dados do pedido
-     * @returns {Promise<Object>} - Dados do pedido atualizado
-     */
-    static async atualizarPedidoServico(id, dadosPedido) {
-        try {
-            const response = await fetch(`${API_URL}/api/servicos/${id}`, {
-                method: 'PUT',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosPedido)
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao atualizar pedido de serviço');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao atualizar pedido de serviço:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Lista todos os pedidos de serviço com filtros opcionais
-     * @param {Object} filtros - Filtros a serem aplicados na busca
-     * @returns {Promise<Array>} - Lista de pedidos de serviço
-     */
-    static async listarPedidosServico(filtros = {}) {
-        try {
-            const queryParams = new URLSearchParams(filtros).toString();
-            const url = `${API_URL}/api/servicos${queryParams ? `?${queryParams}` : ''}`;
             
             const response = await fetch(url, {
                 headers: createAuthHeaders()
@@ -2149,6 +1507,104 @@ class ApiService {
             reader.onload = () => resolve(reader.result);
             reader.onerror = (error) => reject(error);
         });
+    }
+
+    static async buscarFornecedores(filtros = {}) {
+        try {
+            console.log("ApiService: Iniciando busca de fornecedores com filtros:", filtros);
+            
+            // Construir query params
+            const queryParams = new URLSearchParams();
+            Object.entries(filtros).forEach(([key, value]) => {
+                if (value) queryParams.append(key, value);
+            });
+            
+            const url = `${API_URL}/api/fornecedores${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            console.log("ApiService: URL para busca de fornecedores:", url);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`ApiService: Erro na requisição de fornecedores (${response.status}):`, errorText);
+                throw new Error(`Erro ao buscar fornecedores: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log("ApiService: Resposta da API de fornecedores:", data);
+            
+            // Garantir que temos um array de fornecedores
+            let fornecedores = [];
+            
+            if (Array.isArray(data)) {
+                console.log("ApiService: Dados retornados como array");
+                fornecedores = data;
+            } else if (data && Array.isArray(data.fornecedores)) {
+                console.log("ApiService: Dados retornados no formato { fornecedores: [...] }");
+                fornecedores = data.fornecedores;
+            } else if (data && typeof data === 'object') {
+                console.log("ApiService: Formato de resposta não esperado, tentando extrair fornecedores");
+                // Tentativa de extrair fornecedores de qualquer formato de resposta
+                fornecedores = Object.values(data).filter(item => 
+                    item && typeof item === 'object' && item.id !== undefined
+                );
+            }
+            
+            console.log(`ApiService: Total de ${fornecedores.length} fornecedores processados`);
+            return { fornecedores };
+        } catch (error) {
+            console.error('ApiService: Erro ao buscar fornecedores:', error);
+            return { fornecedores: [], error: error.message };
+        }
+    }
+
+    static async buscarFornecedorPorId(id) {
+        try {
+            console.log(`ApiService: Buscando fornecedor com ID ${id}`);
+            
+            if (!id) {
+                console.error("ApiService: ID do fornecedor não fornecido");
+                throw new Error('ID do fornecedor é obrigatório');
+            }
+            
+            const url = `${API_URL}/api/fornecedores/${id}`;
+            console.log(`ApiService: URL para busca do fornecedor: ${url}`);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`ApiService: Erro na resposta (${response.status}): ${errorText}`);
+                throw new Error(`Erro ao buscar fornecedor: ${response.status} ${response.statusText}`);
+            }
+            
+            const fornecedor = await response.json();
+            console.log(`ApiService: Fornecedor ${id} encontrado:`, fornecedor);
+            
+            // Verificar se o fornecedor tem ID e se é o mesmo fornecedor solicitado
+            if (!fornecedor || !fornecedor.id) {
+                console.warn(`ApiService: Resposta não contém dados válidos do fornecedor ${id}`);
+                throw new Error('Fornecedor não encontrado ou dados incompletos');
+            }
+            
+            // Garantir que todas as propriedades importantes estejam presentes
+            return {
+                ...fornecedor,
+                razao_social: fornecedor.razao_social || fornecedor.nome || 'Sem nome',
+                endereco: fornecedor.endereco || '',
+                cnpj: fornecedor.cnpj || '',
+                telefone: fornecedor.telefone || fornecedor.celular || '',
+                email: fornecedor.email || '',
+                contato: fornecedor.contato || ''
+            };
+        } catch (error) {
+            console.error(`ApiService: Erro ao buscar fornecedor ${id}:`, error);
+            throw error;
+        }
     }
 }
 

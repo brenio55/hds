@@ -170,12 +170,48 @@ function PedidosDeLocacao() {
     }, []);
 
     const carregarFornecedores = async () => {
-        setLoadingListaFornecedores(true);
         try {
-            const fornecedores = await ApiService.buscarFornecedores();
-            setListaFornecedores(fornecedores);
+            console.log("Iniciando carregamento de fornecedores...");
+            setLoadingListaFornecedores(true);
+            
+            const resposta = await ApiService.buscarFornecedores();
+            console.log("Resposta da API de fornecedores:", resposta);
+            
+            let listaFornecedores = [];
+            
+            // Verificar o formato da resposta e extrair os fornecedores
+            if (resposta && Array.isArray(resposta.fornecedores)) {
+                console.log("Fornecedores recebidos como array dentro do objeto resposta");
+                listaFornecedores = resposta.fornecedores;
+            } else if (Array.isArray(resposta)) {
+                console.log("Fornecedores recebidos diretamente como array");
+                listaFornecedores = resposta;
+            } else if (resposta && typeof resposta === 'object') {
+                console.log("Tentando extrair fornecedores de formato desconhecido");
+                // Tentar extrair a lista de fornecedores de qualquer formato
+                const possiveisFornecedores = Object.values(resposta).filter(
+                    item => item && typeof item === 'object' && item.id !== undefined
+                );
+                
+                if (possiveisFornecedores.length > 0) {
+                    console.log("Fornecedores encontrados através de filtragem de objetos");
+                    listaFornecedores = possiveisFornecedores;
+                }
+            }
+            
+            console.log(`Total de ${listaFornecedores.length} fornecedores processados`);
+            
+            // Verificar conteúdo da lista para debug
+            if (listaFornecedores.length > 0) {
+                console.log("Exemplo do primeiro fornecedor:", listaFornecedores[0]);
+            } else {
+                console.warn("Nenhum fornecedor encontrado na resposta");
+            }
+            
+            setListaFornecedores(listaFornecedores);
         } catch (error) {
-            console.error('Erro ao carregar lista de fornecedores:', error);
+            console.error("Erro ao carregar fornecedores:", error);
+            setErrorFornecedor("Erro ao carregar fornecedores. Por favor, tente novamente.");
         } finally {
             setLoadingListaFornecedores(false);
         }
@@ -376,11 +412,31 @@ function PedidosDeLocacao() {
 
     const handleFornecedorSelectChange = (e) => {
         const selectedId = e.target.value;
+        console.log(`Fornecedor selecionado do dropdown: ID=${selectedId}`);
+        
         if (selectedId) {
             setFornecedorId(selectedId);
-            // Acionar a busca de detalhes do fornecedor
-            const event = { target: { value: selectedId } };
-            handleFornecedorIdChange(event);
+            
+            // Verificar se temos os dados do fornecedor na lista carregada
+            const fornecedorSelecionado = listaFornecedores.find(
+                f => f.id && f.id.toString() === selectedId.toString()
+            );
+            
+            if (fornecedorSelecionado) {
+                console.log("Fornecedor encontrado na lista carregada:", fornecedorSelecionado);
+                // Usar dados da lista para preencher os campos
+                setFornecedorNome(fornecedorSelecionado.razao_social || '');
+                setCnpj(formatCNPJ(fornecedorSelecionado.cnpj || ''));
+                setEndereco(fornecedorSelecionado.endereco || '');
+                setCep(formatCEP(fornecedorSelecionado.cep || ''));
+                setContato(formatTelefone(fornecedorSelecionado.telefone || fornecedorSelecionado.celular || ''));
+                setErrorFornecedor('');
+            } else {
+                console.log("Fornecedor não encontrado na lista, buscando da API");
+                // Acionar a busca de detalhes do fornecedor
+                const event = { target: { value: selectedId } };
+                handleFornecedorIdChange(event);
+            }
         } else {
             // Limpar os campos se nenhum fornecedor for selecionado
             setFornecedorId('');
@@ -389,16 +445,29 @@ function PedidosDeLocacao() {
             setEndereco('');
             setCep('');
             setContato('');
+            setErrorFornecedor('');
         }
     };
 
     const handlePropostaChange = (e) => {
         const propostaId = e.target.value;
+        console.log("Proposta selecionada ID:", propostaId);
         setCentroCusto(propostaId);
         
         if (propostaId) {
-            const proposta = listaPropostas.find(p => p.id === propostaId);
-            setPropostaSelecionada(proposta);
+            // Buscar a proposta pelo ID na lista carregada
+            const proposta = listaPropostas.find(p => 
+                p.id && p.id.toString() === propostaId.toString()
+            );
+            console.log("Proposta encontrada na lista:", proposta);
+            
+            if (proposta) {
+                setPropostaSelecionada(proposta);
+            } else {
+                console.warn("Proposta não encontrada na lista com ID:", propostaId);
+                console.log("Lista de propostas disponíveis:", listaPropostas);
+                setPropostaSelecionada(null);
+            }
         } else {
             setPropostaSelecionada(null);
         }
@@ -406,44 +475,88 @@ function PedidosDeLocacao() {
 
     const handleGerarPedido = async () => {
         try {
-            const formatarValorMonetario = (valor) => {
-                const valorNumerico = parseFloat(valor.replace(',', '.')) || 0;
-                return valorNumerico.toFixed(2);  // Removido o replace para enviar no formato correto para API
+            console.log("Iniciando processo de geração de pedido de locação...");
+            
+            // Função para formatar e limitar valores numéricos
+            const formatarValorNumerico = (valor) => {
+                if (typeof valor === 'string') {
+                    // Remover símbolos de moeda e substituir vírgula por ponto
+                    valor = valor.replace(/[^\d,-]/g, '').replace(',', '.');
+                }
+                
+                // Converter para número
+                let numero = parseFloat(valor);
+                
+                // Verificar se é um número válido
+                if (isNaN(numero)) {
+                    console.warn('Valor não numérico encontrado:', valor);
+                    return 0;
+                }
+                
+                // Limitar o tamanho para evitar numeric overflow (assumindo campo numeric(10,2))
+                // Máximo: 99.999.999,99
+                numero = Math.min(numero, 99999999.99);
+                
+                // Retornar número formatado
+                return numero;
             };
+            
+            const totalBruto = formatarValorNumerico(calcularTotalBruto());
+            const ipiTotal = formatarValorNumerico(calcularTotalIPI());
+            const totalDescontos = formatarValorNumerico(calcularTotalDescontos());
+            const totalFinal = formatarValorNumerico(calcularTotalFinal());
+            const valorFrete = formatarValorNumerico(dadosPedido.valorFrete);
+            const outrasDespesas = formatarValorNumerico(dadosPedido.outrasDespesas);
 
-            const totalBruto = formatarValorMonetario(calcularTotalBruto());
-            const totalIPI = formatarValorMonetario(calcularTotalIPI());
-            const totalDescontos = formatarValorMonetario(calcularTotalDescontos());
-            const totalFinal = formatarValorMonetario(calcularTotalFinal());
-            const valorFrete = formatarValorMonetario(dadosPedido.valorFrete);
-            const outrasDespesas = formatarValorMonetario(dadosPedido.outrasDespesas);
+            console.log("Valores calculados e formatados:", {
+                totalBruto,
+                ipiTotal,
+                totalDescontos,
+                totalFinal,
+                valorFrete,
+                outrasDespesas
+            });
 
-            // Preparar os dados do pedido no formato esperado pela API
+            // Formatar o pedido de locação no formato esperado pelo backend
             const pedidoLocacao = {
-                fornecedor_id: parseInt(fornecedorId),
-                itens: itens.map((item, index) => ({
-                    descricao: item.descricao,
-                    unidade: item.unidade,
-                    quantidade: parseFloat(item.quantidade.replace(',', '.')) || 0,
-                    ipi: parseFloat(item.ipi.replace(',', '.')) || 0,
-                    valor_unitario: parseFloat(item.valorUnitario.replace(',', '.')) || 0,
-                    valor_total: parseFloat(item.valorTotal.replace(',', '.')) || 0,
-                    desconto: parseFloat(item.desconto.replace(',', '.')) || 0,
-                    previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-                })),
-                total_bruto: parseFloat(totalBruto),
-                total_ipi: parseFloat(totalIPI),
-                total_descontos: parseFloat(totalDescontos),
-                valor_frete: parseFloat(valorFrete),
-                outras_despesas: parseFloat(outrasDespesas),
-                total_final: parseFloat(totalFinal),
-                informacoes_importantes: dadosPedido.informacoesImportantes || '',
-                cond_pagto: dadosPedido.condPagto || '30/60/90 dias',
-                prazo_entrega: dadosPedido.prazoEntrega || new Date().toISOString().split('T')[0],
-                frete: parseFloat(valorFrete)
+                fornecedor_id: parseInt(fornecedorId) || 0,
+                data_vencimento: document.querySelector('[name="dataVencto"]')?.value || new Date().toISOString().split('T')[0],
+                proposta_id: parseInt(centroCusto) || null,
+                itens: {
+                    materiais: itens.map((item, index) => {
+                        const quantidade = formatarValorNumerico(item.quantidade);
+                        const ipi = formatarValorNumerico(item.ipi);
+                        const valorUnitario = formatarValorNumerico(item.valorUnitario);
+                        const valorTotal = formatarValorNumerico(item.valorTotal);
+                        const desconto = formatarValorNumerico(item.desconto);
+                        
+                        return {
+                            item: index + 1,
+                            descricao: item.descricao || '',
+                            unidade: item.unidade || '',
+                            quantidade,
+                            ipi,
+                            valor_unitario: valorUnitario,
+                            valor_total: valorTotal,
+                            desconto,
+                            previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+                        };
+                    }),
+                    total_bruto: totalBruto,
+                    total_ipi: ipiTotal,
+                    total_descontos: totalDescontos,
+                    valor_frete: valorFrete,
+                    outras_despesas: outrasDespesas,
+                    total_final: totalFinal,
+                    frete: dadosPedido.frete || 'CIF',
+                    condicao_pagamento: dadosPedido.condPagto || '30DDL',
+                    informacoes_importantes: dadosPedido.informacoesImportantes || ''
+                }
             };
 
-            // Chamar o novo endpoint específico para pedidos de locação
+            console.log("Dados formatados para envio:", pedidoLocacao);
+
+            // Chamar o método específico para criar pedido de locação
             const resultado = await ApiService.criarPedidoLocacao(pedidoLocacao);
             
             // Exibir popup de sucesso
@@ -467,7 +580,7 @@ function PedidosDeLocacao() {
             });
             
             // Adicionar evento para visualizar o PDF
-            if (resultado.id) {
+            if (resultado && resultado.id) {
                 document.getElementById('viewPdfButton').addEventListener('click', async () => {
                     try {
                         await ApiService.visualizarPedidoLocacaoPdf(resultado.id);
@@ -478,8 +591,8 @@ function PedidosDeLocacao() {
                 });
             }
         } catch (error) {
-            console.error('Erro ao criar pedido de locação:', error);
-            alert(`Erro ao criar pedido: ${error.message}`);
+            console.error('Erro ao gerar pedido de locação:', error);
+            alert('Erro ao gerar pedido de locação. Por favor, tente novamente. Detalhes: ' + error.message);
         }
     };
 

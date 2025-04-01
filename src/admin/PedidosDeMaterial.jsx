@@ -106,12 +106,48 @@ function PedidosDeMaterial() {
     }, []);
 
     const carregarFornecedores = async () => {
-        setLoadingListaFornecedores(true);
         try {
-            const fornecedores = await ApiService.buscarFornecedores();
-            setListaFornecedores(fornecedores);
+            console.log("Iniciando carregamento de fornecedores...");
+            setLoadingListaFornecedores(true);
+            
+            const resposta = await ApiService.buscarFornecedores();
+            console.log("Resposta da API de fornecedores:", resposta);
+            
+            let listaFornecedores = [];
+            
+            // Verificar o formato da resposta e extrair os fornecedores
+            if (resposta && Array.isArray(resposta.fornecedores)) {
+                console.log("Fornecedores recebidos como array dentro do objeto resposta");
+                listaFornecedores = resposta.fornecedores;
+            } else if (Array.isArray(resposta)) {
+                console.log("Fornecedores recebidos diretamente como array");
+                listaFornecedores = resposta;
+            } else if (resposta && typeof resposta === 'object') {
+                console.log("Tentando extrair fornecedores de formato desconhecido");
+                // Tentar extrair a lista de fornecedores de qualquer formato
+                const possiveisFornecedores = Object.values(resposta).filter(
+                    item => item && typeof item === 'object' && item.id !== undefined
+                );
+                
+                if (possiveisFornecedores.length > 0) {
+                    console.log("Fornecedores encontrados através de filtragem de objetos");
+                    listaFornecedores = possiveisFornecedores;
+                }
+            }
+            
+            console.log(`Total de ${listaFornecedores.length} fornecedores processados`);
+            
+            // Verificar conteúdo da lista para debug
+            if (listaFornecedores.length > 0) {
+                console.log("Exemplo do primeiro fornecedor:", listaFornecedores[0]);
+            } else {
+                console.warn("Nenhum fornecedor encontrado na resposta");
+            }
+            
+            setListaFornecedores(listaFornecedores);
         } catch (error) {
-            console.error('Erro ao carregar lista de fornecedores:', error);
+            console.error("Erro ao carregar fornecedores:", error);
+            setErrorFornecedor("Erro ao carregar fornecedores. Por favor, tente novamente.");
         } finally {
             setLoadingListaFornecedores(false);
         }
@@ -253,10 +289,47 @@ function PedidosDeMaterial() {
 
     const handleGerarPedido = async () => {
         try {
-            const totalBruto = calcularTotalBruto();
-            const ipiTotal = calcularTotalIPI();
-            const totalDescontos = calcularTotalDescontos();
-            const totalFinal = calcularTotalFinal();
+            console.log("Iniciando processo de geração de pedido de material...");
+            
+            // Função para formatar e limitar valores numéricos
+            const formatarValorNumerico = (valor) => {
+                if (typeof valor === 'string') {
+                    // Remover símbolos de moeda e substituir vírgula por ponto
+                    valor = valor.replace(/[^\d,-]/g, '').replace(',', '.');
+                }
+                
+                // Converter para número
+                let numero = parseFloat(valor);
+                
+                // Verificar se é um número válido
+                if (isNaN(numero)) {
+                    console.warn('Valor não numérico encontrado:', valor);
+                    return 0;
+                }
+                
+                // Limitar o tamanho para evitar numeric overflow (assumindo campo numeric(10,2))
+                // Máximo: 99.999.999,99
+                numero = Math.min(numero, 99999999.99);
+                
+                // Retornar com precisão fixa
+                return numero;
+            };
+            
+            const totalBruto = formatarValorNumerico(calcularTotalBruto());
+            const ipiTotal = formatarValorNumerico(calcularTotalIPI());
+            const totalDescontos = formatarValorNumerico(calcularTotalDescontos());
+            const totalFinal = formatarValorNumerico(calcularTotalFinal());
+            const valorFrete = formatarValorNumerico(dadosPedido.valorFrete);
+            const outrasDespesas = formatarValorNumerico(dadosPedido.outrasDespesas);
+
+            console.log("Valores calculados e formatados:", {
+                totalBruto,
+                ipiTotal,
+                totalDescontos,
+                totalFinal,
+                valorFrete,
+                outrasDespesas
+            });
 
             // Preparar os dados do pedido no formato esperado
             const pedidoParaSalvar = {
@@ -270,19 +343,35 @@ function PedidosDeMaterial() {
                 frete: dadosPedido.frete || 'CIF',
                 totalBruto,
                 totalDescontos,
-                valorFrete: dadosPedido.valorFrete,
-                outrasDespesas: dadosPedido.outrasDespesas,
-                informacoesImportantes: dadosPedido.informacoesImportantes,
+                valorFrete,
+                outrasDespesas,
+                informacoesImportantes: dadosPedido.informacoesImportantes || '',
                 totalFinal,
                 proposta_id: centroCusto
             };
 
-            // Preparar os itens no formato esperado
-            const itensFormatados = itens.map((item, index) => ({
-                ...item,
-                item: index + 1,
-                previsaoEntrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-            }));
+            // Preparar os itens no formato esperado e limitar valores numéricos
+            const itensFormatados = itens.map((item, index) => {
+                const quantidade = formatarValorNumerico(item.quantidade);
+                const valorUnitario = formatarValorNumerico(item.valorUnitario);
+                const valorTotal = formatarValorNumerico(item.valorTotal);
+                const ipi = formatarValorNumerico(item.ipi);
+                const desconto = formatarValorNumerico(item.desconto);
+                
+                return {
+                    item: index + 1,
+                    descricao: item.descricao || '',
+                    unidade: item.unidade || '',
+                    quantidade,
+                    ipi,
+                    valorUnitario,
+                    valorTotal,
+                    desconto,
+                    previsaoEntrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+                };
+            });
+
+            console.log("Dados formatados para envio:", { pedidoParaSalvar, itensFormatados });
 
             // Chamar a função de salvar pedido completo
             const resultado = await ApiService.criarPedido(pedidoParaSalvar, itensFormatados);
@@ -350,10 +439,13 @@ function PedidosDeMaterial() {
             setErrorFornecedor('');
             
             try {
+                console.log(`Buscando detalhes do fornecedor com ID: ${id}`);
                 const fornecedor = await ApiService.buscarFornecedorPorId(id);
+                console.log("Resposta da API:", fornecedor);
                 
                 // Verificar se o fornecedor foi encontrado
                 if (fornecedor && fornecedor.id) {
+                    console.log("Fornecedor encontrado, atualizando campos do formulário");
                     // Preencher os campos com os dados do fornecedor
                     setFornecedorNome(fornecedor.razao_social || '');
                     setCnpj(formatCNPJ(fornecedor.cnpj || ''));
@@ -362,6 +454,7 @@ function PedidosDeMaterial() {
                     setContato(formatTelefone(fornecedor.telefone || fornecedor.celular || ''));
                     setErrorFornecedor(''); // Garantir que não há mensagem de erro
                 } else {
+                    console.warn(`Fornecedor com ID ${id} não encontrado ou resposta inválida`);
                     throw new Error('Fornecedor não encontrado');
                 }
                 
@@ -391,11 +484,31 @@ function PedidosDeMaterial() {
 
     const handleFornecedorSelectChange = (e) => {
         const selectedId = e.target.value;
+        console.log(`Fornecedor selecionado do dropdown: ID=${selectedId}`);
+        
         if (selectedId) {
             setFornecedorId(selectedId);
-            // Acionar a busca de detalhes do fornecedor
-            const event = { target: { value: selectedId } };
-            handleFornecedorIdChange(event);
+            
+            // Verificar se temos os dados do fornecedor na lista carregada
+            const fornecedorSelecionado = listaFornecedores.find(
+                f => f.id && f.id.toString() === selectedId.toString()
+            );
+            
+            if (fornecedorSelecionado) {
+                console.log("Fornecedor encontrado na lista carregada:", fornecedorSelecionado);
+                // Usar dados da lista para preencher os campos
+                setFornecedorNome(fornecedorSelecionado.razao_social || '');
+                setCnpj(formatCNPJ(fornecedorSelecionado.cnpj || ''));
+                setEndereco(fornecedorSelecionado.endereco || '');
+                setCep(formatCEP(fornecedorSelecionado.cep || ''));
+                setContato(formatTelefone(fornecedorSelecionado.telefone || fornecedorSelecionado.celular || ''));
+                setErrorFornecedor('');
+            } else {
+                console.log("Fornecedor não encontrado na lista, buscando da API");
+                // Acionar a busca de detalhes do fornecedor
+                const event = { target: { value: selectedId } };
+                handleFornecedorIdChange(event);
+            }
         } else {
             // Limpar os campos se nenhum fornecedor for selecionado
             setFornecedorId('');
@@ -404,23 +517,27 @@ function PedidosDeMaterial() {
             setEndereco('');
             setCep('');
             setContato('');
+            setErrorFornecedor('');
         }
     };
 
     const handlePropostaChange = (e) => {
         const propostaId = e.target.value;
-        console.log("Proposta selecionada:", propostaId);
+        console.log("Proposta selecionada ID:", propostaId);
         setCentroCusto(propostaId);
         
         if (propostaId) {
             // Buscar a proposta pelo ID na lista carregada
-            const proposta = listaPropostas.find(p => p.id && p.id.toString() === propostaId.toString());
-            console.log("Dados da proposta encontrada:", proposta);
+            const proposta = listaPropostas.find(p => 
+                p.id && p.id.toString() === propostaId.toString()
+            );
+            console.log("Proposta encontrada na lista:", proposta);
             
             if (proposta) {
                 setPropostaSelecionada(proposta);
             } else {
                 console.warn("Proposta não encontrada na lista com ID:", propostaId);
+                console.log("Lista de propostas disponíveis:", listaPropostas);
                 setPropostaSelecionada(null);
             }
         } else {
