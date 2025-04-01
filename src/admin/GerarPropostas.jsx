@@ -99,15 +99,69 @@ function GerarPropostas() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            console.log("Submetendo proposta com dados:", formData);
+            
+            // Garantir que os dados estejam no formato correto
             const dadosProposta = {
                 ...formData,
-                user_id: user.id
+                user_id: user?.id,
+                // Garantir que valores numéricos sejam números
+                valor_final: parseFloat(formData.valor_final.replace(/[^\d,.]/g, '').replace(',', '.')) || 0,
+                // Garantir que arrays sejam realmente arrays
+                afazer_hds: Array.isArray(formData.afazer_hds) ? formData.afazer_hds : [],
+                afazer_contratante: Array.isArray(formData.afazer_contratante) ? formData.afazer_contratante : [],
+                naofazer_hds: Array.isArray(formData.naofazer_hds) ? formData.naofazer_hds : [],
+                // Garantir que os dados do cliente estejam presentes
+                client_info: {
+                    ...formData.client_info,
+                    // Adicionar um ID temporário se não houver um
+                    id: formData.client_info.id || `temp_${Date.now()}`
+                }
             };
             
+            console.log("Dados formatados para envio:", dadosProposta);
+            
+            // Enviar para a API
             const response = await ApiService.criarProposta(dadosProposta);
-            setSuccessData(response); // Armazena os dados da proposta para o popup
+            console.log("Resposta da API ao criar proposta:", response);
+            
+            if (response && (response.id || response.proposta?.id)) {
+                // Extrair ID da proposta da resposta
+                const propostaId = response.id || response.proposta?.id;
+                
+                // Construir objeto com dados para o popup
+                const dadosPropostaParaPopup = {
+                    id: propostaId,
+                    versao: response.versao || formData.versao || "1.0",
+                    pdf_versions: response.pdf_versions || { "1.0": "gerado" }
+                };
+                
+                setSuccessData(dadosPropostaParaPopup);
+                
+                // Limpar o formulário após sucesso
+                setFormData({
+                    descricao: '',
+                    data_emissao: new Date().toISOString().split('T')[0],
+                    client_info: {
+                        nome: '',
+                        cnpj: '',
+                        endereco: '',
+                        contato: ''
+                    },
+                    versao: '1.0',
+                    documento_text: '',
+                    especificacoes_html: '',
+                    afazer_hds: [],
+                    afazer_contratante: [],
+                    naofazer_hds: [],
+                    valor_final: ''
+                });
+            } else {
+                throw new Error("Resposta da API não contém ID da proposta");
+            }
         } catch (error) {
-            alert('Erro ao gerar proposta: ' + error.message);
+            console.error("Erro ao gerar proposta:", error);
+            alert('Erro ao gerar proposta: ' + (error.message || "Erro desconhecido"));
         }
     };
 

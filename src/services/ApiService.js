@@ -346,25 +346,48 @@ class ApiService {
                 throw new Error('Erro ao buscar propostas');
             }
 
+            // Processar a resposta e garantir o formato correto
             const data = await response.json();
             console.log('Resposta da API propostas:', data);
             
-            // Garantir que a resposta seja um array
+            // Formatar a resposta para o formato esperado pelo frontend
+            let propostas = [];
+            
+            // Se a resposta já for um array, use-a
             if (Array.isArray(data)) {
-                return data;
-            } else if (data && data.propostas && Array.isArray(data.propostas)) {
-                return data.propostas;
-            } else if (data && typeof data === 'object') {
-                // Se for um objeto, retorna seus valores como array
-                return Object.values(data);
-            } else {
-                console.warn('Formato de resposta inesperado para propostas:', data);
-                return [];
+                propostas = data;
+            } 
+            // Se a resposta tiver uma propriedade 'propostas' que é um array, use-a
+            else if (data && Array.isArray(data.propostas)) {
+                propostas = data.propostas;
+            } 
+            // Se a resposta for um objeto com propostas como valores
+            else if (data && typeof data === 'object') {
+                propostas = Object.values(data);
             }
+            
+            // Verificar se cada proposta tem o campo client_info
+            propostas = propostas.map(proposta => {
+                // Se não tiver client_info, adicionar um objeto vazio
+                if (!proposta.client_info) {
+                    proposta.client_info = {};
+                }
+                return proposta;
+            });
+            
+            return { 
+                propostas,
+                total: propostas.length
+            };
         } catch (error) {
             console.error('Erro ao buscar propostas:', error);
-            // Retorna array vazio em caso de erro para não quebrar a UI
-            return [];
+            // Retornar objeto com array vazio em caso de erro
+            return { 
+                propostas: [],
+                total: 0,
+                erro: true,
+                mensagem: error.message
+            };
         }
     }
 
@@ -1560,15 +1583,18 @@ class ApiService {
         try {
             console.log("ApiService: Buscando pedidos consolidados");
             
+            // Adicionar token de autorização ao cabeçalho
+            const authHeaders = createAuthHeaders();
+            
+            // Construir URL com parâmetros de consulta
             const queryParams = new URLSearchParams(filtros).toString();
             const url = `${API_URL}/api/pedidos-consolidados${queryParams ? `?${queryParams}` : ''}`;
             
             console.log(`ApiService: URL da requisição: ${url}`);
 
             const response = await fetch(url, {
-                headers: createAuthHeaders(),
-                method: 'GET',
-                timeout: 30000 // timeout maior para esta operação pesada (30 segundos)
+                headers: authHeaders,
+                method: 'GET'
             });
 
             if (!response.ok) {
@@ -1579,28 +1605,44 @@ class ApiService {
             console.log(`ApiService: Resposta recebida (status ${response.status})`);
             
             try {
-                // Converter para texto primeiro para debug
-                const responseText = await response.text();
-                console.log(`ApiService: Tamanho da resposta: ${responseText.length} caracteres`);
+                const data = await response.json();
+                console.log(`ApiService: JSON parseado com sucesso. Total: ${data.total || 0}`);
                 
-                if (!responseText || responseText.trim() === '') {
-                    console.error('ApiService: Resposta vazia recebida');
-                    return { total: 0, pedidos: [] };
+                // Garantir que o formato dos dados está correto
+                if (!data.pedidos || !Array.isArray(data.pedidos)) {
+                    console.warn('ApiService: Resposta da API não contém um array de pedidos');
+                    data.pedidos = [];
                 }
                 
-                try {
-                    // Tentar converter o texto para JSON
-                    const data = JSON.parse(responseText);
-                    console.log(`ApiService: JSON parseado com sucesso. Total: ${data.total || 0}`);
-                    return data;
-                } catch (jsonError) {
-                    console.error('ApiService: Erro ao fazer parse do JSON:', jsonError);
-                    console.error('ApiService: Primeiros 200 caracteres da resposta:', responseText.substring(0, 200));
-                    throw new Error('Erro ao processar resposta do servidor');
-                }
-            } catch (textError) {
-                console.error('ApiService: Erro ao ler resposta como texto:', textError);
-                throw new Error('Erro ao ler resposta do servidor');
+                // Garantir que cada pedido tenha as propriedades necessárias
+                const pedidosFormatados = data.pedidos.map(pedido => {
+                    // Adicionar valores padrão para campos importantes
+                    if (!pedido.cliente) {
+                        pedido.cliente = { id: 0, nome: 'Cliente não especificado' };
+                    }
+                    if (!pedido.fornecedor) {
+                        pedido.fornecedor = { id: 0, nome: 'Fornecedor não especificado' };
+                    }
+                    if (!pedido.proposta) {
+                        pedido.proposta = { id: 0, descricao: 'Proposta não especificada' };
+                    }
+                    
+                    // Garantir que os valores financeiros existam
+                    pedido.valor_total = pedido.valor_total || 0;
+                    pedido.valor_faturado = pedido.valor_faturado || 0;
+                    pedido.valor_a_faturar = pedido.valor_a_faturar || 0;
+                    
+                    return pedido;
+                });
+                
+                return {
+                    total: data.total || pedidosFormatados.length,
+                    pedidos: pedidosFormatados
+                };
+                
+            } catch (jsonError) {
+                console.error('ApiService: Erro ao processar JSON da resposta:', jsonError);
+                throw new Error('Erro ao processar resposta do servidor');
             }
         } catch (error) {
             console.error('ApiService: Erro geral ao buscar pedidos consolidados:', error);

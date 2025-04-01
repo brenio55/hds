@@ -120,10 +120,31 @@ function PedidosDeMaterial() {
     const carregarPropostas = async () => {
         setLoadingPropostas(true);
         try {
-            const data = await ApiService.buscarPropostas();
-            setListaPropostas(data.propostas || []);
+            console.log("Iniciando carregamento de propostas...");
+            const resposta = await ApiService.buscarPropostas();
+            console.log("Resposta da API de propostas:", resposta);
+            
+            // Garantir que a resposta tenha um array de propostas
+            if (resposta && Array.isArray(resposta.propostas)) {
+                console.log("Propostas carregadas com sucesso:", resposta.propostas.length);
+                setListaPropostas(resposta.propostas);
+            } else {
+                console.warn("Formato inesperado na resposta de propostas:", resposta);
+                // Verificar se resposta é um array diretamente
+                if (Array.isArray(resposta)) {
+                    console.log("Usando array diretamente da resposta");
+                    setListaPropostas(resposta);
+                } else {
+                    // Tentar extrair propostas de qualquer formato de resposta
+                    const propostasExtraidas = resposta && typeof resposta === 'object' ? 
+                        Object.values(resposta).filter(item => item && typeof item === 'object') : [];
+                    console.log("Tentando extrair propostas manualmente:", propostasExtraidas.length);
+                    setListaPropostas(propostasExtraidas);
+                }
+            }
         } catch (error) {
             console.error('Erro ao carregar propostas:', error);
+            setListaPropostas([]); // Garantir que mesmo com erro, temos uma lista vazia
         } finally {
             setLoadingPropostas(false);
         }
@@ -388,11 +409,20 @@ function PedidosDeMaterial() {
 
     const handlePropostaChange = (e) => {
         const propostaId = e.target.value;
+        console.log("Proposta selecionada:", propostaId);
         setCentroCusto(propostaId);
         
         if (propostaId) {
-            const proposta = listaPropostas.find(p => p.id === propostaId);
-            setPropostaSelecionada(proposta);
+            // Buscar a proposta pelo ID na lista carregada
+            const proposta = listaPropostas.find(p => p.id && p.id.toString() === propostaId.toString());
+            console.log("Dados da proposta encontrada:", proposta);
+            
+            if (proposta) {
+                setPropostaSelecionada(proposta);
+            } else {
+                console.warn("Proposta não encontrada na lista com ID:", propostaId);
+                setPropostaSelecionada(null);
+            }
         } else {
             setPropostaSelecionada(null);
         }
