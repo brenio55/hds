@@ -262,6 +262,14 @@
         .dados-adicionais-table {
             margin-bottom: 20px;
         }
+
+        div.informacoesImportantes td{
+            border: none;
+        }
+        
+        div.informacoesImportantes .info-important-title{
+            background-color: #d5d5d5;
+        }
     </style>
 </head>
 <body>
@@ -298,70 +306,48 @@
             <h2>DADOS DO CONTRATANTE</h2>
         <table class="info-table">
             <tr>
-                <td class="label">Empresa:</td>
-                <td>Hds Serviço Ltda</td>
-                <td class="label">CNPJ:</td>
-                <td>40.931.075/0001-00</td>
-                <td class="label">Inscrição Estadual:</td>
-                <td>688.578.880.111</td>
-                <td class="label">Inscrição Municipal:</td>
-                <td>000000000091587</td>
+                <td colspan="2"><span class="label">Empresa:</span> Hds Serviço Ltda</td>
+                <td colspan="2"><span class="label">CNPJ:</span> 40.931.075/0001-00</td>
+                <td colspan="2"><span class="label">Inscrição Estadual:</span> 688.578.880.111</td>
+                <td colspan="2"><span class="label">Inscrição Municipal:</span> 000000000091587</td>
                 </tr>
                 <tr>
-                <td class="label">Endereço:</td>
-                <td>Av Dom Pedro I, 242</td>
-                <td class="label">Bairro:</td>
-                <td>Campos Eliseos</td>
-                <td class="label">Cidade:</td>
-                <td>Taubaté</td>
-                <td class="label">UF:</td>
-                <td>SP</td>
+                <td colspan="2"><span class="label">Endereço:</span> Av Dom Pedro I, 242</td>
+                <td colspan="2"><span class="label">Bairro:</span> Campos Eliseos</td>
+                <td colspan="2"><span class="label">Cidade:</span> Taubaté</td>
+                <td colspan="2"><span class="label">UF:</span> SP</td>
                 </tr>
             </table>
 
             <h2>DADOS DO FORNECEDOR</h2>
         <table class="info-table">
                 <tr>
-                <td class="label">Empresa:</td>
-                    <td>{{fornecedor.razao_social}}</td>
-                <td class="label">CNPJ:</td>
-                    <td>{{fornecedor.cnpj}}</td>
-                <td class="label">Inscrição Estadual:</td>
-                    <td>{{fornecedor.inscricao_estadual}}</td>
-                <td class="label">Inscrição Municipal:</td>
-                <td>{{fornecedor.inscricao_municipal}}</td>
+                <td colspan="2"><span class="label">Empresa:</span> {{fornecedor.nome}}</td>
+                <td colspan="2"><span class="label">CNPJ:</span> {{fornecedor.cnpj}}</td>
+                <td colspan="2"><span class="label">Inscrição Estadual:</span> {{fornecedor.inscricao_estadual}}</td>
+                <td colspan="2"><span class="label">Inscrição Municipal:</span> {{fornecedor.inscricao_municipal}}</td>
                 </tr>
                 <tr>
-                <td class="label">Endereço:</td>
-                    <td>{{fornecedor.endereco}}</td>
-                <td class="label">Bairro:</td>
-                <td>{{fornecedor.bairro}}</td>
-                <td class="label">Cidade/UF:</td>
-                <td>{{fornecedor.cidade}}</td>
+                <td colspan="2"><span class="label">Endereço:</span> {{fornecedor.endereco}}</td>
+                <td colspan="2"><span class="label">Bairro:</span> {{fornecedor.bairro}}</td>
+                <td colspan="2"><span class="label">Cidade:</span> {{fornecedor.cidade}}</td>
+                <td colspan="2"><span class="label">UF:</span> {{fornecedor.uf}}</td>
                 </tr>
         </table>
 
         <h2>DADOS DE FATURAMENTO</h2>
         <table class="info-table">
             <tr>
-                <td class="label">Empresa:</td>
-                <td>Hds Serviço Ltda</td>
-                <td class="label">CNPJ:</td>
-                <td>40.931.075/0001-00</td>
-                <td class="label">Inscrição Estadual:</td>
-                <td>688.578.880.111</td>
-                <td class="label">Inscrição Municipal:</td>
-                <td>000000000091587</td>
+                <td colspan="2"><span class="label">Empresa:</span> Hds Serviço Ltda</td>
+                <td colspan="2"><span class="label">CNPJ:</span> 40.931.075/0001-00</td>
+                <td colspan="2"><span class="label">Inscrição Estadual:</span> 688.578.880.111</td>
+                <td colspan="2"><span class="label">Inscrição Municipal:</span> 000000000091587</td>
                 </tr>
                 <tr>
-                <td class="label">Endereço:</td>
-                <td>Av Dom Pedro I, 242</td>
-                <td class="label">Bairro:</td>
-                <td>Campos Eliseos</td>
-                <td class="label">Cidade:</td>
-                <td>Taubaté</td>
-                <td class="label">UF:</td>
-                <td>SP</td>
+                <td colspan="2"><span class="label">Endereço:</span> Rua João Scarpa, 18</td>
+                <td colspan="2"><span class="label">Bairro:</span> Chacara São Silvestre </td>
+                <td colspan="2"><span class="label">Cidade:</span> Taubaté</td>
+                <td colspan="2"><span class="label">UF:</span> SP</td>
                 </tr>
         </table>
 
@@ -371,10 +357,11 @@
                 <td>Med. Mensais pagamento {{pedidoData.ddl}} DDL</td>
                 <td class="label">Data Vencimento:</td>
                 <td>{{formatDate pedidoData.data_vencimento}}</td>
-            </tr>
-        </table>
+                </tr>
+            </table>
 
-        <table>
+        <h2>Detalhes do Pedido</h2>
+        <table class="details-table">
             <tr>
                 <td>Centro de Custo:</td>
                 <td>{{descricao}}</td>
@@ -412,7 +399,7 @@
                 <h2>Data Final de Entrega</h2>
                 <table>
                     <tr>
-                        <td>{{dataEntregaMaisDistante}}</td>
+                        <td>{{formatDate pedidoData.data_final_entrega}}</td>
                     </tr>
                 </table>
             </div>
@@ -450,30 +437,108 @@
                 <td style="height: 50px; min-height: 50px; vertical-align: top;">{{dados_adicionais}}</td>
             </tr>
         </table>
-
         <h2>Outros</h2>
         <table>
             <tr>
                 <td>Frete ({{frete.tipo}})</td>
             </tr>
         </table>
+        <div class="informacoesImportantes">
+        <h2>Informações Importantes</h2>
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Os Preços:</strong> </td>
+            </tr>
+            <tr>
+                <td>Incluso nos preços todas as taxas, tributos e impostos pertencentes a aquisição.</td>
+            </tr>
+        </table>
+        <table style="border-top: none;">
+            <tr>
+                <td class="info-important-title"><strong>Prazo de Entrega:</strong> </td>
 
-        <h2>Informações Importantes para o Fornecedor</h2>
-        <p><strong>Os Preços:</strong> Inclusos nos preços todas as taxas, tributos e impostos pertencentes à aquisição.</p>
-        <p><strong>Prazo de Entrega:</strong> O material somente poderá ser entregue de acordo com a programação da obra. Caso o fornecedor não atenda a essa programação, a CONTRATANTE está autorizada a comprar o material de outros fornecedores e proceder ao desconto da diferença do FORNECEDOR.</p>
-        <p><strong>EPIs:</strong> O FORNECEDOR deverá munir seus funcionários com os EPIs adequados para a entrega e/ou descarga, conforme OSMA 024.</p>
-        <p><strong>Venda Mercantil:</strong> Todas as Notas Fiscais de Venda Mercantil deverão constar obrigatoriamente a correta identificação da Nomenclatura Comum do MERCOSUL (NCM), conforme estabelece a legislação fiscal vigente.</p>
-        <p><strong>Pagamento:</strong> Somente serão consideradas para efeito de pagamento as quantidades aceitas durante a entrega na obra.</p>
-        <p><strong>Defeitos ou Acidentes:</strong> No caso de defeito de fabricação ou danos pelo transporte, o FORNECEDOR deverá substituir o produto sem qualquer ônus para a CONTRATANTE, no prazo máximo de 48 horas.</p>
-        <p><strong>Tributos e Contribuições:</strong> Correrão por conta exclusiva do FORNECEDOR todos os tributos e contribuições que incidam ou venham a incidir sobre o presente pedido de fornecimento.</p>
-        <p><strong>Responsabilidade Social:</strong> O FORNECEDOR se obriga a não empregar menores de 18 anos em atividades noturnas, perigosas ou insalubres e menores de 16 anos em qualquer trabalho, exceto na condição de aprendizes, a partir de 14 anos.</p>
-        <p><strong>Obediência às Normas:</strong> O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis.</p>
-        <p><strong>Multas e Penalidades:</strong> Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento.</p>
-        <p>
-            <strong>Assinaturas</strong>
-            Para validade do pedido, por favor assinar esta via do pedido de compra e devolver via E-MAIL urgente.
-            Este pedido de compra deverá ser assinado e devolvido ao e-mail da Contratante em até 48 (quarenta e oito) horas corridas contadas do seu recebimento. Caso a Contratada não o faça e pratique atos que confirmem o início do fornecimento, este pedido será considerado aceito em todos os seus termos.
-        </p>
+            </tr>
+            <tr>
+                <td>Material somente poderá ser entregue de acordo com programação da obra e caso o fornecedor não atenda esta programação, fica a CONTRATANTE autorizada a comprar o material de outros fornecedores e proceder o desconto da diferença do FORNECEDOR.</td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>EPIs:</strong> </td>
+            </tr>
+            <tr>
+                <td>O FORNECEDOR terá que munir seus funcionários com os EPIs adequados a entrega e/ou descarga, conforme OSMA 024.</td>
+            </tr>
+        </table>    
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Venda Mercantil:</strong> </td>
+            </tr>
+            <tr>
+                <td>Todas as Notas Fiscais de Venda Mercantil deverão constar obrigatoriamente a correta identificação da Nomenclatura Comum do MERCOSUL NCM, conforme estabelece a legislação fiscal vigente. Não serão aceitas, em hipótese alguma, Notas Fiscais de Venda Mercantil, sem a correta identificação de NCM. Toda e qualquer mercadoria fornecida para a CONTRATANTE deverá ser acompanhada da Nota Fiscal devida. Quando acordado com a CONTRATANTE a realização de pagamento mediante a emissão de Nota Fiscal de Simples Faturamento, tal ato será mera liberalidade da CONTRATANTE, sendo obrigação do FORNECEDOR entregar o material à CONTRATANTE acompanhado da devida Nota Fiscal.</td>
+            </tr>
+        </table>    
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Pagamento:</strong> </td>
+            </tr>
+            <tr>
+                <td>Somente serão consideradas para efeito de pagamento, as quantidades aceitas durante a entrega na obra. Quando for o caso, somente serão consideradas as pesagens que forem efetuadas na balança da CONTRATANTE ou em outra indicada pela mesma. Serão consideradas a cubicagem efetuada pelo apontador da CONTRATANTE, devidamente anotada no canhoto da Nota Fiscal. Para efeito de pagamento, o prazo fixado no presente pedido de fornecimento será contado da data de entrega da mercadoria, incluindo-se nesta contagem o dia de emissão da respectiva Nota Fiscal. Todavia, caso o material solicitado não seja entregue na data da emissão da Nota Fiscal, o prazo para pagamento aqui estabelecido ficará prorrogado por tantos dias quantos forem os de atraso, sem quaisquer õnus para a CONTRATANTE. O FORNECEDOR deverá discriminar no corpo da Nota Fiscal o endereço da obra. Caso as faturas sejam emitidas com incorreções ou encaminhadas para o endereço diferente do indicado, as mesmas serão devolvidas e o prazo de pagamento passará a ser contado a partir da reapresentação das notas devidamente corrigidas no protocolo da CONTRATANTE.</td>
+            </tr>
+        </table>        
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Defeitos Ou Acidentes:</strong> </td>
+            </tr>
+            <tr>
+                <td>No caso de defeito de fabricação ou danos pelo transporte, o FORNECEDOR deverá substituir o produto sem qualquer õnus para a CONTRATANTE, no prazo máximo de 48 horas. Em caso de acidente, o FORNECEDOR deverá enviar um relato do acidente, bem como o número do lote do material, promovendo a substituição do produto eventualmente danificado nas mesmas condições ora descritas.</td>
+            </tr>
+        </table>        
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Tributos e Contribuições:</strong> </td>
+            </tr>
+            <tr>
+                <td>Correrão por conta exclusivas do FORNECEDOR todos os tributos e contribuições que incidam ou venham a incidir sobre o presente pedido de fornecimento.</td>
+            </tr>
+        </table>        
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Responsabilidade Social:</strong> </td>
+            </tr>
+            <tr>
+                <td>O FORNECEDOR se obriga a não empregar menores de 18 anos em atividades noturnas, perigosas ou insalubres e menores de 16 anos em qualquer trabalho, exceto na condição de aprendizes, a partir de 14 anos, bem como não utilizar qualquer forma de trabalho escravo ou análogo, devendo ainda incluir em todos os seus contratos com seus fornecedores, dispositivo vedando que os mesmos o façam.</td>
+            </tr>
+        </table>        
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Obediência às Normas:</strong> </td>
+            </tr>
+            <tr>
+                <td>O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis, relativamente à segurança, higiene e medicina do trabalho, especialmente a norma regulamentadora NR 18, do Ministério do Trabalho, bem como as normas internas expedidas pela CONTRATANTE.
+No caso de desobediência, as consequências, inclusive multas aplicadas pelos órgãos públicos, serão suportadas pelo FORNECEDOR, mesmo que lançadas contra a CONTRATANTE ou terceiros. Neste caso, ainda que passíveis de defesa, o valor respectivo será caucionado pela CONTRATANTE, que poderá descontá-los dos haveres do FORNECEDOR, sendo certo que o FORNECEDOR também estará sujeito a uma multa de R$ 200,00 por infração de cada funcionário.</td>
+            </tr>
+        </table>        
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Multas e Penalidades:</strong> </td>
+            </tr>
+            <tr>
+                <td>Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento, em favor do CONTRATANTE, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE. Em caso de atraso na data de entrega pactuada, o FORNECEDOR ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa moratória diária no valor correspondente a 1,0% (um por cento) do valor total deste pedido de compra, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE.
+A aplicação das multas previstas nesse contrato está limitada a 30% (trinta por cento) do valor total desse pedido de compra. Não serão deduzidos desse montante os valores diretamente pagos pelas seguradoras em decorrência dos seguros previstos neste contrato. As multas previstas neste contrato não excluem quaisquer outras penalidades previstas em lei.</td>
+            </tr>
+        </table>        
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Assinaturas:</strong> </td>
+            </tr>
+            <tr>
+                <td>Para validade do pedido, por favor assinar esta via do pedido de compra e devolver via E-MAIL urgente.
+
+Este pedido de compra deverá ser assinado e devolvido ao e-mail da Contratante em até 48 (quarenta e oito) horas corridas contadas do seu recebimento. Caso a Contratada não o faça e pratique atos que confirmem o início do fornecimento, este pedido será considerado aceito em todos os seus termos.</td>
+            </tr>
+        </table>
+        </div>
 
         <div class="assinaturas">
             <div class="flex-assinaturas">
@@ -482,11 +547,9 @@
                     <div class="assinatura-linha">
                         <div class="assinatura-info">Comprador: Erick Alves</div>
                     </div>
+                   
                     <div class="assinatura-linha">
-                        <div class="assinatura-info">Faturamento: Edson Alves</div>
-                    </div>
-                    <div class="assinatura-linha">
-                        <div class="assinatura-info">Testemunha</div>
+                        <div class="assinatura-info">Autorização: Erick H. S. Alves</div>
                     </div>
                 </div>
 
@@ -496,9 +559,7 @@
                         <div class="assinatura-info">{{fornecedor.nome}}</div>
                         <div class="assinatura-info">Contato: {{fornecedor.contato}}</div>
                     </div>
-                    <div class="assinatura-linha">
-                        <div class="assinatura-info">Testemunha</div>
-                    </div>
+        
                 </div>
             </div>
         </div>
