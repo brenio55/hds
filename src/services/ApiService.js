@@ -1554,6 +1554,219 @@ class ApiService {
             throw error;
         }
     }
+
+    // ===== Métodos para Aluguéis =====
+    
+    /**
+     * Registra um novo aluguel
+     * @param {Object} dadosAluguel - Dados do aluguel a ser registrado
+     * @returns {Promise<Object>} - Dados do aluguel criado
+     */
+    static async registrarAluguel(dadosAluguel) {
+        try {
+            console.log('Registrando novo aluguel:', dadosAluguel);
+            
+            // Validar dados obrigatórios
+            if (!dadosAluguel.valor || !dadosAluguel.detalhes?.dia_vencimento || 
+                !dadosAluguel.detalhes?.pagamento || !dadosAluguel.detalhes?.obra_id) {
+                throw new Error('Dados incompletos para registro de aluguel');
+            }
+            
+            // Verificar se o dia de vencimento é válido (1-31)
+            const diaVencimento = parseInt(dadosAluguel.detalhes.dia_vencimento);
+            if (isNaN(diaVencimento) || diaVencimento < 1 || diaVencimento > 31) {
+                throw new Error('Dia de vencimento deve ser um número entre 1 e 31');
+            }
+            
+            const response = await fetch(`${API_URL}/api/alugueis`, {
+                method: 'POST',
+                headers: {
+                    ...createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dadosAluguel)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao registrar aluguel');
+            }
+
+            const data = await response.json();
+            console.log('Aluguel registrado com sucesso:', data);
+            return data;
+        } catch (error) {
+            console.error('Erro ao registrar aluguel:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Busca aluguéis com filtros opcionais
+     * @param {Object} filtros - Filtros para busca (campo, valor, data_inicial, data_final, obraId)
+     * @returns {Promise<Array>} - Lista de aluguéis
+     */
+    static async buscarAlugueis(filtros = {}) {
+        try {
+            console.log('Buscando aluguéis com filtros:', filtros);
+            let url = `${API_URL}/api/alugueis`;
+            const queryParams = [];
+            
+            // Se tiver filtros de campo e valor, adicionar como query params
+            if (filtros.campo && filtros.valor) {
+                queryParams.push(`campo=${filtros.campo}`);
+                queryParams.push(`valor=${encodeURIComponent(filtros.valor)}`);
+            }
+            // Se tiver filtro de obra (centro de custo)
+            else if (filtros.obraId) {
+                queryParams.push(`campo=obra_id`);
+                queryParams.push(`valor=${encodeURIComponent(filtros.obraId)}`);
+            }
+            
+            // Adicionar filtros de data se fornecidos
+            if (filtros.dataInicial) {
+                queryParams.push(`data_inicial=${filtros.dataInicial}`);
+            }
+            if (filtros.dataFinal) {
+                queryParams.push(`data_final=${filtros.dataFinal}`);
+            }
+            
+            // Adicionar query params à URL
+            if (queryParams.length > 0) {
+                url += '?' + queryParams.join('&');
+            }
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao buscar aluguéis');
+            }
+
+            const alugueis = await response.json();
+            console.log(`Total de ${alugueis.length} aluguéis encontrados`);
+            return alugueis;
+        } catch (error) {
+            console.error('Erro ao buscar aluguéis:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Busca um aluguel por ID
+     * @param {number} id - ID do aluguel
+     * @returns {Promise<Object>} - Dados do aluguel
+     */
+    static async buscarAluguelPorId(id) {
+        try {
+            console.log(`Buscando aluguel com ID ${id}`);
+            
+            const response = await fetch(`${API_URL}/api/alugueis/${id}`, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Erro ao buscar aluguel com ID ${id}`);
+            }
+
+            const aluguel = await response.json();
+            console.log('Aluguel encontrado:', aluguel);
+            return aluguel;
+        } catch (error) {
+            console.error(`Erro ao buscar aluguel com ID ${id}:`, error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Atualiza um aluguel existente
+     * @param {number} id - ID do aluguel
+     * @param {Object} dadosAluguel - Novos dados do aluguel
+     * @returns {Promise<Object>} - Dados do aluguel atualizado
+     */
+    static async atualizarAluguel(id, dadosAluguel) {
+        try {
+            console.log(`Atualizando aluguel com ID ${id}:`, dadosAluguel);
+            
+            // Validar dados obrigatórios
+            if (!dadosAluguel.valor || !dadosAluguel.detalhes?.dia_vencimento || 
+                !dadosAluguel.detalhes?.pagamento || !dadosAluguel.detalhes?.obra_id) {
+                throw new Error('Dados incompletos para atualização de aluguel');
+            }
+            
+            // Verificar se o dia de vencimento é válido (1-31)
+            const diaVencimento = parseInt(dadosAluguel.detalhes.dia_vencimento);
+            if (isNaN(diaVencimento) || diaVencimento < 1 || diaVencimento > 31) {
+                throw new Error('Dia de vencimento deve ser um número entre 1 e 31');
+            }
+            
+            const response = await fetch(`${API_URL}/api/alugueis/${id}`, {
+                method: 'PUT',
+                headers: {
+                    ...createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dadosAluguel)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Erro ao atualizar aluguel com ID ${id}`);
+            }
+
+            const data = await response.json();
+            console.log('Aluguel atualizado com sucesso:', data);
+            return data;
+        } catch (error) {
+            console.error(`Erro ao atualizar aluguel com ID ${id}:`, error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Finaliza um aluguel (marca como finalizado)
+     * @param {number} id - ID do aluguel
+     * @returns {Promise<Object>} - Dados do aluguel finalizado
+     */
+    static async finalizarAluguel(id) {
+        try {
+            console.log(`Finalizando aluguel com ID ${id}`);
+            
+            // Buscar dados atuais do aluguel
+            const aluguelAtual = await this.buscarAluguelPorId(id);
+            
+            // Marcar como finalizado (adicionar campo finalizado)
+            const dadosAtualizados = {
+                ...aluguelAtual,
+                finalizado: true
+            };
+            
+            // Atualizar o aluguel
+            const response = await fetch(`${API_URL}/api/alugueis/${id}`, {
+                method: 'PUT',
+                headers: {
+                    ...createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dadosAtualizados)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Erro ao finalizar aluguel com ID ${id}`);
+            }
+
+            const data = await response.json();
+            console.log('Aluguel finalizado com sucesso:', data);
+            return data;
+        } catch (error) {
+            console.error(`Erro ao finalizar aluguel com ID ${id}:`, error);
+            throw error;
+        }
+    }
 }
 
 export default ApiService; 
