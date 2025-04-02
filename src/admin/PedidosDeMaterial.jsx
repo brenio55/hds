@@ -354,31 +354,45 @@ function PedidosDeMaterial() {
     const handleGerarPedido = async () => {
         try {
             console.log("Iniciando processo de geração de pedido de material...");
+
+            // Validação dos campos obrigatórios
+            if (!fornecedorId) {
+                alert('Erro: Código do Fornecedor é obrigatório.');
+                return;
+            }
             
+            if (!centroCusto) {
+                alert('Erro: Centro de Custo (Proposta) é obrigatório.');
+                return;
+            }
+            
+            if (itens.length === 0) {
+                alert('Erro: Pelo menos um item deve ser adicionado ao pedido.');
+                return;
+            }
+
             // Função para formatar e limitar valores numéricos
             const formatarValorNumerico = (valor) => {
+                if (valor === undefined || valor === null) {
+                    return 0;
+                }
+                
                 if (typeof valor === 'string') {
-                    // Remover símbolos de moeda e substituir vírgula por ponto
+                    // Remover todos os caracteres que não são dígitos, vírgulas ou pontos
                     valor = valor.replace(/[^\d,-]/g, '').replace(',', '.');
                 }
                 
-                // Converter para número
-                let numero = parseFloat(valor);
-                
-                // Verificar se é um número válido
+                const numero = parseFloat(valor);
                 if (isNaN(numero)) {
                     console.warn('Valor não numérico encontrado:', valor);
                     return 0;
                 }
                 
-                // Limitar o tamanho para evitar numeric overflow (assumindo campo numeric(10,2))
-                // Máximo: 99.999.999,99
-                numero = Math.min(numero, 99999999.99);
-                
-                // Retornar com precisão fixa
-                return numero;
+                // Limitar o valor para evitar overflow
+                return Math.min(numero, 99999999.99);
             };
-            
+
+            // Calcular totais com precisão
             const totalBruto = formatarValorNumerico(calcularTotalBruto());
             const ipiTotal = formatarValorNumerico(calcularTotalIPI());
             const totalDescontos = formatarValorNumerico(calcularTotalDescontos());
@@ -386,60 +400,50 @@ function PedidosDeMaterial() {
             const valorFrete = formatarValorNumerico(dadosPedido.valorFrete);
             const outrasDespesas = formatarValorNumerico(dadosPedido.outrasDespesas);
 
-            console.log("Valores calculados e formatados:", {
-                totalBruto,
-                ipiTotal,
-                totalDescontos,
-                totalFinal,
-                valorFrete,
-                outrasDespesas
-            });
+            // Formatar os itens para o formato esperado pelo backend
+            const itensFormatados = itens.map((item, index) => ({
+                item: index + 1,
+                descricao: item.descricao || '',
+                unidade: item.unidade || '',
+                quantidade: formatarValorNumerico(item.quantidade),
+                ipi: formatarValorNumerico(item.ipi),
+                valor_unitario: formatarValorNumerico(item.valorUnitario),
+                valor_total: formatarValorNumerico(item.valorTotal),
+                desconto: formatarValorNumerico(item.desconto),
+                previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+            }));
 
-            // Preparar os dados do pedido no formato esperado
-            const pedidoParaSalvar = {
-                codigo: document.querySelector('[name="codigo"]')?.value || '',
-                fornecedor_id: fornecedorId,
-                cnpj: cnpj,
-                endereco: endereco,
-                contato: contato,
-                dataVencto: document.querySelector('[name="dataVencto"]')?.value || '',
-                condPagto: dadosPedido.condPagto || '30',
-                frete: dadosPedido.frete || 'CIF',
-                totalBruto,
-                totalDescontos,
-                valorFrete,
-                outrasDespesas,
-                informacoesImportantes: dadosPedido.informacoesImportantes || '',
-                totalFinal,
-                proposta_id: centroCusto
+            // Garantir que clientinfo_id seja um número válido
+            let clientinfoId = null;
+            if (propostaSelecionada?.client_info?.id) {
+                const idValue = parseInt(propostaSelecionada.client_info.id);
+                if (!isNaN(idValue)) {
+                    clientinfoId = idValue;
+                }
+            }
+
+            // O backend espera um objeto com todos os dados do pedido
+            const pedidoData = {
+                fornecedores_id: parseInt(fornecedorId),
+                clientinfo_id: clientinfoId,
+                ddl: dadosPedido.condPagto || '30',
+                data_vencimento: document.querySelector('[name="dataVencto"]')?.value || new Date().toISOString().split('T')[0],
+                proposta_id: parseInt(centroCusto),
+                materiais: JSON.stringify(itensFormatados),
+                desconto: totalDescontos,
+                valor_frete: valorFrete,
+                despesas_adicionais: outrasDespesas,
+                dados_adicionais: dadosPedido.informacoesImportantes || '',
+                frete: JSON.stringify({ tipo: dadosPedido.frete || 'CIF' })
             };
 
-            // Preparar os itens no formato esperado e limitar valores numéricos
-            const itensFormatados = itens.map((item, index) => {
-                const quantidade = formatarValorNumerico(item.quantidade);
-                const valorUnitario = formatarValorNumerico(item.valorUnitario);
-                const valorTotal = formatarValorNumerico(item.valorTotal);
-                const ipi = formatarValorNumerico(item.ipi);
-                const desconto = formatarValorNumerico(item.desconto);
-                
-                return {
-                    item: index + 1,
-                    descricao: item.descricao || '',
-                    unidade: item.unidade || '',
-                    quantidade,
-                    ipi,
-                    valorUnitario,
-                    valorTotal,
-                    desconto,
-                    previsaoEntrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-                };
-            });
+            console.log("Dados formatados para envio ao backend:", pedidoData);
 
-            console.log("Dados formatados para envio:", { pedidoParaSalvar, itensFormatados });
+            // Chamar o método para criar pedido de compra
+            const resultado = await ApiService.criarPedido(pedidoData);
 
-            // Chamar a função de salvar pedido completo
-            const resultado = await ApiService.criarPedido(pedidoParaSalvar, itensFormatados);
-            
+            console.log("Resultado da criação do pedido:", resultado);
+
             // Exibir popup de sucesso
             const successPopup = document.createElement('div');
             successPopup.className = 'success-popup';
@@ -454,29 +458,27 @@ function PedidosDeMaterial() {
                 </div>
             `;
             document.body.appendChild(successPopup);
-            
+
             // Adicionar evento para fechar o popup
             document.getElementById('closeSuccessPopup').addEventListener('click', () => {
                 document.body.removeChild(successPopup);
             });
-            
+
             // Adicionar evento para visualizar o PDF
             if (resultado && resultado.id) {
                 document.getElementById('viewPdfButton').addEventListener('click', async () => {
                     try {
                         await ApiService.visualizarPedidoPdf(resultado.id);
                     } catch (error) {
-                        console.error('Erro ao visualizar PDF:', error);
+                        console.error('Erro ao visualizar PDF de material:', error);
                         alert('Erro ao visualizar o PDF. Tente novamente mais tarde.');
                     }
                 });
             }
-            
-            // Limpar o formulário ou redirecionar
-            // window.location.href = '/pedidosDeCompra';
+
         } catch (error) {
-            console.error('Erro ao criar pedido:', error);
-            alert(`Erro ao criar pedido: ${error.message}`);
+            console.error('Erro ao gerar pedido de material:', error);
+            alert('Erro ao gerar pedido de material. Por favor, verifique os dados e tente novamente. Detalhes: ' + error.message);
         }
     };
 

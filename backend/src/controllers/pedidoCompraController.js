@@ -16,7 +16,97 @@ class PedidoCompraController {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const pedido = await PedidoCompraModel.create(req.body);
+      // Dados recebidos do frontend
+      const data = req.body;
+      console.log('Dados recebidos para criar pedido de compra:', data);
+
+      // Validar fornecedores_id
+      if (!data.fornecedores_id) {
+        return res.status(400).json({ error: 'O ID do fornecedor é obrigatório' });
+      }
+
+      // Garantir que o campo materiais seja uma string JSON válida
+      try {
+        if (typeof data.materiais === 'string') {
+          // Verificar se é um JSON válido
+          JSON.parse(data.materiais);
+        } else if (Array.isArray(data.materiais)) {
+          // Converter array para string JSON
+          data.materiais = JSON.stringify(data.materiais);
+        } else if (!data.materiais) {
+          // Definir um array vazio se não houver materiais
+          data.materiais = '[]';
+        } else {
+          // Tentar converter qualquer outro formato para string JSON
+          data.materiais = JSON.stringify(data.materiais);
+        }
+      } catch (e) {
+        console.error('Erro ao processar campo materiais:', e);
+        return res.status(400).json({ error: 'Formato inválido para o campo materiais' });
+      }
+
+      // Garantir que o campo frete seja uma string JSON válida
+      try {
+        if (typeof data.frete === 'string') {
+          // Verificar se é um JSON válido
+          JSON.parse(data.frete);
+        } else if (typeof data.frete === 'object') {
+          // Converter objeto para string JSON
+          data.frete = JSON.stringify(data.frete);
+        } else if (!data.frete) {
+          // Definir um objeto vazio se não houver frete
+          data.frete = '{}';
+        } else {
+          // Tentar converter qualquer outro formato para string JSON
+          data.frete = JSON.stringify(data.frete);
+        }
+      } catch (e) {
+        console.error('Erro ao processar campo frete:', e);
+        data.frete = '{}';
+      }
+
+      // Garantir que campos numéricos sejam números
+      if (data.fornecedores_id) {
+        data.fornecedores_id = parseInt(data.fornecedores_id);
+      }
+      
+      if (data.clientinfo_id) {
+        data.clientinfo_id = parseInt(data.clientinfo_id);
+      }
+      
+      if (data.proposta_id) {
+        data.proposta_id = parseInt(data.proposta_id);
+      }
+
+      console.log('Dados processados para criar pedido de compra:', data);
+
+      // Criar o pedido
+      const pedido = await PedidoCompraModel.create(data);
+      console.log('Pedido criado com sucesso:', pedido);
+      
+      // Gerar PDF
+      try {
+        const proposta = await PropostaModel.findById(pedido.proposta_id);
+        const fornecedor = await FornecedorModel.findById(pedido.fornecedores_id);
+        
+        if (proposta && fornecedor) {
+          console.log('Gerando PDF para o pedido...');
+          const pdf_uid = await PedidoCompraService.generatePdf(pedido, proposta, fornecedor);
+          
+          // Atualizar o pedido com o uid do PDF
+          if (pdf_uid) {
+            await PedidoCompraModel.update(pedido.id, { ...pedido, pdf_uid });
+            pedido.pdf_uid = pdf_uid;
+            console.log('PDF gerado com sucesso:', pdf_uid);
+          }
+        } else {
+          console.warn('Não foi possível gerar PDF: proposta ou fornecedor não encontrado');
+        }
+      } catch (pdfError) {
+        console.error('Erro ao gerar PDF do pedido:', pdfError);
+        // Não falha a criação do pedido se o PDF falhar
+      }
+      
       res.status(201).json(pedido);
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
@@ -33,39 +123,39 @@ class PedidoCompraController {
       if (!campo || !valor) {
         pedidos = await PedidoCompraModel.findAll();
       } else {
-        // Validar campos permitidos para busca (apenas colunas da tabela)
-        const camposPermitidos = [
-          'id',
-          'clientinfo_id',
-          'fornecedores_id',
-          'ddl',
-          'data_vencimento',
-          'proposta_id',
-          'materiais',
-          'desconto',
-          'valor_frete',
-          'despesas_adicionais',
-          'dados_adicionais',
-          'frete',
-          'created_at',
-          'ativo'
-        ];
+      // Validar campos permitidos para busca (apenas colunas da tabela)
+      const camposPermitidos = [
+        'id',
+        'clientinfo_id',
+        'fornecedores_id',
+        'ddl',
+        'data_vencimento',
+        'proposta_id',
+        'materiais',
+        'desconto',
+        'valor_frete',
+        'despesas_adicionais',
+        'dados_adicionais',
+        'frete',
+        'created_at',
+        'ativo'
+      ];
 
-        if (!camposPermitidos.includes(campo)) {
-          return res.status(400).json({ 
-            error: `Campo de busca inválido. Campos permitidos: ${camposPermitidos.join(', ')}`,
-            exemplo: 'Use /api/pedidos-compra?campo=id&valor=1'
-          });
-        }
+      if (!camposPermitidos.includes(campo)) {
+        return res.status(400).json({ 
+          error: `Campo de busca inválido. Campos permitidos: ${camposPermitidos.join(', ')}`,
+          exemplo: 'Use /api/pedidos-compra?campo=id&valor=1'
+        });
+      }
 
-        // Busca pedidos com o filtro
+      // Busca pedidos com o filtro
         pedidos = await PedidoCompraModel.findByField(campo, valor);
-        
-        if (!pedidos || pedidos.length === 0) {
-          return res.status(404).json({ 
-            message: 'Nenhum pedido encontrado com os critérios informados',
-            exemplo: 'Tente outro valor ou verifique se o campo está correto'
-          });
+      
+      if (!pedidos || pedidos.length === 0) {
+        return res.status(404).json({ 
+          message: 'Nenhum pedido encontrado com os critérios informados',
+          exemplo: 'Tente outro valor ou verifique se o campo está correto'
+        });
         }
       }
 

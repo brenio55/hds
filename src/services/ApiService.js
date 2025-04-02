@@ -76,82 +76,103 @@ class ApiService {
         }
     }
 
-    static async criarPedido(dadosPedido, itens) {
-        console.log('ApiService: criarPedido iniciado', { dadosPedido, itens });
+    static async criarPedido(pedidoData) {
         try {
-            // Processar valores numéricos para garantir formato correto e limitar tamanho
-            // Função para formatar valores numéricos
-            const formatarValorNumerico = (valor, casasDecimais = 2) => {
+            console.log('Iniciando criação de pedido de material:', pedidoData);
+            
+            // Garantir que os campos numéricos sejam números e não strings
+            const formatarValor = (valor) => {
+                if (valor === undefined || valor === null) return 0;
+                if (typeof valor === 'number') return valor;
                 if (typeof valor === 'string') {
-                    // Remover símbolos de moeda e substituir vírgula por ponto
-                    valor = valor.replace(/[^\d,-]/g, '').replace(',', '.');
+                    // Remover símbolos de moeda, converter vírgula para ponto
+                    return parseFloat(valor.replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
                 }
-                
-                // Converter para número e limitar a precisão
-                let numero = parseFloat(valor);
-                
-                // Verificar se é um número válido
-                if (isNaN(numero)) {
-                    console.warn('Valor não numérico encontrado:', valor);
-                    return 0;
-                }
-                
-                // Limitar o tamanho para evitar numeric overflow (assumindo campo numeric(10,2))
-                // Máximo: 99.999.999,99
-                numero = Math.min(numero, 99999999.99);
-                
-                // Retornar com precisão fixa
-                return parseFloat(numero.toFixed(casasDecimais));
-            };
-
-            // Formatar valores numéricos no pedido
-            const pedidoProcessado = {
-                ...dadosPedido,
-                totalBruto: formatarValorNumerico(dadosPedido.totalBruto),
-                totalDescontos: formatarValorNumerico(dadosPedido.totalDescontos),
-                valorFrete: formatarValorNumerico(dadosPedido.valorFrete),
-                outrasDespesas: formatarValorNumerico(dadosPedido.outrasDespesas),
-                totalFinal: formatarValorNumerico(dadosPedido.totalFinal)
+                return 0;
             };
             
-            // Formatar valores numéricos nos itens
-            const itensProcessados = itens.map(item => ({
-                ...item,
-                quantidade: formatarValorNumerico(item.quantidade),
-                ipi: formatarValorNumerico(item.ipi),
-                valorUnitario: formatarValorNumerico(item.valorUnitario),
-                valorTotal: formatarValorNumerico(item.valorTotal),
-                desconto: formatarValorNumerico(item.desconto)
-            }));
+            // Certifique-se de que materiais é uma string JSON válida
+            if (pedidoData.materiais) {
+                if (typeof pedidoData.materiais !== 'string') {
+                    try {
+                        pedidoData.materiais = JSON.stringify(pedidoData.materiais);
+                    } catch (e) {
+                        console.error('Erro ao converter materiais para JSON:', e);
+                        throw new Error('Formato inválido para materiais - não foi possível converter para JSON');
+                    }
+                }
+                
+                // Verificar se a string é um JSON válido
+                try {
+                    JSON.parse(pedidoData.materiais);
+                } catch (e) {
+                    console.error('Erro ao validar JSON de materiais:', e);
+                    throw new Error('Formato inválido para materiais - JSON inválido');
+                }
+            } else {
+                pedidoData.materiais = '[]';
+            }
             
-            console.log('ApiService: Dados formatados para envio:', { 
-                pedidoProcessado, 
-                itensProcessados 
-            });
-
+            // Certifique-se de que frete é uma string JSON válida
+            if (pedidoData.frete) {
+                if (typeof pedidoData.frete !== 'string') {
+                    try {
+                        pedidoData.frete = JSON.stringify(pedidoData.frete);
+                    } catch (e) {
+                        console.error('Erro ao converter frete para JSON:', e);
+                        pedidoData.frete = '{}';
+                    }
+                }
+                
+                try {
+                    JSON.parse(pedidoData.frete);
+                } catch (e) {
+                    console.error('Erro ao validar JSON de frete:', e);
+                    pedidoData.frete = '{}';
+                }
+            } else {
+                pedidoData.frete = '{}';
+            }
+            
+            // Limpar valores nulos/undefined e garantir que valores numéricos sejam números
+            const dadosLimpos = {
+                fornecedores_id: pedidoData.fornecedores_id || null,
+                clientinfo_id: pedidoData.clientinfo_id || null,
+                ddl: pedidoData.ddl || '30',
+                data_vencimento: pedidoData.data_vencimento || new Date().toISOString().split('T')[0],
+                proposta_id: pedidoData.proposta_id || null,
+                materiais: pedidoData.materiais, 
+                desconto: formatarValor(pedidoData.desconto),
+                valor_frete: formatarValor(pedidoData.valor_frete),
+                despesas_adicionais: formatarValor(pedidoData.despesas_adicionais),
+                dados_adicionais: pedidoData.dados_adicionais || '',
+                frete: pedidoData.frete
+            };
+            
+            console.log('Dados formatados para envio ao backend:', dadosLimpos);
+            console.log('Tipo de materiais:', typeof dadosLimpos.materiais);
+            console.log('Tipo de clientinfo_id:', typeof dadosLimpos.clientinfo_id);
+            console.log('Tipo de fornecedores_id:', typeof dadosLimpos.fornecedores_id);
+            
             const response = await fetch(`${API_URL}/api/pedidos-compra`, {
                 method: 'POST',
                 headers: {
-                    ...createAuthHeaders(),
+                    ...await createAuthHeaders(),
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    pedido: pedidoProcessado,
-                    itens: itensProcessados
-                })
+                body: JSON.stringify(dadosLimpos)
             });
 
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Erro na resposta da API:', response.status, errorText);
-                throw new Error(`Erro ao criar pedido: ${response.status} - ${errorText}`);
+                const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                throw new Error(errorData.error || 'Erro ao criar pedido de compra');
             }
 
-            const result = await response.json();
-            console.log('ApiService: criarPedido concluído com sucesso', result);
-            return result;
+            const data = await response.json();
+            console.log('Pedido de material criado com sucesso:', data);
+            return data;
         } catch (error) {
-            console.error('ApiService: Erro ao criar pedido:', error);
+            console.error('Erro ao criar pedido de material:', error);
             throw error;
         }
     }
@@ -422,91 +443,58 @@ class ApiService {
         }
     }
 
-    static async downloadPdf(id, version) {
+    // Método auxiliar para visualizar qualquer PDF
+    static async _visualizarPdf(url) {
         try {
-            const response = await fetch(
-                `${API_URL}/api/propostas/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
+            console.log(`Iniciando visualização de PDF de: ${url}`);
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    ...await createAuthHeaders()
                 }
-            );
+            });
 
             if (!response.ok) {
-                throw new Error('Erro ao baixar PDF');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Erro ao buscar PDF`);
             }
 
-            // Obtém o nome do arquivo do header Content-Disposition
-            const contentDisposition = response.headers.get('content-disposition');
-            let filename = 'proposta.pdf';
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-                if (filenameMatch) {
-                    filename = filenameMatch[1];
-                }
-            }
-
-            // Converte a resposta para blob e cria URL para download
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
+            const url_objeto = window.URL.createObjectURL(blob);
+            window.open(url_objeto, '_blank');
+            
+            // Limpar URL temporária após uso
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url_objeto);
+            }, 100);
+            
             return true;
         } catch (error) {
-            console.error('Erro ao baixar PDF:', error);
+            console.error(`Erro ao visualizar PDF:`, error);
             throw error;
         }
     }
 
-    // Método para visualizar o PDF em uma nova guia
-    static async visualizarPdf(id, version) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/propostas/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Erro ao carregar PDF');
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-        } catch (error) {
-            console.error('Erro ao visualizar PDF:', error);
-            throw error;
-        }
-    }
-
-    // Método para visualizar o PDF de pedido de compra em uma nova guia
+    // --- Métodos de visualização de PDF ---
+    // Visualizar PDF de pedido de material
     static async visualizarPedidoPdf(id) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/pedidos-compra/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
+        return this._visualizarPdf(`${API_URL}/api/pedidos-compra/${id}/pdf/download`);
+    }
 
-            if (!response.ok) {
-                throw new Error('Erro ao carregar PDF do pedido');
-            }
+    // Visualizar PDF de pedido de serviço
+    static async visualizarPedidoServicoPdf(id) {
+        return this._visualizarPdf(`${API_URL}/api/servicos/${id}/pdf/download`);
+    }
 
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-        } catch (error) {
-            console.error('Erro ao visualizar PDF do pedido:', error);
-            throw error;
-        }
+    // Visualizar PDF de pedido de locação
+    static async visualizarPedidoLocacaoPdf(id) {
+        return this._visualizarPdf(`${API_URL}/api/pedidos-locacao/${id}/pdf/download`);
+    }
+
+    // Visualizar PDF de proposta
+    static async visualizarPdf(id, version) {
+        return this._visualizarPdf(`${API_URL}/api/propostas/${id}/pdf/download?version=${version}`);
     }
 
     // Método para download do PDF de pedido de compra
@@ -810,35 +798,6 @@ class ApiService {
     }
 
     /**
-     * Visualiza o PDF de um pedido de serviço em nova aba
-     * @param {number} id - ID do pedido 
-     * @returns {Promise<void>}
-     */
-    static async visualizarPedidoServicoPdf(id) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/servicos/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Erro ao carregar PDF do pedido de serviço');
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            
-            return true;
-        } catch (error) {
-            console.error('Erro ao visualizar PDF do pedido de serviço:', error);
-            throw error;
-        }
-    }
-
-    /**
      * Busca pedidos de serviço com filtros opcionais (com fallback para dados de exemplo)
      * @param {Object} filtros - Filtros para a busca
      * @returns {Promise<Object>} - Objeto com total e lista de pedidos
@@ -955,9 +914,9 @@ class ApiService {
                     pedidos: pedidosFormatados
                 };
                 
-            } catch (jsonError) {
+                } catch (jsonError) {
                 console.error('ApiService: Erro ao processar JSON da resposta:', jsonError);
-                throw new Error('Erro ao processar resposta do servidor');
+                    throw new Error('Erro ao processar resposta do servidor');
             }
         } catch (error) {
             console.error('ApiService: Erro geral ao buscar pedidos consolidados:', error);
@@ -1560,28 +1519,6 @@ class ApiService {
             };
         } catch (error) {
             console.error(`ApiService: Erro ao buscar fornecedor ${id}:`, error);
-            throw error;
-        }
-    }
-
-    static async visualizarPedidoLocacaoPdf(id) {
-        try {
-            const response = await fetch(`${API_URL}/api/pedidos-locacao/${id}/pdf/download`, {
-                method: 'GET',
-                headers: {
-                    ...createAuthHeaders()
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao baixar PDF');
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-        } catch (error) {
-            console.error('Erro ao visualizar PDF:', error);
             throw error;
         }
     }

@@ -454,9 +454,9 @@ function PedidosDeServico() {
                 setErrorFornecedor('');
             } else {
                 console.log("Fornecedor não encontrado na lista, buscando da API");
-                // Acionar a busca de detalhes do fornecedor
-                const event = { target: { value: selectedId } };
-                handleFornecedorIdChange(event);
+            // Acionar a busca de detalhes do fornecedor
+            const event = { target: { value: selectedId } };
+            handleFornecedorIdChange(event);
             }
         } else {
             // Limpar os campos se nenhum fornecedor for selecionado
@@ -483,7 +483,7 @@ function PedidosDeServico() {
             console.log("Proposta encontrada na lista:", proposta);
             
             if (proposta) {
-                setPropostaSelecionada(proposta);
+            setPropostaSelecionada(proposta);
             } else {
                 console.warn("Proposta não encontrada na lista com ID:", propostaId);
                 console.log("Lista de propostas disponíveis:", listaPropostas);
@@ -547,16 +547,16 @@ function PedidosDeServico() {
                 fornecedor_id: parseInt(fornecedorId) || null,
                 data_vencimento: document.querySelector('[name="dataVencto"]')?.value || new Date().toISOString().split('T')[0],
                 proposta_id: parseInt(centroCusto) || null,
-                itens: itensFormatados, // Não converter para string aqui, deixar a API fazer isso
+                itens: JSON.stringify(itensFormatados), // Converter para JSON string aqui
                 total_bruto: totalBruto,
                 total_ipi: ipiTotal,
                 total_descontos: totalDescontos,
                 valor_frete: valorFrete,
                 outras_despesas: outrasDespesas,
                 total_final: totalFinal,
-                frete: dadosPedido.frete || 'CIF',
-                condicao_pagamento: dadosPedido.condPagto || '30',
-                informacoes_importantes: dadosPedido.informacoesImportantes || '',
+                    frete: dadosPedido.frete || 'CIF',
+                    condicao_pagamento: dadosPedido.condPagto || '30',
+                    informacoes_importantes: dadosPedido.informacoesImportantes || '',
                 escopo_contratacao: document.querySelector('[name="escopoContratacao"]')?.value || '',
                 responsabilidade_contratada: document.querySelector('[name="respContratada"]')?.value?.split(/\r?\n/).filter(item => item.trim() !== '') || [],
                 responsabilidade_contratante: document.querySelector('[name="respContratante"]')?.value?.split(/\r?\n/).filter(item => item.trim() !== '') || []

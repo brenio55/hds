@@ -460,7 +460,7 @@ class PedidosConsolidadosController {
               const cliente = clienteMap.get(pedido.clientinfo_id);
               
               return {
-                tipo: 'compra',
+          tipo: 'compra',
                 id: pedido.id,
                 created_at: pedido.created_at,
                 fornecedor_id: pedido.fornecedores_id,
@@ -531,7 +531,7 @@ class PedidosConsolidadosController {
               const cliente = clienteMap.get(pedido.clientInfo_id);
               
               return {
-                tipo: 'locacao',
+          tipo: 'locacao',
                 id: pedido.id,
                 created_at: pedido.created_at,
                 fornecedor_id: pedido.fornecedor_id,
@@ -616,7 +616,7 @@ class PedidosConsolidadosController {
               const proposta = propostaMap.get(servico.proposta_id);
               
               return {
-                tipo: 'servico',
+          tipo: 'servico',
                 id: servico.id,
                 created_at: servico.created_at,
                 fornecedor_id: servico.fornecedor_id,
