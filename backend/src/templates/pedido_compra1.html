@@ -262,6 +262,14 @@
         .dados-adicionais-table {
             margin-bottom: 20px;
         }
+
+        div.informacoesImportantes td{
+            border: none;
+        }
+        
+        div.informacoesImportantes .info-important-title{
+            background-color: #d5d5d5;
+        }
     </style>
 </head>
 <body>
@@ -438,25 +446,88 @@
                 <td style="height: 50px; min-height: 50px; vertical-align: top;">{{dados_adicionais}}</td>
             </tr>
         </table>
-
         <h2>Outros</h2>
         <table>
             <tr>
                 <td>Frete ({{frete.tipo}})</td>
             </tr>
         </table>
+        <div class="informacoesImportantes">
+        <h2>Informações Importantes</h2>
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Os Preços:</strong> </td>
+            </tr>
+            <tr>
+                <td>Inclusos nos preços todas as taxas, tributos e impostos pertencentes à aquisição.</td>
+            </tr>
+        </table>
+        <table style="border-top: none;">
+            <tr>
+                <td class="info-important-title"><strong>Prazo de Entrega:</strong> </td>
 
-        <h2>Informações Importantes para o Fornecedor</h2>
-        <p><strong>Os Preços:</strong> Inclusos nos preços todas as taxas, tributos e impostos pertencentes à aquisição.</p>
-        <p><strong>Prazo de Entrega:</strong> O material somente poderá ser entregue de acordo com a programação da obra. Caso o fornecedor não atenda a essa programação, a CONTRATANTE está autorizada a comprar o material de outros fornecedores e proceder ao desconto da diferença do FORNECEDOR.</p>
-        <p><strong>EPIs:</strong> O FORNECEDOR deverá munir seus funcionários com os EPIs adequados para a entrega e/ou descarga, conforme OSMA 024.</p>
-        <p><strong>Venda Mercantil:</strong> Todas as Notas Fiscais de Venda Mercantil deverão constar obrigatoriamente a correta identificação da Nomenclatura Comum do MERCOSUL (NCM), conforme estabelece a legislação fiscal vigente.</p>
-        <p><strong>Pagamento:</strong> Somente serão consideradas para efeito de pagamento as quantidades aceitas durante a entrega na obra.</p>
-        <p><strong>Defeitos ou Acidentes:</strong> No caso de defeito de fabricação ou danos pelo transporte, o FORNECEDOR deverá substituir o produto sem qualquer ônus para a CONTRATANTE, no prazo máximo de 48 horas.</p>
-        <p><strong>Tributos e Contribuições:</strong> Correrão por conta exclusiva do FORNECEDOR todos os tributos e contribuições que incidam ou venham a incidir sobre o presente pedido de fornecimento.</p>
-        <p><strong>Responsabilidade Social:</strong> O FORNECEDOR se obriga a não empregar menores de 18 anos em atividades noturnas, perigosas ou insalubres e menores de 16 anos em qualquer trabalho, exceto na condição de aprendizes, a partir de 14 anos.</p>
-        <p><strong>Obediência às Normas:</strong> O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis.</p>
-        <p><strong>Multas e Penalidades:</strong> Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento.</p>
+            </tr>
+            <tr>
+                <td>O material somente poderá ser entregue de acordo com a programação da obra. Caso o fornecedor não atenda a essa programação, a CONTRATANTE está autorizada a comprar o material de outros fornecedores e proceder ao desconto da diferença do FORNECEDOR.</td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>EPIs:</strong> </td>
+            </tr>
+            <tr>
+                <td>O FORNECEDOR deverá munir seus funcionários com os EPIs adequados para a entrega e/ou descarga, conforme OSMA 024.</td>
+            </tr>
+        </table>    
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Venda Mercantil:</strong> </td>
+            </tr>
+            <tr>
+                <td>Todas as Notas Fiscais de Venda Mercantil deverão constar obrigatoriamente a correta identificação da Nomenclatura Comum do MERCOSUL (NCM), conforme estabelece a legislação fiscal vigente.</td>
+            </tr>
+        </table>    
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Pagamento:</strong> </td>
+            </tr>
+            <tr>
+                <td>Somente serão consideradas para efeito de pagamento as quantidades aceitas durante a entrega na obra.</td>
+            </tr>
+        </table>        
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Tributos e Contribuições:</strong> </td>
+            </tr>
+            <tr>
+                <td>Correrão por conta exclusiva do FORNECEDOR todos os tributos e contribuições que incidam ou venham a incidir sobre o presente pedido de fornecimento.</td>
+            </tr>
+        </table>        
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Responsabilidade Social:</strong> </td>
+            </tr>
+            <tr>
+                <td>O FORNECEDOR se obriga a não empregar menores de 18 anos em atividades noturnas, perigosas ou insalubres e menores de 16 anos em qualquer trabalho, exceto na condição de aprendizes, a partir de 14 anos.</td>
+            </tr>
+        </table>        
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Obediência às Normas:</strong> </td>
+            </tr>
+            <tr>
+                <td>O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis.</td>
+            </tr>
+        </table>        
+        <table>
+            <tr>
+                <td class="info-important-title"><strong>Multas e Penalidades:</strong> </td>
+            </tr>
+            <tr>
+                <td>Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento.</td>
+            </tr>
+        </table>
+        </div>
 
         <div class="assinaturas">
             <div class="flex-assinaturas">
