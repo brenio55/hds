@@ -91,68 +91,34 @@ class ApiService {
                 return 0;
             };
             
-            // Certifique-se de que materiais é uma string JSON válida
-            if (pedidoData.materiais) {
-                if (typeof pedidoData.materiais !== 'string') {
-                    try {
-                        pedidoData.materiais = JSON.stringify(pedidoData.materiais);
-                    } catch (e) {
-                        console.error('Erro ao converter materiais para JSON:', e);
-                        throw new Error('Formato inválido para materiais - não foi possível converter para JSON');
-                    }
-                }
-                
-                // Verificar se a string é um JSON válido
-                try {
-                    JSON.parse(pedidoData.materiais);
-                } catch (e) {
-                    console.error('Erro ao validar JSON de materiais:', e);
-                    throw new Error('Formato inválido para materiais - JSON inválido');
-                }
-            } else {
-                pedidoData.materiais = '[]';
+            // Criar cópia dos dados para não modificar o original
+            const dadosFormatados = { ...pedidoData };
+            
+            // O backend espera que materiais e frete sejam enviados como objetos JSON, não strings
+            // No PostgreSQL serão armazenados como JSONB, mas o backend fará a conversão adequada
+            
+            // Verificar os materiais
+            if (!dadosFormatados.materiais) {
+                dadosFormatados.materiais = [];
             }
             
-            // Certifique-se de que frete é uma string JSON válida
-            if (pedidoData.frete) {
-                if (typeof pedidoData.frete !== 'string') {
-                    try {
-                        pedidoData.frete = JSON.stringify(pedidoData.frete);
-                    } catch (e) {
-                        console.error('Erro ao converter frete para JSON:', e);
-                        pedidoData.frete = '{}';
-                    }
-                }
-                
-                try {
-                    JSON.parse(pedidoData.frete);
-                } catch (e) {
-                    console.error('Erro ao validar JSON de frete:', e);
-                    pedidoData.frete = '{}';
-                }
-            } else {
-                pedidoData.frete = '{}';
+            // Verificar frete
+            if (!dadosFormatados.frete) {
+                dadosFormatados.frete = { tipo: 'CIF' };
             }
             
-            // Limpar valores nulos/undefined e garantir que valores numéricos sejam números
-            const dadosLimpos = {
-                fornecedores_id: pedidoData.fornecedores_id || null,
-                clientinfo_id: pedidoData.clientinfo_id || null,
-                ddl: pedidoData.ddl || '30',
-                data_vencimento: pedidoData.data_vencimento || new Date().toISOString().split('T')[0],
-                proposta_id: pedidoData.proposta_id || null,
-                materiais: pedidoData.materiais, 
-                desconto: formatarValor(pedidoData.desconto),
-                valor_frete: formatarValor(pedidoData.valor_frete),
-                despesas_adicionais: formatarValor(pedidoData.despesas_adicionais),
-                dados_adicionais: pedidoData.dados_adicionais || '',
-                frete: pedidoData.frete
-            };
+            // Garantir que os campos numéricos sejam números
+            dadosFormatados.fornecedores_id = dadosFormatados.fornecedores_id ? parseInt(dadosFormatados.fornecedores_id) : null;
+            dadosFormatados.clientinfo_id = dadosFormatados.clientinfo_id ? parseInt(dadosFormatados.clientinfo_id) : null;
+            dadosFormatados.proposta_id = dadosFormatados.proposta_id ? parseInt(dadosFormatados.proposta_id) : null;
+            dadosFormatados.desconto = formatarValor(dadosFormatados.desconto);
+            dadosFormatados.valor_frete = formatarValor(dadosFormatados.valor_frete);
+            dadosFormatados.despesas_adicionais = formatarValor(dadosFormatados.despesas_adicionais);
             
-            console.log('Dados formatados para envio ao backend:', dadosLimpos);
-            console.log('Tipo de materiais:', typeof dadosLimpos.materiais);
-            console.log('Tipo de clientinfo_id:', typeof dadosLimpos.clientinfo_id);
-            console.log('Tipo de fornecedores_id:', typeof dadosLimpos.fornecedores_id);
+            console.log('Dados formatados para envio ao backend:', dadosFormatados);
+            console.log('Tipo de materiais:', typeof dadosFormatados.materiais);
+            console.log('Tipo de clientinfo_id:', typeof dadosFormatados.clientinfo_id);
+            console.log('Tipo de fornecedores_id:', typeof dadosFormatados.fornecedores_id);
             
             const response = await fetch(`${API_URL}/api/pedidos-compra`, {
                 method: 'POST',
@@ -160,7 +126,7 @@ class ApiService {
                     ...await createAuthHeaders(),
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(dadosLimpos)
+                body: JSON.stringify(dadosFormatados)
             });
 
             if (!response.ok) {

@@ -420,6 +420,9 @@ function PedidosDeMaterial() {
                 if (!isNaN(idValue)) {
                     clientinfoId = idValue;
                 }
+            } else if (propostaSelecionada?.id) {
+                // Se não tiver client_info, tenta usar o ID da proposta conforme solicitado
+                clientinfoId = parseInt(propostaSelecionada.id);
             }
 
             // O backend espera um objeto com todos os dados do pedido
@@ -429,12 +432,23 @@ function PedidosDeMaterial() {
                 ddl: dadosPedido.condPagto || '30',
                 data_vencimento: document.querySelector('[name="dataVencto"]')?.value || new Date().toISOString().split('T')[0],
                 proposta_id: parseInt(centroCusto),
-                materiais: JSON.stringify(itensFormatados),
+                // Enviando materiais como array (o backend vai converter conforme necessário)
+                materiais: itensFormatados.map(item => ({
+                    item: item.item,
+                    descricao: item.descricao,
+                    unidade: item.unidade,
+                    quantidade: item.quantidade,
+                    ipi: item.ipi,
+                    valor_unitario: item.valor_unitario,
+                    valor_total: item.valor_total,
+                    desconto: item.desconto,
+                    previsao_entrega: item.previsao_entrega
+                })),
                 desconto: totalDescontos,
                 valor_frete: valorFrete,
                 despesas_adicionais: outrasDespesas,
                 dados_adicionais: dadosPedido.informacoesImportantes || '',
-                frete: JSON.stringify({ tipo: dadosPedido.frete || 'CIF' })
+                frete: { tipo: dadosPedido.frete || 'CIF' }
             };
 
             console.log("Dados formatados para envio ao backend:", pedidoData);

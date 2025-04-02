@@ -25,19 +25,23 @@ class PedidoCompraController {
         return res.status(400).json({ error: 'O ID do fornecedor é obrigatório' });
       }
 
-      // Garantir que o campo materiais seja uma string JSON válida
+      // Garantir que o campo materiais seja processado corretamente para formato JSONB
       try {
-        if (typeof data.materiais === 'string') {
-          // Verificar se é um JSON válido
-          JSON.parse(data.materiais);
-        } else if (Array.isArray(data.materiais)) {
-          // Converter array para string JSON
+        // Se materiais já é um objeto (array), converter para string JSON para o modelo
+        if (Array.isArray(data.materiais)) {
+          console.log('Materiais recebidos como array, convertendo para string JSON');
           data.materiais = JSON.stringify(data.materiais);
+        } else if (typeof data.materiais === 'string') {
+          // Verificar se é um JSON válido
+          console.log('Materiais recebidos como string, verificando se é JSON válido');
+          JSON.parse(data.materiais);
         } else if (!data.materiais) {
           // Definir um array vazio se não houver materiais
+          console.log('Materiais não fornecidos, usando array vazio');
           data.materiais = '[]';
         } else {
           // Tentar converter qualquer outro formato para string JSON
+          console.log('Materiais em formato desconhecido, tentando converter');
           data.materiais = JSON.stringify(data.materiais);
         }
       } catch (e) {
@@ -45,19 +49,23 @@ class PedidoCompraController {
         return res.status(400).json({ error: 'Formato inválido para o campo materiais' });
       }
 
-      // Garantir que o campo frete seja uma string JSON válida
+      // Garantir que o campo frete seja processado corretamente para formato JSONB
       try {
-        if (typeof data.frete === 'string') {
-          // Verificar se é um JSON válido
-          JSON.parse(data.frete);
-        } else if (typeof data.frete === 'object') {
-          // Converter objeto para string JSON
+        // Se frete já é um objeto, converter para string JSON para o modelo
+        if (typeof data.frete === 'object' && data.frete !== null) {
+          console.log('Frete recebido como objeto, convertendo para string JSON');
           data.frete = JSON.stringify(data.frete);
+        } else if (typeof data.frete === 'string') {
+          // Verificar se é um JSON válido
+          console.log('Frete recebido como string, verificando se é JSON válido');
+          JSON.parse(data.frete);
         } else if (!data.frete) {
           // Definir um objeto vazio se não houver frete
+          console.log('Frete não fornecido, usando objeto vazio');
           data.frete = '{}';
         } else {
           // Tentar converter qualquer outro formato para string JSON
+          console.log('Frete em formato desconhecido, tentando converter');
           data.frete = JSON.stringify(data.frete);
         }
       } catch (e) {
