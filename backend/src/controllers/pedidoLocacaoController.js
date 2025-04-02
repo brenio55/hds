@@ -3,6 +3,7 @@ const PedidoLocacaoPdfService = require('../services/pedidoLocacaoPdfService');
 const { validationResult } = require('express-validator');
 const path = require('path');
 const fs = require('fs').promises;
+const db = require('../config/database');
 
 class PedidoLocacaoController {
   static async create(req, res) {
@@ -12,19 +13,44 @@ class PedidoLocacaoController {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      // Garante que itens seja um JSON string
-      const data = {
-        ...req.body,
-        itens: JSON.stringify(req.body.itens)
-      };
+      console.log('Dados recebidos no controller:', req.body);
 
-      console.log('Dados recebidos:', data); // Log para debug
+      // Garantir que itens seja um JSON string válido
+      let data = { ...req.body };
+      
+      if (data.itens) {
+        try {
+          // Se itens já é uma string, tentar fazer parse para validar
+          if (typeof data.itens === 'string') {
+            JSON.parse(data.itens); // Apenas para validação
+          } else {
+            // Se não é string, converter para string JSON
+            data.itens = JSON.stringify(data.itens);
+          }
+        } catch (e) {
+          console.error('Erro ao processar itens:', e);
+          return res.status(400).json({ error: 'Formato inválido para o campo itens' });
+        }
+      }
+
+      console.log('Dados processados para criação:', data);
 
       const pedido = await PedidoLocacaoModel.create(data);
+      console.log('Pedido criado:', pedido);
       
-      // Gera o PDF
-      const pdfUid = await PedidoLocacaoPdfService.generatePdf(pedido);
-      await PedidoLocacaoModel.updatePdfUid(pedido.id, pdfUid);
+      try {
+        // Gera o PDF
+        console.log('Gerando PDF para o pedido:', pedido.id);
+        const pdfUid = await PedidoLocacaoPdfService.generatePdf(pedido);
+        console.log('PDF gerado com sucesso. UID:', pdfUid);
+        
+        await PedidoLocacaoModel.updatePdfUid(pedido.id, pdfUid);
+        pedido.pdf_uid = pdfUid;
+      } catch (pdfError) {
+        console.error('Erro ao gerar PDF:', pdfError);
+        // Não falhar a criação do pedido se o PDF falhar
+        pedido.pdf_error = pdfError.message;
+      }
 
       res.status(201).json(pedido);
     } catch (error) {
@@ -72,7 +98,42 @@ class PedidoLocacaoController {
   static async findAll(req, res) {
     try {
       const pedidos = await PedidoLocacaoModel.findAll();
-      res.json(pedidos);
+      
+      // Buscar informações de faturamento para cada pedido
+      const pedidosEnriquecidos = await Promise.all(pedidos.map(async (pedido) => {
+        try {
+          // Usar o valor total do próprio pedido
+          let valorTotal = parseFloat(pedido.total_final) || 0;
+          
+          // Buscar informações de faturamento
+          const faturamentos = await db.query(
+            'SELECT * FROM faturamento WHERE id_type = $1 AND id_number = $2 ORDER BY created_at DESC LIMIT 1',
+            ['locacao', pedido.id]
+          );
+          
+          let valorFaturado = 0;
+          let valorAFaturar = valorTotal;
+          
+          if (faturamentos.rows.length > 0) {
+            const faturamento = faturamentos.rows[0];
+            valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
+            valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+          }
+          
+          // Retornar pedido com campos adicionais
+          return {
+            ...pedido,
+            valor_total: valorTotal,
+            valor_faturado: valorFaturado,
+            valor_a_faturar: valorAFaturar
+          };
+        } catch (error) {
+          console.error(`Erro ao processar pedido de locação ID=${pedido.id}:`, error);
+          return pedido; // Em caso de erro, manter o pedido original
+        }
+      }));
+      
+      res.json(pedidosEnriquecidos);
     } catch (error) {
       console.error('Erro ao listar pedidos:', error);
       res.status(400).json({ error: error.message });
@@ -85,7 +146,34 @@ class PedidoLocacaoController {
       if (!pedido) {
         return res.status(404).json({ error: 'Pedido não encontrado' });
       }
-      res.json(pedido);
+      
+      // Usar o valor total do próprio pedido
+      let valorTotal = parseFloat(pedido.total_final) || 0;
+      
+      // Buscar informações de faturamento
+      const faturamentos = await db.query(
+        'SELECT * FROM faturamento WHERE id_type = $1 AND id_number = $2 ORDER BY created_at DESC LIMIT 1',
+        ['locacao', pedido.id]
+      );
+      
+      let valorFaturado = 0;
+      let valorAFaturar = valorTotal;
+      
+      if (faturamentos.rows.length > 0) {
+        const faturamento = faturamentos.rows[0];
+        valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
+        valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+      }
+      
+      // Retornar pedido com campos adicionais
+      const pedidoEnriquecido = {
+        ...pedido,
+        valor_total: valorTotal,
+        valor_faturado: valorFaturado,
+        valor_a_faturar: valorAFaturar
+      };
+      
+      res.json(pedidoEnriquecido);
     } catch (error) {
       console.error('Erro ao buscar pedido:', error);
       res.status(400).json({ error: error.message });

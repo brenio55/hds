@@ -33,46 +33,51 @@ function ConsultarFaturamentos() {
             
             console.log("Filtros aplicados:", filtros);
             
-            // Buscar pedidos faturados usando o método específico
+            // Fator importante: não faça várias chamadas simultâneas que possam interferir uma na outra
+            // Primeiro buscar todos os faturamentos
+            const faturamentosDetalhados = await ApiService.consultarFaturamentos(filtros);
+            console.log("Faturamentos recebidos:", faturamentosDetalhados);
+            
+            if (faturamentosDetalhados.length === 0) {
+                setError('Nenhum faturamento encontrado com os filtros selecionados.');
+                setFaturamentos([]);
+                setLoading(false);
+                return;
+            }
+            
+            // Depois, buscar detalhes dos pedidos relacionados a esses faturamentos
             const pedidosFaturados = await ApiService.consultarPedidosFaturados(filtros);
             console.log("Pedidos faturados recebidos:", pedidosFaturados);
-            
-            // Buscar faturamentos detalhados para cada pedido
-            const faturamentosDetalhados = await ApiService.consultarFaturamentos(filtros);
-            console.log("Detalhes de faturamentos recebidos:", faturamentosDetalhados);
             
             // Combinar as informações
             const faturamentosCompletos = faturamentosDetalhados.map(faturamento => {
                 // Encontrar o pedido correspondente
                 const pedidoRelacionado = pedidosFaturados.find(
-                    p => p.id.toString() === faturamento.numeroPedido.toString()
+                    p => p.id.toString() === faturamento.numeroPedido.toString() && 
+                         p.tipo === faturamento.tipoPedido
                 );
                 
                 // Extrair nome do fornecedor do pedido relacionado
                 let fornecedorNome = 'N/D';
                 if (pedidoRelacionado && pedidoRelacionado.fornecedor) {
                     if (typeof pedidoRelacionado.fornecedor === 'object') {
-                        fornecedorNome = pedidoRelacionado.fornecedor.nome;
+                        fornecedorNome = pedidoRelacionado.fornecedor.nome || pedidoRelacionado.fornecedor.razao_social;
                     } else {
                         fornecedorNome = pedidoRelacionado.fornecedor;
                     }
                 }
                 
+                // Usar valores do faturamento, complementando com os do pedido quando necessário
                 return {
                     ...faturamento,
                     // Adicionar informações extras do pedido se disponíveis
                     cliente: pedidoRelacionado?.cliente || 'N/D',
                     fornecedor: fornecedorNome,
-                    numero: pedidoRelacionado?.numero || `PC-${faturamento.numeroPedido}`
+                    numero: pedidoRelacionado?.numero || `${faturamento.tipoPedido.toUpperCase().substring(0,1)}C-${faturamento.numeroPedido}`
                 };
             });
             
             console.log("Faturamentos com dados combinados:", faturamentosCompletos);
-            
-            if (faturamentosCompletos.length === 0) {
-                setError('Nenhum faturamento encontrado com os filtros selecionados.');
-            }
-            
             setFaturamentos(faturamentosCompletos);
         } catch (error) {
             console.error('Erro ao carregar faturamentos:', error);
@@ -145,7 +150,7 @@ function ConsultarFaturamentos() {
         <>
             <HeaderAdmin />
             <div className="admin-container">
-                <div className="pedido-container">
+                <div className="pedido-containerFaturamentos">
                     <h1>CONSULTA DE FATURAMENTOS</h1>
                     
                     {error && <div className="error-message">{error}</div>}
@@ -228,7 +233,9 @@ function ConsultarFaturamentos() {
                                         <tr>
                                             <th>Nº Pedido</th>
                                             <th>Tipo</th>
+                                            <th>Valor Total do Pedido</th>
                                             <th>Valor Faturado</th>
+                                            <th>Valor a Faturar</th>
                                             <th>Data de Faturamento</th>
                                             <th>Data de Vencimento</th>
                                             <th>Método de Pagamento</th>
@@ -240,7 +247,9 @@ function ConsultarFaturamentos() {
                                             <tr key={faturamento.id}>
                                                 <td>{faturamento.numeroPedido || 'N/D'}</td>
                                                 <td>{obterNomeTipoPedido(faturamento.tipoPedido)}</td>
+                                                <td>{formatarValor(faturamento.valorTotal)}</td>
                                                 <td>{formatarValor(faturamento.valorFaturado)}</td>
+                                                <td>{formatarValor(faturamento.valorAFaturar)}</td>
                                                 <td>{formatarData(faturamento.dataFaturamento)}</td>
                                                 <td>{formatarData(faturamento.dataVencimento)}</td>
                                                 <td>{faturamento.metodoPagamento || 'N/D'}</td>
@@ -305,6 +314,11 @@ function ConsultarFaturamentos() {
                                     <div className="detalhes-item">
                                         <strong>Valor Faturado:</strong>
                                         <span>{formatarValor(visualizandoDetalhes.valorFaturado)}</span>
+                                    </div>
+                                    
+                                    <div className="detalhes-item">
+                                        <strong>Valor a Faturar:</strong>
+                                        <span>{formatarValor(visualizandoDetalhes.valorAFaturar)}</span>
                                     </div>
                                     
                                     <div className="detalhes-item">

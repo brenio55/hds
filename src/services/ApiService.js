@@ -76,51 +76,69 @@ class ApiService {
         }
     }
 
-    static async criarPedido(dadosPedido, itens) {
+    static async criarPedido(pedidoData) {
         try {
-            // Transformar os dados para o novo formato
-            const pedidoFormatado = {
-                clientinfo_id: parseInt(dadosPedido.codigo) || 1,
-                fornecedores_id: parseInt(dadosPedido.fornecedor_id) || 1,
-                ddl: parseInt(dadosPedido.condPagto) || 30,
-                data_vencimento: dadosPedido.dataVencto,
-                proposta_id: parseInt(dadosPedido.proposta_id) || 1,
-                materiais: itens.map((item, index) => ({
-                    item: index + 1,
-                    descricao: item.descricao,
-                    uni: item.unidade,
-                    quantidade: parseFloat(item.quantidade.replace(',', '.')) || 0,
-                    ipi: parseFloat(item.ipi.replace(',', '.')) || 0,
-                    valor_unit: parseFloat(item.valorUnitario.replace(',', '.')) || 0,
-                    valor_total: parseFloat(item.valorTotal.replace(',', '.')) || 0,
-                    porcentagem: parseFloat(item.desconto.replace(',', '.')) || 0,
-                    data_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-                })),
-                desconto: parseFloat(dadosPedido.totalDescontos?.replace(',', '.')) || 0,
-                valor_frete: parseFloat(dadosPedido.valorFrete?.replace(',', '.')) || 0,
-                despesas_adicionais: parseFloat(dadosPedido.outrasDespesas?.replace(',', '.')) || 0,
-                dados_adicionais: dadosPedido.informacoesImportantes || '',
-                frete: {
-                    tipo: dadosPedido.frete || 'CIF',
-                    valor: parseFloat(dadosPedido.valorFrete?.replace(',', '.')) || 0
+            console.log('Iniciando criação de pedido de material:', pedidoData);
+            
+            // Garantir que os campos numéricos sejam números e não strings
+            const formatarValor = (valor) => {
+                if (valor === undefined || valor === null) return 0;
+                if (typeof valor === 'number') return valor;
+                if (typeof valor === 'string') {
+                    // Remover símbolos de moeda, converter vírgula para ponto
+                    return parseFloat(valor.replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
                 }
+                return 0;
             };
-    
-            // Enviar para a API
+            
+            // Criar cópia dos dados para não modificar o original
+            const dadosFormatados = { ...pedidoData };
+            
+            // O backend espera que materiais e frete sejam enviados como objetos JSON, não strings
+            // No PostgreSQL serão armazenados como JSONB, mas o backend fará a conversão adequada
+            
+            // Verificar os materiais
+            if (!dadosFormatados.materiais) {
+                dadosFormatados.materiais = [];
+            }
+            
+            // Verificar frete
+            if (!dadosFormatados.frete) {
+                dadosFormatados.frete = { tipo: 'CIF' };
+            }
+            
+            // Garantir que os campos numéricos sejam números
+            dadosFormatados.fornecedores_id = dadosFormatados.fornecedores_id ? parseInt(dadosFormatados.fornecedores_id) : null;
+            dadosFormatados.clientinfo_id = dadosFormatados.clientinfo_id ? parseInt(dadosFormatados.clientinfo_id) : null;
+            dadosFormatados.proposta_id = dadosFormatados.proposta_id ? parseInt(dadosFormatados.proposta_id) : null;
+            dadosFormatados.desconto = formatarValor(dadosFormatados.desconto);
+            dadosFormatados.valor_frete = formatarValor(dadosFormatados.valor_frete);
+            dadosFormatados.despesas_adicionais = formatarValor(dadosFormatados.despesas_adicionais);
+            
+            console.log('Dados formatados para envio ao backend:', dadosFormatados);
+            console.log('Tipo de materiais:', typeof dadosFormatados.materiais);
+            console.log('Tipo de clientinfo_id:', typeof dadosFormatados.clientinfo_id);
+            console.log('Tipo de fornecedores_id:', typeof dadosFormatados.fornecedores_id);
+            
             const response = await fetch(`${API_URL}/api/pedidos-compra`, {
                 method: 'POST',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(pedidoFormatado)
+                headers: {
+                    ...await createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dadosFormatados)
             });
     
             if (!response.ok) {
-                throw new Error('Erro ao criar pedido');
+                const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                throw new Error(errorData.error || 'Erro ao criar pedido de compra');
             }
     
             const data = await response.json();
+            console.log('Pedido de material criado com sucesso:', data);
             return data;
         } catch (error) {
-            console.error('Erro ao salvar pedido completo:', error);
+            console.error('Erro ao criar pedido de material:', error);
             throw error;
         }
     }
@@ -346,113 +364,103 @@ class ApiService {
                 throw new Error('Erro ao buscar propostas');
             }
 
+            // Processar a resposta e garantir o formato correto
             const data = await response.json();
             console.log('Resposta da API propostas:', data);
             
-            // Garantir que a resposta seja um array
+            // Formatar a resposta para o formato esperado pelo frontend
+            let propostas = [];
+            
+            // Se a resposta já for um array, use-a
             if (Array.isArray(data)) {
-                return data;
-            } else if (data && data.propostas && Array.isArray(data.propostas)) {
-                return data.propostas;
-            } else if (data && typeof data === 'object') {
-                // Se for um objeto, retorna seus valores como array
-                return Object.values(data);
-            } else {
-                console.warn('Formato de resposta inesperado para propostas:', data);
-                return [];
+                propostas = data;
+            } 
+            // Se a resposta tiver uma propriedade 'propostas' que é um array, use-a
+            else if (data && Array.isArray(data.propostas)) {
+                propostas = data.propostas;
+            } 
+            // Se a resposta for um objeto com propostas como valores
+            else if (data && typeof data === 'object') {
+                propostas = Object.values(data);
             }
+            
+            // Verificar se cada proposta tem o campo client_info
+            propostas = propostas.map(proposta => {
+                // Se não tiver client_info, adicionar um objeto vazio
+                if (!proposta.client_info) {
+                    proposta.client_info = {};
+                }
+                return proposta;
+            });
+            
+            return { 
+                propostas,
+                total: propostas.length
+            };
         } catch (error) {
             console.error('Erro ao buscar propostas:', error);
-            // Retorna array vazio em caso de erro para não quebrar a UI
-            return [];
+            // Retornar objeto com array vazio em caso de erro
+            return { 
+                propostas: [],
+                total: 0,
+                erro: true,
+                mensagem: error.message
+            };
         }
     }
 
-    static async downloadPdf(id, version) {
+    // Método auxiliar para visualizar qualquer PDF
+    static async _visualizarPdf(url) {
         try {
-            const response = await fetch(
-                `${API_URL}/api/propostas/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
+            console.log(`Iniciando visualização de PDF de: ${url}`);
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    ...await createAuthHeaders()
                 }
-            );
+            });
 
             if (!response.ok) {
-                throw new Error('Erro ao baixar PDF');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Erro ao buscar PDF`);
             }
 
-            // Obtém o nome do arquivo do header Content-Disposition
-            const contentDisposition = response.headers.get('content-disposition');
-            let filename = 'proposta.pdf';
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-                if (filenameMatch) {
-                    filename = filenameMatch[1];
-                }
-            }
-
-            // Converte a resposta para blob e cria URL para download
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
+            const url_objeto = window.URL.createObjectURL(blob);
+            window.open(url_objeto, '_blank');
+            
+            // Limpar URL temporária após uso
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url_objeto);
+            }, 100);
+            
             return true;
         } catch (error) {
-            console.error('Erro ao baixar PDF:', error);
+            console.error(`Erro ao visualizar PDF:`, error);
             throw error;
         }
     }
 
-    // Método para visualizar o PDF em uma nova guia
-    static async visualizarPdf(id, version) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/propostas/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Erro ao carregar PDF');
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-        } catch (error) {
-            console.error('Erro ao visualizar PDF:', error);
-            throw error;
-        }
-    }
-
-    // Método para visualizar o PDF de pedido de compra em uma nova guia
+    // --- Métodos de visualização de PDF ---
+    // Visualizar PDF de pedido de material
     static async visualizarPedidoPdf(id) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/pedidos-compra/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
+        return this._visualizarPdf(`${API_URL}/api/pedidos-compra/${id}/pdf/download`);
+    }
 
-            if (!response.ok) {
-                throw new Error('Erro ao carregar PDF do pedido');
-            }
+    // Visualizar PDF de pedido de serviço
+    static async visualizarPedidoServicoPdf(id) {
+        return this._visualizarPdf(`${API_URL}/api/servicos/${id}/pdf/download`);
+    }
 
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-        } catch (error) {
-            console.error('Erro ao visualizar PDF do pedido:', error);
-            throw error;
-        }
+    // Visualizar PDF de pedido de locação
+    static async visualizarPedidoLocacaoPdf(id) {
+        return this._visualizarPdf(`${API_URL}/api/pedidos-locacao/${id}/pdf/download`);
+    }
+
+    // Visualizar PDF de proposta
+    static async visualizarPdf(id, version) {
+        return this._visualizarPdf(`${API_URL}/api/propostas/${id}/pdf/download?version=${version}`);
     }
 
     // Método para download do PDF de pedido de compra
@@ -598,24 +606,37 @@ class ApiService {
     
     /**
      * Cria um novo pedido de locação
-     * @param {Object} dadosPedido - Dados do pedido de locação
+     * @param {Object} pedidoData - Dados do pedido de locação
      * @returns {Promise<Object>} - Dados do pedido criado
      */
-    static async criarPedidoLocacao(dadosPedido) {
+    static async criarPedidoLocacao(pedidoData) {
         try {
+            console.log('ApiService: Enviando pedido de locação:', pedidoData);
+            
+            // Garantir que os itens estejam em formato string JSON
+            if (pedidoData.itens && typeof pedidoData.itens !== 'string') {
+                pedidoData.itens = JSON.stringify(pedidoData.itens);
+            }
+            
             const response = await fetch(`${API_URL}/api/pedidos-locacao`, {
                 method: 'POST',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosPedido)
+                headers: {
+                    ...createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(pedidoData)
             });
 
             if (!response.ok) {
-                throw new Error('Erro ao criar pedido de locação');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao criar pedido de locação');
             }
 
-            return await response.json();
+            const data = await response.json();
+            console.log('ApiService: Pedido de locação criado com sucesso:', data);
+            return data;
         } catch (error) {
-            console.error('Erro ao criar pedido de locação:', error);
+            console.error('ApiService: Erro ao criar pedido de locação:', error);
             throw error;
         }
     }
@@ -654,732 +675,6 @@ class ApiService {
         try {
             const queryParams = new URLSearchParams(filtros).toString();
             const url = `${API_URL}/api/pedidos-locacao${queryParams ? `?${queryParams}` : ''}`;
-            
-            const response = await fetch(url, {
-                headers: createAuthHeaders()
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao listar pedidos de locação');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao listar pedidos de locação:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Busca um pedido de locação por ID
-     * @param {number} id - ID do pedido a ser buscado
-     * @returns {Promise<Object>} - Dados do pedido 
-     */
-    static async buscarPedidoLocacaoPorId(id) {
-        try {
-            const response = await fetch(`${API_URL}/api/pedidos-locacao/${id}`, {
-                headers: createAuthHeaders()
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar pedido de locação');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao buscar pedido de locação:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Faz o download do PDF de um pedido de locação
-     * @param {number} id - ID do pedido 
-     * @returns {Promise<Blob>} - Blob contendo o PDF
-     */
-    static async downloadPedidoLocacaoPdf(id) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/pedidos-locacao/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Erro ao baixar PDF do pedido de locação');
-            }
-
-            // Obtém o nome do arquivo do header Content-Disposition
-            const contentDisposition = response.headers.get('content-disposition');
-            let filename = 'pedido-locacao.pdf';
-            
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                if (filenameMatch && filenameMatch[1]) {
-                    filename = filenameMatch[1].replace(/['"]/g, '');
-                }
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            
-            // Cria um link temporário para download
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            
-            // Limpa após o download
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            
-            return true;
-        } catch (error) {
-            console.error('Erro ao baixar PDF do pedido de locação:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Visualiza o PDF de um pedido de locação em nova aba
-     * @param {number} id - ID do pedido 
-     * @returns {Promise<void>}
-     */
-    static async visualizarPedidoLocacaoPdf(id) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/pedidos-locacao/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Erro ao carregar PDF do pedido de locação');
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            
-            return true;
-        } catch (error) {
-            console.error('Erro ao visualizar PDF do pedido de locação:', error);
-            throw error;
-        }
-    }
-
-
-    static async buscarPedidoCompraPorId(id) {
-        try {
-            try {
-                const response = await fetch(`${API_URL}/api/pedidos-compra/${id}`, {
-                    headers: createAuthHeaders()
-                });
-    
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar pedido de compra');
-                }
-    
-                const data = await response.json();
-                return data;
-            } catch (apiError) {
-                console.warn('Erro ao buscar da API, usando dados de exemplo:', apiError);
-                // Se a API falhar, carrega dados de exemplo
-                const dadosExemplo = await this.carregarDadosExemplo();
-                const pedido = dadosExemplo.find(p => p.id.toString() === id.toString());
-                
-                if (!pedido) {
-                    throw new Error('Pedido não encontrado');
-                }
-                
-                return pedido;
-            }
-        } catch (error) {
-            console.error('Erro ao buscar pedido de compra:', error);
-            throw error;
-        }
-    }
-
-    // Método para carregar dados de exemplo quando a API não estiver disponível
-    static async carregarDadosExemplo() {
-        return [
-            {
-                "id": 2,
-                "clientinfo_id": 1,
-                "fornecedores_id": 1,
-                "ddl": 30,
-                "data_vencimento": "2025-03-04T00:00:00.000Z",
-                "proposta_id": 1,
-                "materiais": [
-                    {
-                        "ipi": 10,
-                        "uni": "UN",
-                        "item": 1,
-                        "descricao": "Material de Teste",
-                        "quantidade": 10,
-                        "valor_unit": 100,
-                        "porcentagem": 5,
-                        "valor_total": 1000,
-                        "data_entrega": "2025-03-04"
-                    },
-                    {
-                        "ipi": 10,
-                        "uni": "UN",
-                        "item": 2,
-                        "descricao": "Material de Teste",
-                        "quantidade": 10,
-                        "valor_unit": 100,
-                        "porcentagem": 5,
-                        "valor_total": 1000,
-                        "data_entrega": "2025-03-04"
-                    }
-                ],
-                "desconto": "100.00",
-                "valor_frete": "1231.00",
-                "despesas_adicionais": "0.00",
-                "dados_adicionais": "testestestetes",
-                "frete": {
-                    "tipo": "CIF",
-                    "valor": 1231
-                },
-                "created_at": "2025-03-04T20:18:29.148Z",
-                "fornecedor_nome": null
-            },
-            {
-                "id": 1,
-                "clientinfo_id": 1,
-                "fornecedores_id": 30,
-                "ddl": 30,
-                "data_vencimento": "2025-07-22T00:00:00.000Z",
-                "proposta_id": 8,
-                "materiais": [
-                    {
-                        "ipi": 5,
-                        "uni": "pç",
-                        "item": 1,
-                        "descricao": "Material A",
-                        "quantidade": 10,
-                        "valor_unit": 100,
-                        "porcentagem": 10,
-                        "valor_total": 1000,
-                        "data_entrega": "2024-04-01"
-                    }
-                ],
-                "desconto": "22.00",
-                "valor_frete": "2.00",
-                "despesas_adicionais": null,
-                "dados_adicionais": "pdf gerado automaticamente, aqui estariam com observações gerai",
-                "frete": 400,
-                "created_at": "2025-02-06T21:20:15.445Z",
-                "fornecedor_nome": "CONSTRUCAP CCPS ENGENHARIA E COMERCIO SA"
-            }
-        ];
-    }
-
-    // Métodos relacionados a Fornecedores
-    static async buscarFornecedores(filtros = {}) {
-        try {
-            // Construir a URL com os parâmetros de consulta
-            const queryParams = new URLSearchParams();
-            Object.entries(filtros)
-                .filter(([_, value]) => value && value.trim() !== '')
-                .forEach(([key, value]) => {
-                    queryParams.append(key, value);
-                });
-
-            const url = `${API_URL}/api/fornecedores${queryParams.toString() ? `?${queryParams}` : ''}`;
-            
-            const response = await fetch(url, {
-                headers: createAuthHeaders()
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar fornecedores');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao buscar fornecedores:', error);
-            throw error;
-        }
-    }
-
-    static async buscarFornecedorPorId(id) {
-        try {
-            const response = await fetch(`${API_URL}/api/fornecedores/${id}`, {
-                headers: createAuthHeaders()
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar fornecedor');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao buscar fornecedor:', error);
-            throw error;
-        }
-    }
-
-    static async criarFornecedor(dadosFornecedor) {
-        try {
-            const response = await fetch(`${API_URL}/api/fornecedores`, {
-                method: 'POST',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosFornecedor)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erro ao criar fornecedor');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao criar fornecedor:', error);
-            throw error;
-        }
-    }
-
-    static async atualizarFornecedor(id, dadosFornecedor) {
-        try {
-            const response = await fetch(`${API_URL}/api/fornecedores/${id}`, {
-                method: 'PUT',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosFornecedor)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erro ao atualizar fornecedor');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao atualizar fornecedor:', error);
-            throw error;
-        }
-    }
-
-    static async consultarPedidos() {
-        return await this.get('/pedidos');
-    }
-
-    static async faturarPedidoCompra(dadosFaturamento) {
-        try {
-            console.log('Preparando dados de faturamento para envio:', dadosFaturamento);
-            
-            // Se for FormData, convertemos para JSON com arquivos em base64
-            if (dadosFaturamento instanceof FormData) {
-                const dados = {};
-                
-                // Extrair campos básicos
-                dados.id_number = dadosFaturamento.get('pedidoId');
-                dados.id_type = 'compra'; // Definido como compra já que é faturamento de pedido de compra
-                dados.valor_total_pedido = await this.obterValorTotalPedido(dados.id_number);
-                dados.valor_faturado = await this.obterValorJaFaturado(dados.id_number);
-                dados.valor_a_faturar = dadosFaturamento.get('valorFaturamento');
-                dados.data_vencimento = dadosFaturamento.get('dataVencimento');
-                dados.nf = dadosFaturamento.get('numeroNF');
-                
-                // Configurar pagamento baseado no método
-                const metodoPagamento = dadosFaturamento.get('metodoPagamento');
-                dados.pagamento = {
-                    metodo: metodoPagamento
-                };
-                
-                if (metodoPagamento === 'boleto') {
-                    dados.pagamento.numero_boleto = dadosFaturamento.get('numeroBoleto');
-                    
-                    // Converter arquivo do boleto para base64 se existir
-                    const arquivoBoleto = dadosFaturamento.get('arquivoBoleto');
-                    if (arquivoBoleto) {
-                        dados.pagamento.boleto_anexo = await this.fileToBase64(arquivoBoleto);
-                    }
-                } else if (metodoPagamento === 'pix' || metodoPagamento === 'ted') {
-                    dados.pagamento.dados_conta = dadosFaturamento.get('dadosConta');
-                }
-                
-                // Converter arquivo NF para base64 se existir
-                const arquivoNF = dadosFaturamento.get('arquivoNF');
-                if (arquivoNF) {
-                    dados.nf_anexo = await this.fileToBase64(arquivoNF);
-                }
-                
-                console.log('Dados de faturamento formatados para API:', dados);
-                
-                // Enviar dados como JSON
-                const response = await fetch(`${API_URL}/api/faturamento`, {
-                    method: 'POST',
-                    headers: {
-                        ...createAuthHeaders(),
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dados)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Erro na resposta ao faturar pedido:', errorText);
-                    throw new Error(`Erro ao faturar pedido: ${response.statusText || errorText}`);
-                }
-                
-                return await response.json();
-            } else {
-                // Se já for um objeto, enviamos diretamente
-                const response = await fetch(`${API_URL}/api/faturamento`, {
-                    method: 'POST',
-                    headers: {
-                        ...createAuthHeaders(),
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dadosFaturamento)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Erro na resposta ao faturar pedido:', errorText);
-                    throw new Error(`Erro ao faturar pedido: ${response.statusText || errorText}`);
-                }
-                
-                return await response.json();
-            }
-        } catch (error) {
-            console.error('Erro ao faturar pedido de compra:', error);
-            throw error;
-        }
-    }
-    
-    static async consultarFaturamentos(filtros = {}) {
-        try {
-            console.log('Consultando faturamentos com filtros:', filtros);
-            
-            // Construir query string com os filtros
-            const queryParams = new URLSearchParams();
-            
-            if (filtros.tipo && filtros.tipo !== 'todos') {
-                queryParams.append('campo', 'id_type');
-                queryParams.append('valor', filtros.tipo);
-            }
-            
-            if (filtros.numeroPedido) {
-                queryParams.append('campo', 'id_number');
-                queryParams.append('valor', filtros.numeroPedido);
-            }
-            
-            // Datas são tratadas no backend como filtros especiais
-            if (filtros.dataInicial) {
-                queryParams.append('data_inicial', filtros.dataInicial);
-            }
-            
-            if (filtros.dataFinal) {
-                queryParams.append('data_final', filtros.dataFinal);
-            }
-            
-            const url = `${API_URL}/api/faturamento${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-            console.log('URL para consulta de faturamentos:', url);
-            
-            const response = await fetch(url, {
-                headers: createAuthHeaders()
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Erro na resposta ao consultar faturamentos:', errorText);
-                throw new Error(`Erro ao consultar faturamentos: ${response.statusText || errorText}`);
-            }
-            
-            const faturamentos = await response.json();
-            console.log('Faturamentos recebidos:', faturamentos);
-            
-            // Mapear para o formato esperado pelo frontend
-            return faturamentos.map(fat => ({
-                id: fat.id,
-                numeroPedido: fat.id_number,
-                tipoPedido: fat.id_type,
-                valorTotal: fat.valor_total_pedido,
-                valorFaturado: fat.valor_a_faturar,
-                dataFaturamento: fat.created_at,
-                dataVencimento: fat.data_vencimento,
-                numeroNF: fat.nf,
-                arquivoNF: fat.nf_anexo,
-                metodoPagamento: fat.pagamento?.metodo || 'N/A',
-                codigoBoleto: fat.pagamento?.numero_boleto,
-                arquivoBoleto: fat.pagamento?.boleto_anexo,
-                dadosConta: fat.pagamento?.dados_conta
-            }));
-        } catch (error) {
-            console.error('Erro ao consultar faturamentos:', error);
-            return [];
-        }
-    }
-    
-    // Método auxiliar para converter arquivo para base64
-    static async fileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            if (!file) {
-                resolve(null);
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-        });
-    }
-    
-    // Métodos auxiliares para informações de pedido
-    static async obterValorTotalPedido(pedidoId) {
-        try {
-            const pedido = await this.buscarPedidoCompraPorId(pedidoId);
-            return pedido?.valor_total || 0;
-        } catch (error) {
-            console.error('Erro ao obter valor total do pedido:', error);
-            return 0;
-        }
-    }
-    
-    static async obterValorJaFaturado(pedidoId) {
-        try {
-            const faturamentos = await this.consultarFaturamentos({
-                tipo: 'compra',
-                numeroPedido: pedidoId
-            });
-            
-            // Somar valores já faturados
-            return faturamentos.reduce((total, fat) => total + parseFloat(fat.valorFaturado || 0), 0);
-        } catch (error) {
-            console.error('Erro ao obter valor já faturado:', error);
-            return 0;
-        }
-    }
-
-    // Métodos relacionados a Aluguel de Casas
-    static async registrarAluguel(formData) {
-        return await this.post('/api/alugueis', formData);
-    }
-
-    /**
-     * Atualiza os dados de um aluguel existente
-     * @param {Number} id - ID do aluguel a ser atualizado
-     * @param {Object} formData - Dados do aluguel a serem atualizados
-     * @returns {Promise<Object>} - Aluguel atualizado
-     */
-    static async atualizarAluguel(id, formData) {
-        return await this.put(`/api/alugueis/${id}`, formData);
-    }
-
-    /**
-     * Busca aluguéis com filtros opcionais
-     * @param {Object} filtros - Filtros opcionais (campo, valor)
-     * @returns {Promise<Array>} - Lista de aluguéis
-     */
-    static async buscarAlugueis(filtros = {}) {
-        try {
-            let endpoint = '/api/alugueis';
-            const params = new URLSearchParams();
-            
-            // Adicionar filtros se existirem
-            if (filtros.campo && filtros.valor) {
-                params.append('campo', filtros.campo);
-                params.append('valor', filtros.valor);
-            } else if (filtros.dataInicial && filtros.dataFinal) {
-                // Suporte para filtro por período de data
-                params.append('campo', 'detalhes');
-                params.append('valor', JSON.stringify({
-                    data_inicio: filtros.dataInicial,
-                    data_fim: filtros.dataFinal
-                }));
-            } else if (filtros.obraId) {
-                // Suporte para filtro por obra
-                params.append('campo', 'detalhes');
-                params.append('valor', `"obra_id":${filtros.obraId}`);
-            }
-            
-            const queryString = params.toString();
-            if (queryString) {
-                endpoint += `?${queryString}`;
-            }
-            
-            return await this.get(endpoint);
-        } catch (error) {
-            console.error('Erro ao buscar aluguéis:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Busca um aluguel pelo ID
-     * @param {Number} id - ID do aluguel a ser buscado
-     * @returns {Promise<Object>} - Aluguel encontrado
-     */
-    static async buscarAluguelPorId(id) {
-        return await this.get(`/api/alugueis/${id}`);
-    }
-
-    static async buscarCentrosCusto() {
-        return await this.get('/centros-custo');
-    }
-
-    // Método para finalizar aluguel
-    static async finalizarAluguel(id) {
-        return await this.put(`/api/alugueis/${id}/finalizar`);
-    }
-
-    // Método auxiliar para requisições GET
-    static async get(endpoint, options = {}) {
-        try {
-            const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-            
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: createAuthHeaders(),
-                ...options
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro na requisição GET para ${url}: ${response.status} ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error(`Erro na requisição GET para ${endpoint}:`, error);
-            throw error;
-        }
-    }
-
-    // Método auxiliar para requisições POST
-    static async post(endpoint, data = {}, options = {}) {
-        try {
-            const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-            const isFormData = data instanceof FormData;
-            
-            const headers = isFormData 
-                ? { ...createAuthHeaders(), ...options.headers } 
-                : { ...createAuthHeaders(), 'Content-Type': 'application/json', ...options.headers };
-            
-            // Removemos Content-Type para FormData pois o navegador define automaticamente com boundary
-            if (isFormData && headers['Content-Type']) {
-                delete headers['Content-Type'];
-            }
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers,
-                body: isFormData ? data : JSON.stringify(data),
-                ...options
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro na requisição POST para ${url}: ${response.status} ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error(`Erro na requisição POST para ${endpoint}:`, error);
-            throw error;
-        }
-    }
-
-    // Método auxiliar para requisições PUT
-    static async put(endpoint, data = {}, options = {}) {
-        try {
-            const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-            const isFormData = data instanceof FormData;
-            
-            const headers = isFormData 
-                ? { ...createAuthHeaders(), ...options.headers } 
-                : { ...createAuthHeaders(), 'Content-Type': 'application/json', ...options.headers };
-            
-            // Removemos Content-Type para FormData pois o navegador define automaticamente com boundary
-            if (isFormData && headers['Content-Type']) {
-                delete headers['Content-Type'];
-            }
-            
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers,
-                body: Object.keys(data).length > 0 ? (isFormData ? data : JSON.stringify(data)) : undefined,
-                ...options
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro na requisição PUT para ${url}: ${response.status} ${response.statusText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error(`Erro na requisição PUT para ${endpoint}:`, error);
-            throw error;
-        }
-    }
-
-    /**
-     * Métodos relacionados a Pedidos de Serviço
-     */
-    
-    /**
-     * Cria um novo pedido de serviço
-     * @param {Object} dadosPedido - Dados do pedido de serviço
-     * @returns {Promise<Object>} - Dados do pedido criado
-     */
-    static async criarPedidoServico(dadosPedido) {
-        try {
-            const response = await fetch(`${API_URL}/api/servicos`, {
-                method: 'POST',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosPedido)
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao criar pedido de serviço');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao criar pedido de serviço:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Atualiza um pedido de serviço existente
-     * @param {number} id - ID do pedido a ser atualizado
-     * @param {Object} dadosPedido - Novos dados do pedido
-     * @returns {Promise<Object>} - Dados do pedido atualizado
-     */
-    static async atualizarPedidoServico(id, dadosPedido) {
-        try {
-            const response = await fetch(`${API_URL}/api/servicos/${id}`, {
-                method: 'PUT',
-                headers: createAuthHeaders(),
-                body: JSON.stringify(dadosPedido)
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao atualizar pedido de serviço');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Erro ao atualizar pedido de serviço:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Lista todos os pedidos de serviço com filtros opcionais
-     * @param {Object} filtros - Filtros a serem aplicados na busca
-     * @returns {Promise<Array>} - Lista de pedidos de serviço
-     */
-    static async listarPedidosServico(filtros = {}) {
-        try {
-            const queryParams = new URLSearchParams(filtros).toString();
-            const url = `${API_URL}/api/servicos${queryParams ? `?${queryParams}` : ''}`;
             
             const response = await fetch(url, {
                 headers: createAuthHeaders()
@@ -1469,35 +764,6 @@ class ApiService {
     }
 
     /**
-     * Visualiza o PDF de um pedido de serviço em nova aba
-     * @param {number} id - ID do pedido 
-     * @returns {Promise<void>}
-     */
-    static async visualizarPedidoServicoPdf(id) {
-        try {
-            const response = await fetch(
-                `${API_URL}/api/servicos/${id}/pdf/download`,
-                {
-                    headers: createAuthHeaders()
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Erro ao carregar PDF do pedido de serviço');
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            
-            return true;
-        } catch (error) {
-            console.error('Erro ao visualizar PDF do pedido de serviço:', error);
-            throw error;
-        }
-    }
-
-    /**
      * Busca pedidos de serviço com filtros opcionais (com fallback para dados de exemplo)
      * @param {Object} filtros - Filtros para a busca
      * @returns {Promise<Object>} - Objeto com total e lista de pedidos
@@ -1557,15 +823,18 @@ class ApiService {
         try {
             console.log("ApiService: Buscando pedidos consolidados");
             
+            // Adicionar token de autorização ao cabeçalho
+            const authHeaders = createAuthHeaders();
+            
+            // Construir URL com parâmetros de consulta
             const queryParams = new URLSearchParams(filtros).toString();
             const url = `${API_URL}/api/pedidos-consolidados${queryParams ? `?${queryParams}` : ''}`;
             
             console.log(`ApiService: URL da requisição: ${url}`);
 
             const response = await fetch(url, {
-                headers: createAuthHeaders(),
-                method: 'GET',
-                timeout: 30000 // timeout maior para esta operação pesada (30 segundos)
+                headers: authHeaders,
+                method: 'GET'
             });
 
             if (!response.ok) {
@@ -1576,28 +845,44 @@ class ApiService {
             console.log(`ApiService: Resposta recebida (status ${response.status})`);
             
             try {
-                // Converter para texto primeiro para debug
-                const responseText = await response.text();
-                console.log(`ApiService: Tamanho da resposta: ${responseText.length} caracteres`);
+                const data = await response.json();
+                console.log(`ApiService: JSON parseado com sucesso. Total: ${data.total || 0}`);
                 
-                if (!responseText || responseText.trim() === '') {
-                    console.error('ApiService: Resposta vazia recebida');
-                    return { total: 0, pedidos: [] };
+                // Garantir que o formato dos dados está correto
+                if (!data.pedidos || !Array.isArray(data.pedidos)) {
+                    console.warn('ApiService: Resposta da API não contém um array de pedidos');
+                    data.pedidos = [];
                 }
                 
-                try {
-                    // Tentar converter o texto para JSON
-                    const data = JSON.parse(responseText);
-                    console.log(`ApiService: JSON parseado com sucesso. Total: ${data.total || 0}`);
-                    return data;
+                // Garantir que cada pedido tenha as propriedades necessárias
+                const pedidosFormatados = data.pedidos.map(pedido => {
+                    // Adicionar valores padrão para campos importantes
+                    if (!pedido.cliente) {
+                        pedido.cliente = { id: 0, nome: 'Cliente não especificado' };
+                    }
+                    if (!pedido.fornecedor) {
+                        pedido.fornecedor = { id: 0, nome: 'Fornecedor não especificado' };
+                    }
+                    if (!pedido.proposta) {
+                        pedido.proposta = { id: 0, descricao: 'Proposta não especificada' };
+                    }
+                    
+                    // Garantir que os valores financeiros existam
+                    pedido.valor_total = pedido.valor_total || 0;
+                    pedido.valor_faturado = pedido.valor_faturado || 0;
+                    pedido.valor_a_faturar = pedido.valor_a_faturar || 0;
+                    
+                    return pedido;
+                });
+                
+                return {
+                    total: data.total || pedidosFormatados.length,
+                    pedidos: pedidosFormatados
+                };
+                
                 } catch (jsonError) {
-                    console.error('ApiService: Erro ao fazer parse do JSON:', jsonError);
-                    console.error('ApiService: Primeiros 200 caracteres da resposta:', responseText.substring(0, 200));
+                console.error('ApiService: Erro ao processar JSON da resposta:', jsonError);
                     throw new Error('Erro ao processar resposta do servidor');
-                }
-            } catch (textError) {
-                console.error('ApiService: Erro ao ler resposta como texto:', textError);
-                throw new Error('Erro ao ler resposta do servidor');
             }
         } catch (error) {
             console.error('ApiService: Erro geral ao buscar pedidos consolidados:', error);
@@ -1635,7 +920,7 @@ class ApiService {
     static async buscarFaturamentos(filtros = {}) {
         try {
             const queryParams = new URLSearchParams(filtros).toString();
-            const url = `${API_URL}/api/faturamentos${queryParams ? `?${queryParams}` : ''}`;
+            const url = `${API_URL}/api/faturamentos${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
             
             const response = await fetch(url, {
                 headers: createAuthHeaders()
@@ -1913,7 +1198,7 @@ class ApiService {
             // Adicionar flag específica para pedidos faturados
             queryParams.append('faturado', 'true');
             
-            const url = `${API_URL}/api/pedidos-faturados${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            const url = `${API_URL}/api/pedidos-consolidados${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
             console.log('URL para consulta de pedidos faturados:', url);
             
             const response = await fetch(url, {
@@ -1929,25 +1214,344 @@ class ApiService {
             const pedidosFaturados = await response.json();
             console.log('Pedidos faturados recebidos:', pedidosFaturados);
             
+            // Buscar informações de faturamento para cada pedido para calcular valores atualizados
+            const pedidosDetalhados = [];
+            
             // Mapear para o formato esperado pelo frontend
-            return Array.isArray(pedidosFaturados) ? pedidosFaturados.map(pedido => ({
-                id: pedido.id,
-                numero: pedido.numero || pedido.id,
-                tipo: pedido.tipo || 'compra',
-                dataFaturamento: pedido.data_faturamento || pedido.created_at,
-                valorTotal: pedido.valor_total || 0,
-                valorFaturado: pedido.valor_faturado || 0,
-                porcentagemFaturada: pedido.valor_total > 0 
-                    ? (pedido.valor_faturado / pedido.valor_total * 100).toFixed(2) 
-                    : 0,
-                cliente: pedido.cliente || 'N/A',
-                fornecedor: pedido.fornecedor || 'N/A',
-                status: pedido.status || 'faturado',
-                faturamentos: pedido.faturamentos || []
-            })) : [];
+            if (Array.isArray(pedidosFaturados)) {
+                for (const pedido of pedidosFaturados) {
+                    try {
+                        // Buscar faturamentos específicos do pedido para calcular valor faturado atual
+                        const faturamentosPedido = await this.consultarFaturamentos({
+                            tipo: pedido.tipo || 'compra',
+                            numeroPedido: pedido.id
+                        });
+                        
+                        // Calcular valor total faturado somando todos os faturamentos
+                        const valorFaturado = faturamentosPedido.reduce(
+                            (total, fat) => total + parseFloat(fat.valorFaturado || 0), 
+                            0
+                        );
+                        
+                        // Calcular valor total do pedido, valor faturado e valor restante
+                        const valorTotal = parseFloat(pedido.valor_total || 0);
+                        const valorRestante = Math.max(0, valorTotal - valorFaturado);
+                        const porcentagemFaturada = valorTotal > 0 
+                            ? Math.min(100, (valorFaturado / valorTotal * 100))
+                            : 0;
+                        
+                        pedidosDetalhados.push({
+                            id: pedido.id,
+                            numero: pedido.numero || pedido.id,
+                            tipo: pedido.tipo || 'compra',
+                            dataFaturamento: pedido.data_faturamento || pedido.created_at,
+                            valorTotal: valorTotal,
+                            valorFaturado: valorFaturado,
+                            valorAFaturar: valorRestante,
+                            porcentagemFaturada: porcentagemFaturada.toFixed(2),
+                            cliente: pedido.cliente || 'N/A',
+                            fornecedor: pedido.fornecedor || 'N/A',
+                            status: pedido.status || 'faturado',
+                            faturamentos: faturamentosPedido
+                        });
+                    } catch (err) {
+                        console.error(`Erro ao processar pedido ID ${pedido.id}:`, err);
+                    }
+                }
+            }
+            
+            return pedidosDetalhados;
         } catch (error) {
             console.error('Erro ao consultar pedidos faturados:', error);
             return [];
+        }
+    }
+
+    static async consultarFaturamentos(filtros = {}) {
+        try {
+            console.log('Consultando faturamentos com filtros:', filtros);
+            
+            // Construir query string com os filtros
+            const queryParams = new URLSearchParams();
+            
+            // Backend espera um formato específico de filtros: campo e valor
+            if (filtros.tipo && filtros.tipo !== 'todos') {
+                queryParams.append('campo', 'id_type');
+                queryParams.append('valor', filtros.tipo);
+            } else if (filtros.numeroPedido) {
+                queryParams.append('campo', 'id_number');
+                queryParams.append('valor', filtros.numeroPedido);
+            } else if (filtros.dataInicial && filtros.dataFinal) {
+                // Para data, usamos uma abordagem diferente: buscar tudo e filtrar no cliente
+                // já que o backend não suporta filtragem por data diretamente
+                console.log("Filtragem por data será aplicada após buscar os resultados");
+            }
+            
+            const url = `${API_URL}/api/faturamentos${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            console.log('URL para consulta de faturamentos:', url);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Erro na resposta ao consultar faturamentos:', errorText);
+                throw new Error(`Erro ao consultar faturamentos: ${response.statusText || errorText}`);
+            }
+            
+            let faturamentos = await response.json();
+            console.log('Faturamentos recebidos do backend:', faturamentos);
+            
+            // Filtrar por data se necessário (já que o backend não suporta isso diretamente)
+            if (filtros.dataInicial && filtros.dataFinal) {
+                const dataInicial = new Date(filtros.dataInicial);
+                const dataFinal = new Date(filtros.dataFinal);
+                dataFinal.setHours(23, 59, 59); // Incluir todo o último dia
+                
+                faturamentos = faturamentos.filter(fat => {
+                    const dataFaturamento = new Date(fat.created_at);
+                    return dataFaturamento >= dataInicial && dataFaturamento <= dataFinal;
+                });
+                
+                console.log(`Após filtro de data: ${faturamentos.length} faturamentos`);
+            }
+            
+            // Para cada faturamento, buscar o valor total do pedido para calcular valor restante
+            const faturamentosDetalhados = [];
+            
+            for (const fat of faturamentos) {
+                try {
+                    // Mapear as propriedades do objeto retornado pelo backend para o formato esperado pelo frontend
+                    const valorTotalPedido = parseFloat(fat.valor_total_pedido || 0);
+                    const valorAFaturar = parseFloat(fat.valor_a_faturar || 0);
+                    
+                    // Obter valor faturado em valor monetário a partir da porcentagem
+                    const porcentagemFaturada = parseFloat(fat.valor_faturado || 0); // 0-100
+                    const valorFaturadoCalculado = (porcentagemFaturada / 100) * valorTotalPedido;
+                    
+                    faturamentosDetalhados.push({
+                        id: fat.id,
+                        numeroPedido: fat.id_number,
+                        tipoPedido: fat.id_type,
+                        valorTotal: valorTotalPedido,
+                        valorFaturado: valorAFaturar, // Usar valor monetário, não porcentagem
+                        valorTotalFaturado: valorFaturadoCalculado,
+                        valorAFaturar: Math.max(0, valorTotalPedido - valorFaturadoCalculado),
+                        dataFaturamento: fat.created_at,
+                        dataVencimento: fat.data_vencimento,
+                        numeroNF: fat.nf,
+                        arquivoNF: fat.nf_anexo,
+                        metodoPagamento: fat.pagamento, // Agora é string no backend, não objeto
+                        codigoBoleto: fat.numero_boleto, // Movido para o nível principal
+                        arquivoBoleto: fat.boleto_anexo, // Movido para o nível principal
+                        dadosConta: fat.dados_conta // Movido para o nível principal
+                    });
+                } catch (err) {
+                    console.error(`Erro ao processar faturamento ID ${fat.id}:`, err);
+                    // Adicionar versão básica se ocorrer um erro
+                    faturamentosDetalhados.push({
+                        id: fat.id,
+                        numeroPedido: fat.id_number,
+                        tipoPedido: fat.id_type,
+                        valorTotal: parseFloat(fat.valor_total_pedido || 0),
+                        valorFaturado: parseFloat(fat.valor_a_faturar || 0),
+                        valorAFaturar: 0,
+                        dataFaturamento: fat.created_at,
+                        dataVencimento: fat.data_vencimento,
+                        numeroNF: fat.nf,
+                        arquivoNF: fat.nf_anexo,
+                        metodoPagamento: fat.pagamento || 'N/A',
+                        codigoBoleto: fat.numero_boleto,
+                        arquivoBoleto: fat.boleto_anexo,
+                        dadosConta: fat.dados_conta
+                    });
+                }
+            }
+            
+            return faturamentosDetalhados;
+        } catch (error) {
+            console.error('Erro ao consultar faturamentos:', error);
+            return [];
+        }
+    }
+    
+    // Método auxiliar para converter arquivo para base64
+    static async fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            if (!file) {
+                resolve(null);
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+        });
+    }
+
+    static async buscarFornecedores(filtros = {}) {
+        try {
+            console.log("ApiService: Iniciando busca de fornecedores com filtros:", filtros);
+            
+            // Construir query params
+            const queryParams = new URLSearchParams();
+            Object.entries(filtros).forEach(([key, value]) => {
+                if (value) queryParams.append(key, value);
+            });
+            
+            const url = `${API_URL}/api/fornecedores${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            console.log("ApiService: URL para busca de fornecedores:", url);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`ApiService: Erro na requisição de fornecedores (${response.status}):`, errorText);
+                throw new Error(`Erro ao buscar fornecedores: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log("ApiService: Resposta da API de fornecedores:", data);
+            
+            // Garantir que temos um array de fornecedores
+            let fornecedores = [];
+            
+            if (Array.isArray(data)) {
+                console.log("ApiService: Dados retornados como array");
+                fornecedores = data;
+            } else if (data && Array.isArray(data.fornecedores)) {
+                console.log("ApiService: Dados retornados no formato { fornecedores: [...] }");
+                fornecedores = data.fornecedores;
+            } else if (data && typeof data === 'object') {
+                console.log("ApiService: Formato de resposta não esperado, tentando extrair fornecedores");
+                // Tentativa de extrair fornecedores de qualquer formato de resposta
+                fornecedores = Object.values(data).filter(item => 
+                    item && typeof item === 'object' && item.id !== undefined
+                );
+            }
+            
+            console.log(`ApiService: Total de ${fornecedores.length} fornecedores processados`);
+            return { fornecedores };
+        } catch (error) {
+            console.error('ApiService: Erro ao buscar fornecedores:', error);
+            return { fornecedores: [], error: error.message };
+        }
+    }
+
+    static async buscarFornecedorPorId(id) {
+        try {
+            console.log(`ApiService: Buscando fornecedor com ID ${id}`);
+            
+            if (!id) {
+                console.error("ApiService: ID do fornecedor não fornecido");
+                throw new Error('ID do fornecedor é obrigatório');
+            }
+            
+            const url = `${API_URL}/api/fornecedores/${id}`;
+            console.log(`ApiService: URL para busca do fornecedor: ${url}`);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`ApiService: Erro na resposta (${response.status}): ${errorText}`);
+                throw new Error(`Erro ao buscar fornecedor: ${response.status} ${response.statusText}`);
+            }
+            
+            const fornecedor = await response.json();
+            console.log(`ApiService: Fornecedor ${id} encontrado:`, fornecedor);
+            
+            // Verificar se o fornecedor tem ID e se é o mesmo fornecedor solicitado
+            if (!fornecedor || !fornecedor.id) {
+                console.warn(`ApiService: Resposta não contém dados válidos do fornecedor ${id}`);
+                throw new Error('Fornecedor não encontrado ou dados incompletos');
+            }
+            
+            // Garantir que todas as propriedades importantes estejam presentes
+            return {
+                ...fornecedor,
+                razao_social: fornecedor.razao_social || fornecedor.nome || 'Sem nome',
+                endereco: fornecedor.endereco || '',
+                cnpj: fornecedor.cnpj || '',
+                telefone: fornecedor.telefone || fornecedor.celular || '',
+                email: fornecedor.email || '',
+                contato: fornecedor.contato || ''
+            };
+        } catch (error) {
+            console.error(`ApiService: Erro ao buscar fornecedor ${id}:`, error);
+            throw error;
+        }
+    }
+
+    static async downloadPedidoLocacaoPdf(id) {
+        try {
+            const response = await fetch(`${API_URL}/api/pedidos-locacao/${id}/pdf/download`, {
+                method: 'GET',
+                headers: {
+                    ...createAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao baixar PDF');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pedido-locacao-${id}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Erro ao baixar PDF:', error);
+            throw error;
+        }
+    }
+
+    static async criarPedidoServico(pedidoData) {
+        try {
+            console.log('Enviando pedido de serviço para API:', pedidoData);
+            
+            // Garantir que os dados estejam no formato exato especificado
+            const dadosFormatados = {
+                fornecedor_id: parseInt(pedidoData.fornecedor_id) || 1,
+                data_vencimento: pedidoData.data_vencimento || new Date().toISOString().split('T')[0],
+                proposta_id: parseInt(pedidoData.proposta_id) || null,
+                clientinfo_id: parseInt(pedidoData.clientinfo_id) || null,
+                itens: pedidoData.itens || {}
+            };
+            
+            console.log('Dados formatados conforme especificação:', dadosFormatados);
+            
+            const response = await fetch(`${API_URL}/api/servicos`, {
+                method: 'POST',
+                headers: {
+                    ...await createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dadosFormatados)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao criar pedido de serviço');
+            }
+
+            const data = await response.json();
+            console.log('Resposta da API ao criar pedido de serviço:', data);
+            return data;
+        } catch (error) {
+            console.error('Erro ao criar pedido de serviço:', error);
+            throw error;
         }
     }
 }

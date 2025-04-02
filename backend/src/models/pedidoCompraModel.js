@@ -12,9 +12,14 @@ class PedidoCompraModel {
       RETURNING *
     `;
 
-    // Garantir que os campos JSON sejam strings JSON válidas
-    const materiais = Array.isArray(data.materiais) ? JSON.stringify(data.materiais) : '[]';
-    const frete = typeof data.frete === 'object' ? JSON.stringify(data.frete) : '{}';
+    // Usar os dados já processados pelo controlador
+    // Se materiais já vier como string JSON, usá-lo diretamente, caso contrário, converter
+    const materiais = typeof data.materiais === 'string' ? data.materiais : 
+                      Array.isArray(data.materiais) ? JSON.stringify(data.materiais) : '[]';
+    
+    // Se frete já vier como string JSON, usá-lo diretamente, caso contrário, converter
+    const frete = typeof data.frete === 'string' ? data.frete : 
+                  typeof data.frete === 'object' && data.frete !== null ? JSON.stringify(data.frete) : '{}';
 
     const values = [
       data.clientinfo_id,
@@ -22,15 +27,22 @@ class PedidoCompraModel {
       data.ddl,
       data.data_vencimento,
       data.proposta_id,
-      materiais,  // Agora é uma string JSON
+      materiais,  // String JSON para JSONB
       data.desconto,
       data.valor_frete,
       data.despesas_adicionais,
       data.dados_adicionais,
-      frete  // Agora é uma string JSON
+      frete  // String JSON para JSONB
     ];
 
     try {
+      console.log('Executando query de inserção de pedido de compra com os valores:', {
+        clientinfo_id: data.clientinfo_id,
+        fornecedores_id: data.fornecedores_id,
+        proposta_id: data.proposta_id,
+        materiais_tipo: typeof materiais,
+        frete_tipo: typeof frete
+      });
       const result = await db.query(query, values);
       return result.rows[0];
     } catch (error) {
