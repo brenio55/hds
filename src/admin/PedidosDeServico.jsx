@@ -498,6 +498,17 @@ function PedidosDeServico() {
         try {
             console.log("Iniciando processo de geração de pedido de serviço...");
             
+            // Validar campos obrigatórios
+            if (!fornecedorId) {
+                alert('Por favor, selecione um fornecedor');
+                return;
+            }
+            
+            if (itens.length === 0) {
+                alert('Por favor, adicione pelo menos um item ao pedido');
+                return;
+            }
+            
             // Função para formatar e limitar valores numéricos
             const formatarValorNumerico = (valor) => {
                 if (typeof valor === 'string') {
@@ -514,52 +525,53 @@ function PedidosDeServico() {
                     return 0;
                 }
                 
-                // Limitar o tamanho para evitar numeric overflow (assumindo campo numeric(10,2))
-                // Máximo: 99.999.999,99
-                numero = Math.min(numero, 99999999.99);
-                
-                // Retornar com precisão fixa
                 return numero;
             };
             
-            const totalBruto = formatarValorNumerico(calcularTotalBruto());
-            const ipiTotal = formatarValorNumerico(calcularTotalIPI());
-            const totalDescontos = formatarValorNumerico(calcularTotalDescontos());
-            const totalFinal = formatarValorNumerico(calcularTotalFinal());
+            // Obter os dados das áreas de texto para responsabilidades
+            const escopoContratacao = document.querySelector('[name="escopoContratacao"]')?.value || '';
+            const respContratada = document.querySelector('[name="respContratada"]')?.value?.split(/\r?\n/).filter(item => item.trim() !== '') || [];
+            const respContratante = document.querySelector('[name="respContratante"]')?.value?.split(/\r?\n/).filter(item => item.trim() !== '') || [];
+            
+            // Valores comuns para todos os itens
             const valorFrete = formatarValorNumerico(dadosPedido.valorFrete);
             const outrasDespesas = formatarValorNumerico(dadosPedido.outrasDespesas);
-
-            // Formatar os itens para o formato esperado pela API
-            const itensFormatados = itens.map((item, index) => ({
-                item: index + 1,
-                descricao: item.descricao || '',
-                unidade: item.unidade || '',
-                quantidade: formatarValorNumerico(item.quantidade),
-                ipi: formatarValorNumerico(item.ipi),
-                valor_unitario: formatarValorNumerico(item.valorUnitario),
-                valor_total: formatarValorNumerico(item.valorTotal),
-                desconto: formatarValorNumerico(item.desconto),
-                previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-            }));
-
-            // Formatar o pedido de serviço no formato esperado pelo backend
+            
+            // Construir o objeto de itens com cada item como uma propriedade numerada
+            const itensObj = {};
+            
+            // Adicionar cada item do pedido como uma propriedade numerada no objeto itens
+            itens.forEach((item, index) => {
+                itensObj[index] = {
+                    descricao: item.descricao || '',
+                    unidade: item.unidade || 'hora',
+                    quantidade: formatarValorNumerico(item.quantidade),
+                    valor_total: formatarValorNumerico(item.valorTotal),
+                    desconto: formatarValorNumerico(item.desconto),
+                    valor_unitario: formatarValorNumerico(item.valorUnitario),
+                    ipi: formatarValorNumerico(item.ipi),
+                    unidades: formatarValorNumerico(item.quantidade),
+                    data_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0],
+                    valor_frete: valorFrete,
+                    outras_despesas: outrasDespesas,
+                    informacao_importante: dadosPedido.informacoesImportantes || '',
+                    condicao_pagamento: dadosPedido.condPagto || '30 dias',
+                    prazo_maximo: dadosPedido.prazoEntrega || new Date().toISOString().split('T')[0],
+                    escopo: escopoContratacao
+                };
+            });
+            
+            // Adicionar os arrays de afazer_contratante e afazer_contratada ao objeto itens
+            itensObj.afazer_contratante = respContratante;
+            itensObj.afazer_contratada = respContratada;
+            
+            // Formatar o pedido de serviço seguindo exatamente o formato especificado
             const pedidoServico = {
-                fornecedor_id: parseInt(fornecedorId) || null,
+                fornecedor_id: parseInt(fornecedorId) || 1,
                 data_vencimento: document.querySelector('[name="dataVencto"]')?.value || new Date().toISOString().split('T')[0],
                 proposta_id: parseInt(centroCusto) || null,
-                itens: JSON.stringify(itensFormatados), // Converter para JSON string aqui
-                total_bruto: totalBruto,
-                total_ipi: ipiTotal,
-                total_descontos: totalDescontos,
-                valor_frete: valorFrete,
-                outras_despesas: outrasDespesas,
-                total_final: totalFinal,
-                    frete: dadosPedido.frete || 'CIF',
-                    condicao_pagamento: dadosPedido.condPagto || '30',
-                    informacoes_importantes: dadosPedido.informacoesImportantes || '',
-                escopo_contratacao: document.querySelector('[name="escopoContratacao"]')?.value || '',
-                responsabilidade_contratada: document.querySelector('[name="respContratada"]')?.value?.split(/\r?\n/).filter(item => item.trim() !== '') || [],
-                responsabilidade_contratante: document.querySelector('[name="respContratante"]')?.value?.split(/\r?\n/).filter(item => item.trim() !== '') || []
+                clientinfo_id: propostaSelecionada?.client_info?.id ? parseInt(propostaSelecionada.client_info.id) : null,
+                itens: itensObj
             };
 
             console.log("Dados formatados para envio:", pedidoServico);

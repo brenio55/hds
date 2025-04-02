@@ -457,7 +457,7 @@ function PedidosDeMaterial() {
             const resultado = await ApiService.criarPedido(pedidoData);
 
             console.log("Resultado da criação do pedido:", resultado);
-
+            
             // Exibir popup de sucesso
             const successPopup = document.createElement('div');
             successPopup.className = 'success-popup';
@@ -466,24 +466,24 @@ function PedidosDeMaterial() {
                     <h3>Pedido de Material Gerado com Sucesso!</h3>
                     <p>O pedido foi criado com o ID: ${resultado.id || 'N/A'}</p>
                     <div class="success-buttons">
-                        <button id="closeSuccessPopup">Fechar</button>
+                    <button id="closeSuccessPopup">Fechar</button>
                         <button id="viewPdfButton">Visualizar PDF</button>
                     </div>
                 </div>
             `;
             document.body.appendChild(successPopup);
-
+            
             // Adicionar evento para fechar o popup
             document.getElementById('closeSuccessPopup').addEventListener('click', () => {
                 document.body.removeChild(successPopup);
             });
-
+            
             // Adicionar evento para visualizar o PDF
             if (resultado && resultado.id) {
                 document.getElementById('viewPdfButton').addEventListener('click', async () => {
                     try {
                         await ApiService.visualizarPedidoPdf(resultado.id);
-                    } catch (error) {
+        } catch (error) {
                         console.error('Erro ao visualizar PDF de material:', error);
                         alert('Erro ao visualizar o PDF. Tente novamente mais tarde.');
                     }
@@ -600,9 +600,9 @@ function PedidosDeMaterial() {
                 setErrorFornecedor('');
             } else {
                 console.log("Fornecedor não encontrado na lista, buscando da API");
-                // Acionar a busca de detalhes do fornecedor
-                const event = { target: { value: selectedId } };
-                handleFornecedorIdChange(event);
+            // Acionar a busca de detalhes do fornecedor
+            const event = { target: { value: selectedId } };
+            handleFornecedorIdChange(event);
             }
         } else {
             // Limpar os campos se nenhum fornecedor for selecionado
@@ -629,7 +629,7 @@ function PedidosDeMaterial() {
             console.log("Proposta encontrada na lista:", proposta);
             
             if (proposta) {
-                setPropostaSelecionada(proposta);
+            setPropostaSelecionada(proposta);
             } else {
                 console.warn("Proposta não encontrada na lista com ID:", propostaId);
                 console.log("Lista de propostas disponíveis:", listaPropostas);

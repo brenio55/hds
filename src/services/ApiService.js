@@ -128,12 +128,12 @@ class ApiService {
                 },
                 body: JSON.stringify(dadosFormatados)
             });
-
+    
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: response.statusText }));
                 throw new Error(errorData.error || 'Erro ao criar pedido de compra');
             }
-
+    
             const data = await response.json();
             console.log('Pedido de material criado com sucesso:', data);
             return data;
@@ -1520,13 +1520,25 @@ class ApiService {
     static async criarPedidoServico(pedidoData) {
         try {
             console.log('Enviando pedido de serviço para API:', pedidoData);
+            
+            // Garantir que os dados estejam no formato exato especificado
+            const dadosFormatados = {
+                fornecedor_id: parseInt(pedidoData.fornecedor_id) || 1,
+                data_vencimento: pedidoData.data_vencimento || new Date().toISOString().split('T')[0],
+                proposta_id: parseInt(pedidoData.proposta_id) || null,
+                clientinfo_id: parseInt(pedidoData.clientinfo_id) || null,
+                itens: pedidoData.itens || {}
+            };
+            
+            console.log('Dados formatados conforme especificação:', dadosFormatados);
+            
             const response = await fetch(`${API_URL}/api/servicos`, {
                 method: 'POST',
                 headers: {
                     ...await createAuthHeaders(),
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(pedidoData)
+                body: JSON.stringify(dadosFormatados)
             });
 
             if (!response.ok) {
