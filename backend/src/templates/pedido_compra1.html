@@ -298,83 +298,59 @@
             <h2>DADOS DO CONTRATANTE</h2>
         <table class="info-table">
             <tr>
-                <td class="label">Empresa:</td>
-                <td>Hds Serviço Ltda</td>
-                <td class="label">CNPJ:</td>
-                <td>40.931.075/0001-00</td>
-                <td class="label">Inscrição Estadual:</td>
-                <td>688.578.880.111</td>
-                <td class="label">Inscrição Municipal:</td>
-                <td>000000000091587</td>
+                <td colspan="2"><span class="label">Empresa:</span> Hds Serviço Ltda</td>
+                <td colspan="2"><span class="label">CNPJ:</span> 40.931.075/0001-00</td>
+                <td colspan="2"><span class="label">Inscrição Estadual:</span> 688.578.880.111</td>
+                <td colspan="2"><span class="label">Inscrição Municipal:</span> 000000000091587</td>
                 </tr>
                 <tr>
-                <td class="label">Endereço:</td>
-                <td>Av Dom Pedro I, 242</td>
-                <td class="label">Bairro:</td>
-                <td>Campos Eliseos</td>
-                <td class="label">Cidade:</td>
-                <td>Taubaté</td>
-                <td class="label">UF:</td>
-                <td>SP</td>
+                <td colspan="2"><span class="label">Endereço:</span> Av Dom Pedro I, 242</td>
+                <td colspan="2"><span class="label">Bairro:</span> Campos Eliseos</td>
+                <td colspan="2"><span class="label">Cidade:</span> Taubaté</td>
+                <td colspan="2"><span class="label">UF:</span> SP</td>
                 </tr>
             </table>
 
             <h2>DADOS DO FORNECEDOR</h2>
         <table class="info-table">
                 <tr>
-                <td class="label">Empresa:</td>
-                    <td>{{fornecedor.nome}}</td>
-                <td class="label">CNPJ:</td>
-                    <td>{{fornecedor.cnpj}}</td>
-                <td class="label">Inscrição Estadual:</td>
-                    <td>{{fornecedor.inscricao_estadual}}</td>
-                <td class="label">Inscrição Municipal:</td>
-                <td>{{fornecedor.inscricao_municipal}}</td>
+                <td colspan="2"><span class="label">Empresa:</span> {{fornecedor.nome}}</td>
+                <td colspan="2"><span class="label">CNPJ:</span> {{fornecedor.cnpj}}</td>
+                <td colspan="2"><span class="label">Inscrição Estadual:</span> {{fornecedor.inscricao_estadual}}</td>
+                <td colspan="2"><span class="label">Inscrição Municipal:</span> {{fornecedor.inscricao_municipal}}</td>
                 </tr>
                 <tr>
-                <td class="label">Endereço:</td>
-                    <td>{{fornecedor.endereco}}</td>
-                <td class="label">Bairro:</td>
-                <td>{{fornecedor.bairro}}</td>
-                <td class="label">Cidade:</td>
-                <td>{{fornecedor.cidade}}</td>
-                <td class="label">UF:</td>
-                <td>{{fornecedor.uf}}</td>
+                <td colspan="2"><span class="label">Endereço:</span> {{fornecedor.endereco}}</td>
+                <td colspan="2"><span class="label">Bairro:</span> {{fornecedor.bairro}}</td>
+                <td colspan="2"><span class="label">Cidade:</span> {{fornecedor.cidade}}</td>
+                <td colspan="2"><span class="label">UF:</span> {{fornecedor.uf}}</td>
                 </tr>
         </table>
 
         <h2>DADOS DE FATURAMENTO</h2>
         <table class="info-table">
             <tr>
-                <td class="label">Empresa:</td>
-                <td>Hds Serviço Ltda</td>
-                <td class="label">CNPJ:</td>
-                <td>40.931.075/0001-00</td>
-                <td class="label">Inscrição Estadual:</td>
-                <td>688.578.880.111</td>
-                <td class="label">Inscrição Municipal:</td>
-                <td>000000000091587</td>
+                <td colspan="2"><span class="label">Empresa:</span> Hds Serviço Ltda</td>
+                <td colspan="2"><span class="label">CNPJ:</span> 40.931.075/0001-00</td>
+                <td colspan="2"><span class="label">Inscrição Estadual:</span> 688.578.880.111</td>
+                <td colspan="2"><span class="label">Inscrição Municipal:</span> 000000000091587</td>
                 </tr>
                 <tr>
-                <td class="label">Endereço:</td>
-                <td>Av Dom Pedro I, 242</td>
-                <td class="label">Bairro:</td>
-                <td>Campos Eliseos</td>
-                <td class="label">Cidade:</td>
-                <td>Taubaté</td>
-                <td class="label">UF:</td>
-                <td>SP</td>
+                <td colspan="2"><span class="label">Endereço:</span> Rua João Scarpa, 18</td>
+                <td colspan="2"><span class="label">Bairro:</span> Chacara São Silvestre </td>
+                <td colspan="2"><span class="label">Cidade:</span> Taubaté</td>
+                <td colspan="2"><span class="label">UF:</span> SP</td>
                 </tr>
         </table>
 
-        <table class="pagamento-table">
+        <!-- <table class="pagamento-table">
             <tr>
                 <td class="label">Condição de Pagamento:</td>
                 <td>Med. Mensais pagamento 40DDL</td>
                 <td class="label">Data Vencimento:</td>
                 <td>{{formatDate pedidoData.data_vencimento}}</td>
                 </tr>
-            </table>
+            </table> -->
 
         <h2>Detalhes do Pedido</h2>
         <table class="details-table">
@@ -424,7 +400,7 @@
                 <h2>Data Final de Entrega</h2>
                 <table>
                     <tr>
-                        <td>{{dataEntregaMaisDistante}}</td>
+                        <td>{{formatDate pedidoData.data_final_entrega}}</td>
                     </tr>
                 </table>
             </div>
