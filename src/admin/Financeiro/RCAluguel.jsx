@@ -14,8 +14,8 @@ function RCAluguel() {
     const [formRegistro, setFormRegistro] = useState({
         valor: '',
         detalhes: {
-            data_vencimento: '',
-            pagamento: 'pix',
+            dia_vencimento: '',
+            pagamento: 'Transferência Bancária',
             obra_id: '',
             observacoes: ''
         }
@@ -91,9 +91,11 @@ function RCAluguel() {
         try {
             setLoading(true);
             
-            // Validação de pagamento
-            if (formRegistro.detalhes.pagamento !== 'pix' && formRegistro.detalhes.pagamento !== 'ted') {
-                alert('O tipo de pagamento deve ser "pix" ou "ted".');
+            // Validação de dia de vencimento
+            const diaVencimento = parseInt(formRegistro.detalhes.dia_vencimento);
+            if (isNaN(diaVencimento) || diaVencimento < 1 || diaVencimento > 31) {
+                alert('O dia de vencimento deve ser um número entre 1 e 31.');
+                setLoading(false);
                 return;
             }
             
@@ -101,7 +103,7 @@ function RCAluguel() {
             const dadosParaEnvio = {
                 valor: parseFloat(formRegistro.valor),
                 detalhes: {
-                    data_vencimento: formRegistro.detalhes.data_vencimento,
+                    dia_vencimento: parseInt(formRegistro.detalhes.dia_vencimento),
                     pagamento: formRegistro.detalhes.pagamento,
                     obra_id: parseInt(formRegistro.detalhes.obra_id),
                     observacoes: formRegistro.detalhes.observacoes
@@ -115,8 +117,8 @@ function RCAluguel() {
             setFormRegistro({
                 valor: '',
                 detalhes: {
-                    data_vencimento: '',
-                    pagamento: 'pix',
+                    dia_vencimento: '',
+                    pagamento: 'Transferência Bancária',
                     obra_id: '',
                     observacoes: ''
                 }
@@ -179,14 +181,15 @@ function RCAluguel() {
             // Pedir confirmação e coletar novos dados
             if (window.confirm(`Deseja atualizar o aluguel #${id}?`)) {
                 const novoValor = prompt('Novo valor:', aluguel.valor);
-                const novaDataVencimento = prompt('Nova data de vencimento (AAAA-MM-DD):', aluguel.detalhes.data_vencimento);
-                const novoPagamento = prompt('Tipo de pagamento (pix/ted):', aluguel.detalhes.pagamento);
+                const novoDiaVencimento = prompt('Novo dia de vencimento (1-31):', aluguel.detalhes.dia_vencimento);
+                const novoPagamento = prompt('Tipo de pagamento:', aluguel.detalhes.pagamento);
                 const novasObservacoes = prompt('Observações:', aluguel.detalhes.observacoes);
                 
                 // Validar dados
+                const diaVencimento = parseInt(novoDiaVencimento);
                 if (!novoValor || isNaN(parseFloat(novoValor)) || 
-                    !novaDataVencimento || 
-                    (novoPagamento !== 'pix' && novoPagamento !== 'ted')) {
+                    !novoDiaVencimento || isNaN(diaVencimento) || diaVencimento < 1 || diaVencimento > 31 || 
+                    !novoPagamento) {
                     alert('Dados inválidos. A atualização foi cancelada.');
                     return;
                 }
@@ -195,7 +198,7 @@ function RCAluguel() {
                 const dadosAtualizados = {
                     valor: parseFloat(novoValor),
                     detalhes: {
-                        data_vencimento: novaDataVencimento,
+                        dia_vencimento: parseInt(novoDiaVencimento),
                         pagamento: novoPagamento,
                         obra_id: aluguel.detalhes.obra_id,
                         observacoes: novasObservacoes
@@ -282,11 +285,13 @@ function RCAluguel() {
                                 </div>
 
                                 <div className="form-group">
-                                    <label>DATA DE VENCIMENTO:</label>
+                                    <label>DIA DE VENCIMENTO (1-31):</label>
                                     <input
-                                        type="date"
-                                        name="detalhes.data_vencimento"
-                                        value={formRegistro.detalhes.data_vencimento}
+                                        type="number"
+                                        min="1"
+                                        max="31"
+                                        name="detalhes.dia_vencimento"
+                                        value={formRegistro.detalhes.dia_vencimento}
                                         onChange={handleInputChange}
                                         required
                                     />
@@ -296,15 +301,14 @@ function RCAluguel() {
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>TIPO DE PAGAMENTO:</label>
-                                    <select
+                                    <input
+                                        type="text"
                                         name="detalhes.pagamento"
                                         value={formRegistro.detalhes.pagamento}
                                         onChange={handleInputChange}
+                                        placeholder="Ex: Transferência Bancária, PIX, etc."
                                         required
-                                    >
-                                        <option value="pix">PIX</option>
-                                        <option value="ted">TED</option>
-                                    </select>
+                                    />
                                 </div>
 
                                 <div className="form-group">
@@ -446,9 +450,9 @@ function RCAluguel() {
                                                 <tr key={aluguel.id}>
                                                     <td>{aluguel.id}</td>
                                                     <td>{formatarValor(aluguel.valor)}</td>
-                                                    <td>{formatarData(aluguel.detalhes.data_vencimento)}</td>
+                                                    <td>Dia {aluguel.detalhes.dia_vencimento}</td>
                                                     <td>
-                                                        {aluguel.detalhes.pagamento === 'pix' ? 'PIX' : 'TED'}
+                                                        {aluguel.detalhes.pagamento}
                                                     </td>
                                                     <td>
                                                         {centrosCusto.find(p => p.id === aluguel.detalhes.obra_id) 

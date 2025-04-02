@@ -1567,14 +1567,15 @@ class ApiService {
             console.log('Registrando novo aluguel:', dadosAluguel);
             
             // Validar dados obrigatórios
-            if (!dadosAluguel.valor || !dadosAluguel.detalhes?.data_vencimento || 
+            if (!dadosAluguel.valor || !dadosAluguel.detalhes?.dia_vencimento || 
                 !dadosAluguel.detalhes?.pagamento || !dadosAluguel.detalhes?.obra_id) {
                 throw new Error('Dados incompletos para registro de aluguel');
             }
             
-            // Verificar se o pagamento é válido
-            if (dadosAluguel.detalhes.pagamento !== 'pix' && dadosAluguel.detalhes.pagamento !== 'ted') {
-                throw new Error('Tipo de pagamento deve ser "pix" ou "ted"');
+            // Verificar se o dia de vencimento é válido (1-31)
+            const diaVencimento = parseInt(dadosAluguel.detalhes.dia_vencimento);
+            if (isNaN(diaVencimento) || diaVencimento < 1 || diaVencimento > 31) {
+                throw new Error('Dia de vencimento deve ser um número entre 1 e 31');
             }
             
             const response = await fetch(`${API_URL}/api/alugueis`, {
@@ -1602,23 +1603,38 @@ class ApiService {
     
     /**
      * Busca aluguéis com filtros opcionais
-     * @param {Object} filtros - Filtros para busca (campo, valor, dataInicial, dataFinal, obraId)
+     * @param {Object} filtros - Filtros para busca (campo, valor, data_inicial, data_final, obraId)
      * @returns {Promise<Array>} - Lista de aluguéis
      */
     static async buscarAlugueis(filtros = {}) {
         try {
             console.log('Buscando aluguéis com filtros:', filtros);
             let url = `${API_URL}/api/alugueis`;
+            const queryParams = [];
             
             // Se tiver filtros de campo e valor, adicionar como query params
             if (filtros.campo && filtros.valor) {
-                url += `?campo=${filtros.campo}&valor=${encodeURIComponent(filtros.valor)}`;
+                queryParams.push(`campo=${filtros.campo}`);
+                queryParams.push(`valor=${encodeURIComponent(filtros.valor)}`);
             }
             // Se tiver filtro de obra (centro de custo)
             else if (filtros.obraId) {
-                url += `?campo=detalhes&valor=${encodeURIComponent(filtros.obraId)}`;
+                queryParams.push(`campo=obra_id`);
+                queryParams.push(`valor=${encodeURIComponent(filtros.obraId)}`);
             }
-            // Note: Filtros de data são processados no frontend, pois a API não suporta diretamente
+            
+            // Adicionar filtros de data se fornecidos
+            if (filtros.dataInicial) {
+                queryParams.push(`data_inicial=${filtros.dataInicial}`);
+            }
+            if (filtros.dataFinal) {
+                queryParams.push(`data_final=${filtros.dataFinal}`);
+            }
+            
+            // Adicionar query params à URL
+            if (queryParams.length > 0) {
+                url += '?' + queryParams.join('&');
+            }
             
             const response = await fetch(url, {
                 headers: createAuthHeaders()
@@ -1629,20 +1645,7 @@ class ApiService {
                 throw new Error(errorData.error || 'Erro ao buscar aluguéis');
             }
 
-            let alugueis = await response.json();
-            
-            // Se tiver filtros de data, filtrar os resultados no cliente
-            if (filtros.dataInicial && filtros.dataFinal) {
-                const dataInicial = new Date(filtros.dataInicial);
-                const dataFinal = new Date(filtros.dataFinal);
-                dataFinal.setHours(23, 59, 59); // Incluir todo o último dia
-                
-                alugueis = alugueis.filter(aluguel => {
-                    const dataAluguel = new Date(aluguel.created_at);
-                    return dataAluguel >= dataInicial && dataAluguel <= dataFinal;
-                });
-            }
-            
+            const alugueis = await response.json();
             console.log(`Total de ${alugueis.length} aluguéis encontrados`);
             return alugueis;
         } catch (error) {
@@ -1689,14 +1692,15 @@ class ApiService {
             console.log(`Atualizando aluguel com ID ${id}:`, dadosAluguel);
             
             // Validar dados obrigatórios
-            if (!dadosAluguel.valor || !dadosAluguel.detalhes?.data_vencimento || 
+            if (!dadosAluguel.valor || !dadosAluguel.detalhes?.dia_vencimento || 
                 !dadosAluguel.detalhes?.pagamento || !dadosAluguel.detalhes?.obra_id) {
                 throw new Error('Dados incompletos para atualização de aluguel');
             }
             
-            // Verificar se o pagamento é válido
-            if (dadosAluguel.detalhes.pagamento !== 'pix' && dadosAluguel.detalhes.pagamento !== 'ted') {
-                throw new Error('Tipo de pagamento deve ser "pix" ou "ted"');
+            // Verificar se o dia de vencimento é válido (1-31)
+            const diaVencimento = parseInt(dadosAluguel.detalhes.dia_vencimento);
+            if (isNaN(diaVencimento) || diaVencimento < 1 || diaVencimento > 31) {
+                throw new Error('Dia de vencimento deve ser um número entre 1 e 31');
             }
             
             const response = await fetch(`${API_URL}/api/alugueis/${id}`, {
