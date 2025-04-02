@@ -8,12 +8,12 @@ CREATE TABLE IF NOT EXISTS public.aluguel (
 -- Criar índice para o campo detalhes
 CREATE INDEX IF NOT EXISTS idx_aluguel_detalhes ON aluguel USING GIN (detalhes);
 
--- Criar função para validar obra_id
+-- Criar função para validar obra_id (agora validando contra tabela propostas)
 CREATE OR REPLACE FUNCTION check_obra_id() RETURNS trigger AS $$ 
 BEGIN
     IF (NEW.detalhes->>'obra_id') IS NOT NULL THEN
         IF NOT EXISTS (
-            SELECT 1 FROM custoobra WHERE id = (NEW.detalhes->>'obra_id')::integer
+            SELECT 1 FROM propostas WHERE id = (NEW.detalhes->>'obra_id')::integer
         ) THEN
             RAISE EXCEPTION 'obra_id inválido: %', NEW.detalhes->>'obra_id';
         END IF;

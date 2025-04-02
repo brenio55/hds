@@ -354,7 +354,7 @@
         <!-- <table class="pagamento-table">
             <tr>
                 <td class="label">Condição de Pagamento:</td>
-                <td>Med. Mensais pagamento 40DDL</td>
+                <td>Med. Mensais pagamento {{pedidoData.ddl}} DDL</td>
                 <td class="label">Data Vencimento:</td>
                 <td>{{formatDate pedidoData.data_vencimento}}</td>
                 </tr>
@@ -363,20 +363,18 @@
         <h2>Detalhes do Pedido</h2>
         <table class="details-table">
             <tr>
-                <th>Pedido</th>
-                <th>Data Vencimento</th>
-                <th>Cond. Pagto</th>
-                <th>Centro de Custo</th>
-                <th colspan="2"></th>
-            </tr>
-            <tr>
-                <td>{{pedidoData.id}}</td>
-                <td>{{formatDate pedidoData.data_vencimento}}</td>
-                <td>{{pedidoData.condicao_pagamento}}</td>
-                <td>{{pedidoData.centro_custo}}</td>
-                <td colspan="2"></td>
+                <td>Centro de Custo:</td>
+                <td>{{descricao}}</td>
             </tr>
         </table>
+
+        <table>
+            <tr>
+                <td>Centro de Custo:</td>
+                <td>{{descricao}}</td>
+            </tr>
+        </table>
+            
 
         <div class="flex-container">
             <div style="width: 60%;">
@@ -397,7 +395,7 @@
                     <tr>
                         <th>Total Bruto</th>
                         <td>{{totalBruto}}</td>
-                    </tr>
+                    </tr>   
                     <tr>
                         <th>Total Final</th>
                         <td>{{totalFinal}}</td>
@@ -434,7 +432,7 @@
                 <td>{{this.quantidade}}</td>
                 <td>{{this.valor_unitario}}</td>
                 <td>{{this.valor_total}}</td>
-                <td>{{this.percentual}}</td>
+                <td>{{this.progresso}}</td>
                 <td>{{formatDate this.data_entrega}}</td>
             </tr>
             {{/each}}
