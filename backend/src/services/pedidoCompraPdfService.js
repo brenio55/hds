@@ -3,6 +3,7 @@ const handlebars = require('handlebars');
 const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const db = require('../config/database');
 
 class PedidoCompraPdfService {
   static async imageToBase64(imagePath) {
@@ -20,6 +21,22 @@ class PedidoCompraPdfService {
   static async generatePdf(pedidoData, propostaData, fornecedorData) {
     try {
       console.log('Dados recebidos:', JSON.stringify(pedidoData, null, 2));
+
+      // Buscar informações da proposta
+      let descricaoProposta = '';
+      if (pedidoData.proposta_id) {
+        try {
+          const propostaResult = await db.query(
+            'SELECT descricao FROM propostas WHERE id = $1',
+            [pedidoData.proposta_id]
+          );
+          if (propostaResult.rows.length > 0) {
+            descricaoProposta = propostaResult.rows[0].descricao;
+          }
+        } catch (error) {
+          console.error('Erro ao buscar proposta:', error);
+        }
+      }
 
       const templatePath = path.join(__dirname, '../templates/pedido_compra1.html');
       const template = await fs.readFile(templatePath, 'utf-8');
@@ -55,10 +72,13 @@ class PedidoCompraPdfService {
       const [endereco = '', bairro = ''] = enderecoCompleto.split(' - ');
       const [cidade = '', uf = ''] = (fornecedorData.municipio_uf || '').split('-').map(s => s.trim());
 
-      // Formata os dados
+      // Ajustar os dados incluindo a descrição da proposta
       const data = {
         logoSrc: logoBase64,
-        pedidoData,
+        pedidoData: {
+          ...pedidoData,
+          centro_custo: descricaoProposta || 'Não especificado' // Usar a descrição da proposta como centro de custo
+        },
         descricao: propostaData.descricao,
         dataEmissao: new Date(pedidoData.created_at).toLocaleDateString('pt-BR'),
         fornecedor: {
