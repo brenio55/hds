@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import HeaderAdmin from '../HeaderAdmin';
 import ApiService from '../../services/ApiService';
+import './RCAluguel.css';
 
 function RCAluguel() {
     // Estados para controle de abas e formulário
@@ -347,7 +348,7 @@ function RCAluguel() {
                             </div>
                         </form>
                     ) : (
-                        <div className="consulta-container">
+                        <div className="consulta-container-aluguel">
                             <form onSubmit={handleFiltroSubmit} className="filtro-container">
                                 <div className="form-group">
                                     <label>Filtrar por:</label>

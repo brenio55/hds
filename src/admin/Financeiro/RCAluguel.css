@@ -1,0 +1,11 @@
+.consulta-container-aluguel .filtro-container {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8faff;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
