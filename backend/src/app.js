@@ -13,6 +13,7 @@ const custoObraRoutes = require('./routes/custoObraRoutes');
 const servicoRoutes = require('./routes/servicoRoutes');
 const pedidosConsolidadosRoutes = require('./routes/pedidosConsolidadosRoutes');
 const faturamentoRoutes = require('./routes/faturamentoRoutes');
+const aluguelRoutes = require('./routes/aluguelRoutes');
 
 const app = express();
 
@@ -78,6 +79,7 @@ app.use('/api/custos-obra', custoObraRoutes);
 app.use('/api/servicos', servicoRoutes);
 app.use('/api/pedidos-consolidados', pedidosConsolidadosRoutes);
 app.use('/api/faturamentos', faturamentoRoutes);
+app.use('/api/alugueis', aluguelRoutes);
 
 // Tratamento de erros
 app.use((err, req, res, next) => {

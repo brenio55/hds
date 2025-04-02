@@ -1345,3 +1345,36 @@ curl -X GET "http://localhost:3000/api/faturamentos?campo=nf&valor=123456789" \
 - O sistema valida se o pedido (id_number + id_type) existe antes de criar/atualizar
 - Datas devem estar no formato YYYY-MM-DD
 
+## API de Aluguéis
+
+### Endpoints
+
+- `POST /api/alugueis`: Cria um novo aluguel
+- `GET /api/alugueis`: Lista todos os aluguéis
+- `GET /api/alugueis/:id`: Busca um aluguel específico
+- `PUT /api/alugueis/:id`: Atualiza um aluguel
+- `DELETE /api/alugueis/:id`: Remove um aluguel
+
+### Estrutura do Aluguel
+
+```json
+{
+  "valor": 1500.00,
+  "detalhes": {
+    "dia_vencimento": 10,
+    "pagamento": "Transferência Bancária",
+    "obra_id": 1,
+    "observacoes": "Aluguel referente ao mês de janeiro"
+  }
+}
+```
+
+### Campos
+
+- `valor`: Valor do aluguel (decimal)
+- `detalhes.dia_vencimento`: Dia do vencimento (número de 1 a 31)
+- `detalhes.pagamento`: Forma de pagamento (string)
+- `detalhes.obra_id`: ID da obra relacionada (referência à tabela custoobra)
+- `detalhes.observacoes`: Observações adicionais (string)
+- `created_at`: Data de criação (gerada automaticamente)
+
