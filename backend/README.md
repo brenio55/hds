@@ -1378,3 +1378,84 @@ curl -X GET "http://localhost:3000/api/faturamentos?campo=nf&valor=123456789" \
 - `detalhes.observacoes`: Observações adicionais (string)
 - `created_at`: Data de criação (gerada automaticamente)
 
+### API de Custos de Obra
+
+#### Endpoints
+
+- `POST /api/custos-obra`: Cria um novo custo de obra
+- `GET /api/custos-obra`: Lista todos os custos de obra
+- `GET /api/custos-obra/:id`: Busca um custo de obra específico
+- `PUT /api/custos-obra/:id`: Atualiza um custo de obra
+- `DELETE /api/custos-obra/:id`: Remove um custo de obra
+
+#### Estrutura do Custo de Obra
+
+```json
+{
+  "id": 1,
+  "descricao": "Construção Prédio A",
+  "valor_total": 150000.00,
+  "data_inicio": "2024-01-01",
+  "data_fim": "2024-12-31",
+  "status": "Em andamento",
+  "observacoes": "Projeto de construção do prédio principal",
+  "created_at": "2024-01-01T10:00:00.000Z"
+}
+```
+
+#### Campos
+
+- `id`: Identificador único do custo de obra (gerado automaticamente)
+- `descricao`: Descrição do projeto/obra
+- `valor_total`: Valor total previsto para a obra (decimal)
+- `data_inicio`: Data de início da obra
+- `data_fim`: Data prevista para término da obra
+- `status`: Status atual da obra (string)
+- `observacoes`: Observações adicionais (texto)
+- `created_at`: Data de criação do registro (gerada automaticamente)
+
+#### Exemplos de Uso
+
+```bash
+# Criar novo custo de obra
+curl -X POST http://localhost:3000/api/custos-obra \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "descricao": "Construção Prédio A",
+    "valor_total": 150000.00,
+    "data_inicio": "2024-01-01",
+    "data_fim": "2024-12-31",
+    "status": "Em andamento",
+    "observacoes": "Projeto de construção do prédio principal"
+  }'
+
+# Listar todos os custos de obra
+curl -X GET http://localhost:3000/api/custos-obra \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar custo de obra específico
+curl -X GET http://localhost:3000/api/custos-obra/1 \
+  -H "Authorization: Bearer seu_token"
+
+# Atualizar custo de obra
+curl -X PUT http://localhost:3000/api/custos-obra/1 \
+  -H "Authorization: Bearer seu_token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "Concluído",
+    "observacoes": "Projeto finalizado em 15/01/2024"
+  }'
+
+# Deletar custo de obra
+curl -X DELETE http://localhost:3000/api/custos-obra/1 \
+  -H "Authorization: Bearer seu_token"
+```
+```
+
+Esta documentação deve ser adicionada ao final do arquivo README.md existente, mantendo todo o conteúdo anterior. A documentação segue o mesmo padrão das outras APIs do projeto, incluindo:
+1. Lista de endpoints disponíveis
+2. Exemplo da estrutura de dados
+3. Descrição detalhada dos campos
+4. Exemplos práticos de uso com curl
+
