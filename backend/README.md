@@ -752,10 +752,47 @@ Content-Type: application/json
     "data_vencimento": "2024-05-15",
     "pagamento": "ted",
     "obra_id": 1,
-    "observacoes": "Aluguel referente ao mês de maio"
+    "observacoes": "Aluguel referente ao mês de maio - atualizado"
   }
 }
 ```
+
+#### Deletar Aluguel
+```http
+DELETE /api/alugueis/{id}
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+```
+
+**Exemplos de Uso:**
+```bash
+# Atualizar aluguel
+curl -X PUT http://localhost:3000/api/alugueis/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJ1c2VybmFtZSI6Imp1bGlvIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQzNjg0NjU5LCJleHAiOjE3NDM3NzEwNTl9.hun0weCbplhr9lT55DaTk2V5OTvXNYqYdxH57Th7jes" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "valor": 1600.00,
+    "detalhes": {
+      "data_vencimento": "2024-05-15",
+      "pagamento": "ted",
+      "obra_id": 1,
+      "observacoes": "Aluguel referente ao mês de maio - atualizado"
+    }
+  }'
+
+# Deletar aluguel
+curl -X DELETE http://localhost:3000/api/alugueis/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJ1c2VybmFtZSI6Imp1bGlvIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQzNjg0NjU5LCJleHAiOjE3NDM3NzEwNTl9.hun0weCbplhr9lT55DaTk2V5OTvXNYqYdxH57Th7jes"
+```
+
+**Observações:**
+- Para atualizar um aluguel, é necessário enviar todos os campos obrigatórios
+- O ID do aluguel deve ser especificado na URL
+- A operação de delete é irreversível
+- Ambas operações requerem autenticação via token JWT
 
 #### Listar/Buscar Aluguéis
 ```http
@@ -805,24 +842,6 @@ curl -X POST http://localhost:3000/api/alugueis \
       "observacoes": "Aluguel referente ao mês de abril"
     }
   }'
-
-# Atualizar aluguel
-curl -X PUT http://localhost:3000/api/alugueis/1 \
-  -H "Authorization: Bearer seu_token" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "valor": 1600.00,
-    "detalhes": {
-      "data_vencimento": "2024-05-15",
-      "pagamento": "ted",
-      "obra_id": 1,
-      "observacoes": "Aluguel referente ao mês de maio"
-    }
-  }'
-
-# Listar todos os aluguéis
-curl http://localhost:3000/api/alugueis \
-  -H "Authorization: Bearer seu_token"
 
 # Buscar por valor específico
 curl "http://localhost:3000/api/alugueis?campo=valor&valor=1500.50" \
@@ -1227,10 +1246,10 @@ O endpoint retorna:
 - `valor_pedidos`: Soma dos valores de cada tipo de pedido
 - `valor_somado`: Soma total de todos os pedidos
 ```
-
 Esta documentação deve ser adicionada ao final do arquivo README.md existente, mantendo todo o conteúdo anterior. A documentação segue o mesmo padrão das outras APIs do projeto, incluindo:
 1. Lista de endpoints disponíveis
 2. Exemplo da estrutura de dados
 3. Descrição detalhada dos campos
 4. Exemplos práticos de uso com curl
+
 
