@@ -886,6 +886,90 @@ class PedidosConsolidadosController {
       });
     }
   }
+
+  static async findByPropostaId(req, res) {
+    try {
+      const { proposta_id } = req.params;
+
+      // Buscar valor da proposta
+      const propostaQuery = `
+        SELECT valor_final
+        FROM propostas 
+        WHERE id = $1
+      `;
+
+      // Buscar pedidos de locação
+      const locacaoQuery = `
+        SELECT id, total_bruto, total_final
+        FROM pedido_locacao 
+        WHERE proposta_id = $1
+      `;
+      
+      // Buscar pedidos de compra
+      const compraQuery = `
+        SELECT id, materiais
+        FROM pedido_compra 
+        WHERE proposta_id = $1
+      `;
+      
+      // Buscar pedidos de serviço
+      const servicoQuery = `
+        SELECT id, itens
+        FROM servico 
+        WHERE proposta_id = $1
+      `;
+
+      const [propostaResult, locacaoResult, compraResult, servicoResult] = await Promise.all([
+        db.query(propostaQuery, [proposta_id]),
+        db.query(locacaoQuery, [proposta_id]),
+        db.query(compraQuery, [proposta_id]),
+        db.query(servicoQuery, [proposta_id])
+      ]);
+
+      // Calcular valores dos pedidos de locação
+      const valorLocacao = locacaoResult.rows.reduce((sum, pedido) => 
+        sum + parseFloat(pedido.total_bruto || 0), 0);
+
+      // Calcular valores dos pedidos de compra
+      const valorCompra = compraResult.rows.reduce((sum, pedido) => {
+        const materiais = Array.isArray(pedido.materiais) ? pedido.materiais :
+          (typeof pedido.materiais === 'string' ? JSON.parse(pedido.materiais) : []);
+        
+        return sum + materiais.reduce((materialSum, material) => 
+          materialSum + parseFloat(material.valor_total || 0), 0);
+      }, 0);
+
+      // Calcular valores dos pedidos de serviço
+      const valorServico = servicoResult.rows.reduce((sum, pedido) => {
+        const itens = Array.isArray(pedido.itens) ? pedido.itens :
+          (typeof pedido.itens === 'string' ? JSON.parse(pedido.itens) : []);
+        
+        return sum + itens.reduce((itemSum, item) => 
+          itemSum + parseFloat(item.valor_total || 0), 0);
+      }, 0);
+
+      const response = {
+        proposta_id,
+        valor_proposta: propostaResult.rows[0]?.valor_final || 0,
+        pedidos: {
+          locacao: locacaoResult.rows,
+          compra: compraResult.rows,
+          servico: servicoResult.rows
+        },
+        valor_pedidos: {
+          locacao: valorLocacao,
+          compra: valorCompra,
+          servico: valorServico
+        },
+        valor_somado: valorLocacao + valorCompra + valorServico
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error('Erro ao buscar pedidos consolidados:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = PedidosConsolidadosController; 
