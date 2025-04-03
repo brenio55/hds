@@ -9,3 +9,174 @@
     align-items: center;
     flex-wrap: wrap;
 }
+
+/* RCAluguel.css */
+
+/* Estilos gerais */
+.pedido-container {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin: 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.tabs-container {
+    display: flex;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab {
+    padding: 12px 24px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.tab:hover {
+    color: #0056b3;
+}
+
+.tab.active {
+    color: #0056b3;
+    border-bottom: 3px solid #0056b3;
+}
+
+/* Formulário de registro */
+.registro-form {
+    margin-top: 20px;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 250px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.submit-button,
+.action-button {
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.submit-button:hover,
+.action-button:hover {
+    background-color: #003d82;
+}
+
+.submit-button:disabled,
+.action-button:disabled {
+    background-color: #b3b3b3;
+    cursor: not-allowed;
+}
+
+/* Filtros de consulta */
+.filtro-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+.filtro-container .form-group {
+    min-width: 180px;
+}
+
+/* Tabela de itens */
+.table-container {
+    overflow-x: auto;
+}
+
+.itens-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.itens-table th,
+.itens-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.itens-table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: #333;
+}
+
+.itens-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+.acoes-cell {
+    display: flex;
+    gap: 10px;
+}
+
+.acoes-cell button {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+
+/* Estilo específico para aba de consulta */
+.consulta-container-aluguel {
+    margin-top: 20px;
+}
+
+/* Botão de exclusão com estilo diferenciado */
+.delete-button {
+    background-color: #dc3545;
+}
+
+.delete-button:hover {
+    background-color: #bd2130;
+}
+
+.delete-button:disabled {
+    background-color: #f5a5a5;
+}

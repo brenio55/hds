@@ -169,6 +169,22 @@ function RCAluguel() {
         }
     };
 
+    const handleExcluirAluguel = async (id) => {
+        if (window.confirm('Tem certeza que deseja excluir este aluguel? Esta ação é irreversível.')) {
+            try {
+                setLoading(true);
+                await ApiService.excluirAluguel(id);
+                alert('Aluguel excluído com sucesso!');
+                buscarAlugueis(); // Recarrega a lista
+            } catch (error) {
+                console.error('Erro ao excluir aluguel:', error);
+                alert('Erro ao excluir aluguel. Tente novamente.');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
     const handleAtualizarAluguel = async (id) => {
         if (!id) return;
         
@@ -194,10 +210,17 @@ function RCAluguel() {
                     return;
                 }
                 
+                // Formatar a data para o formato YYYY-MM-DD
+                const dataAtual = new Date();
+                const ano = dataAtual.getFullYear();
+                const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+                const dataVencimento = `${ano}-${mes}-${String(diaVencimento).padStart(2, '0')}`;
+                
                 // Atualizar aluguel
                 const dadosAtualizados = {
                     valor: parseFloat(novoValor),
                     detalhes: {
+                        data_vencimento: dataVencimento,
                         dia_vencimento: parseInt(novoDiaVencimento),
                         pagamento: novoPagamento,
                         obra_id: aluguel.detalhes.obra_id,
@@ -474,6 +497,13 @@ function RCAluguel() {
                                                             disabled={loading || aluguel.finalizado}
                                                         >
                                                             {aluguel.finalizado ? 'Finalizado' : 'Finalizar'}
+                                                        </button>
+                                                        <button
+                                                            className="action-button delete-button"
+                                                            onClick={() => handleExcluirAluguel(aluguel.id)}
+                                                            disabled={loading}
+                                                        >
+                                                            Excluir
                                                         </button>
                                                     </td>
                                                 </tr>
