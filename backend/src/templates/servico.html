@@ -420,7 +420,7 @@
             </table>
         </div>
 
-        {{#if itens.informacoes_importantes}}
+        <!-- {{#if itens.informacoes_importantes}}
         <h2>INFORMAÇÕES IMPORTANTES</h2>
         <div class="section-content">
             <table>
@@ -429,104 +429,227 @@
                 </tr>
             </table>
         </div>
-        {{/if}}
+        {{/if}} -->
 
         <div class="informacoesImportantes">
             <h2>Informações Importantes</h2>
             <table>
                 <tr>
-                    <td class="info-important-title"><strong>Os Preços:</strong> </td>
+                    <td class="info-important-title"><strong>CARACTERÍSTICAS TÉCNICAS DA OBRA e OBSERVAÇÕES IMPORTANTES</strong> </td>
                 </tr>
                 <tr>
-                    <td>Incluso nos preços todas as taxas, tributos e impostos pertencentes a aquisição.</td>
-                </tr>
-            </table>
-            <table style="border-top: none;">
-                <tr>
-                    <td class="info-important-title"><strong>Prazo de Entrega:</strong> </td>
-    
-                </tr>
-                <tr>
-                    <td>Material somente poderá ser entregue de acordo com programação da obra e caso o fornecedor não atenda esta programação, fica a CONTRATANTE autorizada a comprar o material de outros fornecedores e proceder o desconto da diferença do FORNECEDOR.</td>
+                    <td> {{#if itens.informacoes_importantes}} {{itens.informacoes_importantes}} {{else}} {{"N/A"}} {{/if}} </td>
                 </tr>
             </table>
             <table>
                 <tr>
-                    <td class="info-important-title"><strong>EPIs:</strong> </td>
+                    <td class="info-important-title"><strong>DADOS ADCIONAIS:</strong> </td>
                 </tr>
                 <tr>
-                    <td>O FORNECEDOR terá que munir seus funcionários com os EPIs adequados a entrega e/ou descarga, conforme OSMA 024.</td>
-                </tr>
-            </table>    
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Venda Mercantil:</strong> </td>
-                </tr>
-                <tr>
-                    <td>Todas as Notas Fiscais de Venda Mercantil deverão constar obrigatoriamente a correta identificação da Nomenclatura Comum do MERCOSUL NCM, conforme estabelece a legislação fiscal vigente. Não serão aceitas, em hipótese alguma, Notas Fiscais de Venda Mercantil, sem a correta identificação de NCM. Toda e qualquer mercadoria fornecida para a CONTRATANTE deverá ser acompanhada da Nota Fiscal devida. Quando acordado com a CONTRATANTE a realização de pagamento mediante a emissão de Nota Fiscal de Simples Faturamento, tal ato será mera liberalidade da CONTRATANTE, sendo obrigação do FORNECEDOR entregar o material à CONTRATANTE acompanhado da devida Nota Fiscal.</td>
-                </tr>
-            </table>    
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Pagamento:</strong> </td>
-                </tr>
-                <tr>
-                    <td>Somente serão consideradas para efeito de pagamento, as quantidades aceitas durante a entrega na obra. Quando for o caso, somente serão consideradas as pesagens que forem efetuadas na balança da CONTRATANTE ou em outra indicada pela mesma. Serão consideradas a cubicagem efetuada pelo apontador da CONTRATANTE, devidamente anotada no canhoto da Nota Fiscal. Para efeito de pagamento, o prazo fixado no presente pedido de fornecimento será contado da data de entrega da mercadoria, incluindo-se nesta contagem o dia de emissão da respectiva Nota Fiscal. Todavia, caso o material solicitado não seja entregue na data da emissão da Nota Fiscal, o prazo para pagamento aqui estabelecido ficará prorrogado por tantos dias quantos forem os de atraso, sem quaisquer õnus para a CONTRATANTE. O FORNECEDOR deverá discriminar no corpo da Nota Fiscal o endereço da obra. Caso as faturas sejam emitidas com incorreções ou encaminhadas para o endereço diferente do indicado, as mesmas serão devolvidas e o prazo de pagamento passará a ser contado a partir da reapresentação das notas devidamente corrigidas no protocolo da CONTRATANTE.</td>
-                </tr>
-            </table>        
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Defeitos Ou Acidentes:</strong> </td>
-                </tr>
-                <tr>
-                    <td>No caso de defeito de fabricação ou danos pelo transporte, o FORNECEDOR deverá substituir o produto sem qualquer õnus para a CONTRATANTE, no prazo máximo de 48 horas. Em caso de acidente, o FORNECEDOR deverá enviar um relato do acidente, bem como o número do lote do material, promovendo a substituição do produto eventualmente danificado nas mesmas condições ora descritas.</td>
-                </tr>
-            </table>        
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Tributos e Contribuições:</strong> </td>
-                </tr>
-                <tr>
-                    <td>Correrão por conta exclusivas do FORNECEDOR todos os tributos e contribuições que incidam ou venham a incidir sobre o presente pedido de fornecimento.</td>
-                </tr>
-            </table>        
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Responsabilidade Social:</strong> </td>
-                </tr>
-                <tr>
-                    <td>O FORNECEDOR se obriga a não empregar menores de 18 anos em atividades noturnas, perigosas ou insalubres e menores de 16 anos em qualquer trabalho, exceto na condição de aprendizes, a partir de 14 anos, bem como não utilizar qualquer forma de trabalho escravo ou análogo, devendo ainda incluir em todos os seus contratos com seus fornecedores, dispositivo vedando que os mesmos o façam.</td>
-                </tr>
-            </table>        
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Obediência às Normas:</strong> </td>
-                </tr>
-                <tr>
-                    <td>O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis, relativamente à segurança, higiene e medicina do trabalho, especialmente a norma regulamentadora NR 18, do Ministério do Trabalho, bem como as normas internas expedidas pela CONTRATANTE.
-    No caso de desobediência, as consequências, inclusive multas aplicadas pelos órgãos públicos, serão suportadas pelo FORNECEDOR, mesmo que lançadas contra a CONTRATANTE ou terceiros. Neste caso, ainda que passíveis de defesa, o valor respectivo será caucionado pela CONTRATANTE, que poderá descontá-los dos haveres do FORNECEDOR, sendo certo que o FORNECEDOR também estará sujeito a uma multa de R$ 200,00 por infração de cada funcionário.</td>
-                </tr>
-            </table>        
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Multas e Penalidades:</strong> </td>
-                </tr>
-                <tr>
-                    <td>Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento, em favor do CONTRATANTE, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE. Em caso de atraso na data de entrega pactuada, o FORNECEDOR ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa moratória diária no valor correspondente a 1,0% (um por cento) do valor total deste pedido de compra, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE.
-    A aplicação das multas previstas nesse contrato está limitada a 30% (trinta por cento) do valor total desse pedido de compra. Não serão deduzidos desse montante os valores diretamente pagos pelas seguradoras em decorrência dos seguros previstos neste contrato. As multas previstas neste contrato não excluem quaisquer outras penalidades previstas em lei.</td>
-                </tr>
-            </table>        
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Assinaturas:</strong> </td>
-                </tr>
-                <tr>
-                    <td>Para validade do pedido, por favor assinar esta via do pedido de compra e devolver via E-MAIL urgente.
-    
-    Este pedido de compra deverá ser assinado e devolvido ao e-mail da Contratante em até 48 (quarenta e oito) horas corridas contadas do seu recebimento. Caso a Contratada não o faça e pratique atos que confirmem o início do fornecimento, este pedido será considerado aceito em todos os seus termos.</td>
+                    <td>A equipe será fichada pela HDS, onde custos com salários e valores adiantados serão descontadas do contrato, conforme combinado</td>
                 </tr>
             </table>
-            </div>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>Medições</strong> </td>
+                </tr>
+                <tr>
+                    <td>As medições serão feitas mensalmente conforme descrito:
+                    <ul>
+                        <li style="list-style-type: none; margin: 0 0 8px -20px;">- Medições após a finalização do serviço pagamento 20DDL</li>
+                        <li style="list-style-type: none; margin: 0 0 8px -20px;">- Pagamento de 20% do contrato no ato de aprovação desse pedido</li>
+                        <li style="list-style-type: none; margin: 0 0 8px -20px;">- Boletim de Medição deverão ser enviados ao(s) e-mail(s) indicados abaixo:</li>  
+                        <li>erick.santos@hdsservico.com.br</li>
+                        <li>contato@hdsservico.com.br</li>
+                        <li>thais.oliveira@hdsservico.com.br</li>
+                        <li>jenyffer.cristina@hdsservico.com.br</li>
+                    </ul>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>OBRIGAÇÕES DA CONTRATANTE</strong> </td>
+                </tr>
+                <tr>
+                    <td>"Constituem obrigações da parte CONTRATANTE:
+Fornecer todas as informações e dados necessários à execução dos serviços
+Permitir acesso ao local da execução dos serviços a todos os funcionários indicados pela CONTRATADA
+Efetuar o pagamento dos valores contratados na forma e prazo estabelecidos neste Instrumento. Os pagamentos não efetuados nos respectivos vencimentos ficarão sujeitos à multa
+"</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>OBRIGAÇÕES DA CONTRATADA</strong> </td>
+                </tr>
+                <tr>
+                    <td>"Conduzir e executar os Serviços de acordo com as normas da Associação Brasileira de Normas Técnicas e de acordo com os projetos, desenhos, dados técnicos e informações que lhe forem previamente apresentadas pela CONTRATANTE.
+Cumprir o disposto em leis, regulamentos e normas que regulam os serviços, obrigando-se a comunicar imediatamente à CONTRATANTE eventuais imprevistos, falhas, acidentes, alterações, bem como as providências que adotará para adequação às novas disposições.
+Prestar, sempre que solicitado pela Contratante, todos os esclarecimentos, comprovantes e informações sobre o andamento dos serviços.
+Fornecer à equipe transporte, alojamento;
+Fornecimento de consumíveis, insumos;
+Fornecimento dos materiais
+Fornecimento de Almoço e café da manhã a equipe da contratada
+"</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>REGIME DE CONTRATAÇÃO</strong> </td>
+                </tr>
+                <tr>
+                    <td>Os preços da Planilha de Serviços - Anexo I deste contrato, são apenas referenciais, onde o regime desta contratação é PREÇO GLOBAL</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>REAJUSTES</strong> </td>
+                </tr>
+                <tr>
+                    <td>Os preços são fixos e irreajustáveis durante o prazo de vigência deste contrato. Caso a vigência do contrato ultrapasse o período de 12 (doze) meses, os preços deverão ser reajustados com base no valor de mercado, mediante aditamento contratual.</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>PAGAMENTOS</strong> </td>
+                </tr>
+                <tr>
+                    <td>"Os faturamentos mensais da CONTRATADA serão autorizados pela CONTRATANTE e o pagamento será feito 10 dias após a data de emissão da Nota Fiscal.
+Os pagamentos de serviços serão efetuados através de depósitobancário e ou boleto na conta bancária de titularidade da CONTRATADA, conforme DADOS ADCIONAIS"</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>ANEXOS CONTRATUAIS</strong> </td>
+                </tr>
+                <tr>
+                    <td>"
+"</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>MULTAS APLICAVEIS</strong> </td>
+                </tr>
+                <tr>
+                    <td>"Multa por atraso. No caso de descumprimento dos prazos aqui indicados, e/ou na conclusão prevista para os serviços, estabelecidos nesse contrato, a CONTRATADA incorrerá em multa diária correspondente a 1% um por cento) do Valor Total do contrato, de maneira cumulativa, até que o prazo seja cumprido.
+
+Multa por infração. No caso de descumprimento de qualquer obrigação deste contrato, a Parte infratora incorrerá em multa de 10 % (dez por cento) do Valor Total do contrato, para cada infração devidamente comprovada.
+"</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>RESCISÃO CONTRATUAL</strong> </td>
+                </tr>
+                <tr>
+                    <td>"O inadimplemento total ou parcial deste Contrato poderá dar ensejo a sua imediata rescisão, mediante comunicado escrito à outra Parte, garantindo a esta o prazo de 5 (cinco) dias para sanar a sua falta contratual, sem o que o Contrato poderá ser rescindido de pleno direito.
+
+Além das hipóteses legais, este Contrato ficará resolvido de pleno direito, independentemente de notificação judicial ou extrajudicial nas hipóteses de falência, pedido de recuperação judicial ou extrajudicial ou insolvência de qualquer das Partes.
+
+A CONTRATANTE poderá ainda considerar rescindindo de pleno direito o presente Contrato, cientificando a CONTRATADA mediante documento escrito e com 30 (trinta) dias de antecedência, sem prejuízo das demais penalidades previstas neste Instrumento e na legislação aplicável, em qualquer dos seguintes casos:
+	1 Abandono ou suspensão por 05 (cinco) dias consecutivos ou 10 (dez) dias alternados da realização dos serviços, ou falha em atender aos prazos ora pactuados.
+	2 Não cumprimento reiterado das obrigações que originaram a aplicação das multas previstas neste Contrato.
+	3 Incapacidade técnica, negligência, imprudência, imperícia ou dolo identificado na conduta da CONTRATADA.
+	4 Cessão do presente Contrato pela CONTRATADA, no todo ou em Parte, sem a expressa concordância da CONTRATANTE.
+	5 Transferência total dos Serviços contratados pela CONTRATADA a terceiros sem a prévia e expressa autorização da CONTRATANTE.
+
+Com a rescisão, resolução ou resilição deste Contrato, serão devidos à parte CONTRATADA somente os valores dos serviços/fornecimentos já concluídos e pendentes de pagamento"</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>GARANTIA</strong> </td>
+                </tr>
+                <tr>
+                    <td>A CONTRATADA deverá garantir a solidez, segurança, vícios e defeitos dos serviços que executar, pelo mesmo prazo estabelecido entre a CONTRATANTE ou o cliente final.</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>Obediencia as normas</strong> </td>
+                </tr>
+                <tr>
+                    <td>"O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis, relativamente à segurança, higiene e medicina do trabalho, especialmente a norma regulamentadora NR 18, do Ministério do Trabalho, bem como as normas internas expedidas pela CONTRATANTE.
+No caso de desobediència, as consequências, inclusive multas aplicadas pelos órgãos públicos, serão suportadas pelo FORNECEDOR, mesmo que lançadas contra a CONTRATANTE ou terceiros. Neste caso, ainda que passíveis de defesa, o valor respectivo será caucionado pela CONTRATANTE, que poderá descontá-los dos haveres do FORNECEDOR, sendo certo que o FORNECEDOR também estará sujeito a uma multa de R$ 200,00 por infração de cada funcionário"</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>Multas e penalidades</strong> </td>
+                </tr>
+                <tr>
+                    <td>"Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento, em favor do CONTRATANTE, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE. Em caso de atraso na data de entrega pactuada, o FORNECEDOR ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa moratória diária no valor correspondente a 1,0% (um por cento) do valor total deste pedido de compra, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE.
+A aplicação das multas previstas nesse contrato está limitada a 30% (trinta por cento) do valor total desse pedido de compra. Não serão deduzidos desse montante os valores diretamente pagos pelas seguradoras em decorrência dos seguros previstos neste contrato. As multas previstas neste contrato não excluem quaisquer outras penalidades previstas em lei."</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>CLAUSULAS CONTRATUAIS</strong> </td>
+                </tr>
+                <tr>
+                    <td>Não Vinculação com Clientes: A Contratada se compromete, durante a vigência deste contrato e pelo período de 5 (cinco) anos após o seu término, a não criar qualquer tipo de vínculo ou relacionamento comercial com os clientes da Contratante atraves do servico prestado na obra, salvo mediante autorização expressa e por escrito da Contratante.</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>COMPLIANCE, INTEGRIDADE E LEIS ANTICORRUPÇÃO</strong> </td>
+                </tr>
+                <tr>
+                    <td>"As Partes se obrigam, sob as penas previstas neste instrumento e na legislação aplicável, a observar e cumprir rigorosamente todas as leis e atos normativos a que estão submetidas, nacionais ou internacionais, que disponham contra a prática de atos de corrupção e lavagem de dinheiro (em conjunto ""Leis Anticorrupção""), assim como as normas e exigências constantes de suas políticas internas quando existentes (""Política Anticorrupção"").
+
+As Partes declaram e garantem por si e seus representantes legais, diretores, conselheiros, sócios ou acionistas que durante o cumprimento das obrigações previstas neste Termo, não executarão qualquer atividade ou terão prática que constitua uma infração aos termos das Leis Anticorrupção, seja direta ou indiretamente.
+
+As Partes declaram e garantem que não se encontram, assim como seus representantes legais, diretores, conselheiros, sócios ou acionistas (i) na posição de denunciados ou condenados por violação às Leis Anticorrupção; (ii) condenados em alguma entidade governamental por violação às Leis Anticorrupção; (iii) sujeitas a restrições ou sanções econômicas e de negócios por qualquer entidade governamental em decorrência de violação às Leis Anticorrupção; e (iv) banidas ou impedidas de funcionamento regular em decorrência de violação às Leis Anticorrupção.
+
+Toda documentação de cobrança a ser emitida nas condições deste CONTRATO deverá estar acompanhada de fatura detalhada, contendo discriminação dos serviços prestados e/ou bens adquiridos, conforme o caso. Cada uma das Partes obriga-se a manter livros, contas, registros e faturas precisos e concorda que, se considerar necessário em decorrência de alguma das situações previstas no parágrafo anterior, a outra Parte poderá ter o direito de, direta ou indiretamente, com o auxílio de Terceiros que venha a indicar, auditar os livros, contas, registros, faturas e documentação de suporte que embasem as cobranças e/ou os pedidos de reembolsos para verificar o cumprimento do disposto nas Leis Anticorrupção e também na Política Anticorrupção, sendo que a outra Parte irá cooperar totalmente no curso de qualquer auditoria, obrigando-se a apresentar as informações e documentos eventualmente necessários, sempre que solicitado.
+
+O comprovado descumprimento por quaisquer das Partes das declarações e garantias dadas nos termos desta cláusula ou a superveniência de quaisquer fatos que se enquadrem na cláusula acima, será considerada uma infração grave a este CONTRATO e conferirá à outra Parte o direito de, agindo de boa-fé, declarar rescindido imediatamente o presente CONTRATO, sem qualquer ônus ou penalidade. Caberá a Parte infratora, sem prejuízo das demais penalidades aplicáveis previstas no CONTRATO, a responsabilidade pelo ressarcimento de eventuais perdas e danos diretos sofridos pela Parte inocente em decorrência da violação da Parte infratora das Leis Anticorrupção e/ou da Política Anticorrupção."</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>APRESENTAÇÃO DE DOCUMENTOS</strong> </td>
+                </tr>
+                <tr>
+                    <td>"Para assinatura deste contrato deverao ser apresentados os seguintes documentos:
+
+1.1 Contrato Social da Empresa e Ultima Alteracao
+1.2 Cartao CNPJ
+1.3 Inscricao Estadual (se houver)
+1.4 Certidao Negativa de Debitos Estaduais
+1.5 Comprovante de Registro no Cadastro de Contribuinte Municipal no Município onde está Constituída (CCM)
+1.6 Certidão Negativa de Débitos Municipais no Município onde está Constituída
+1.7 Certidão Negativa de Tributos Federais
+1.8 Declaração Emitida em Papel Timbrado Demonstrando a Contabilidade Regular, assinada pelo representante legal da Empresa ou Contador
+1.9 Certidão de Registro junto ao CREA de origem e Certidão de Registro junto ao CREA no estado onde o serviço
+será prestado (caso o serviço não seja prestado no estado de origem)
+1.10 CND (Certidão Negativa de Débitos - INSS / Previdência Social) - receita.fazenda.gov.br
+1.11 CRF (Certificado de Regularidade do FGTS / Caixa Econômica Federal) - caixa.gov.br
+1.12 Certidão Negativa de Ações Trabalhistas - tst.gov.br
+1.13 Modelo de Nota Fiscal do Fornecedor (com o objeto contratado)"</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>DO SIGILO E CONFIDENCIALIDADE</strong> </td>
+                </tr>
+                <tr>
+                    <td>"Todas as informações, documentos, desenhos e dados fornecidos pela CONTRATANTE, relacionados ao objeto do presente Contrato, incluindo os documentos técnicos, deverão ser tratados com o mais absoluto sigilo e a mais rigorosa confidencialidade, de modo a evitar, por qualquer meio ou forma, o seu conhecimento por parte de terceiros, no todo ou em parte (""Informações Confidenciais""). Também deverão ser considerados materiais e Informações Confidenciais, os produzidos pela CONTRATADA durante e com a conclusão da execução dos Trabalhos.
+
+As Partes se comprometem a não divulgar (e a fazer com que seus respectivos Colaboradores e Representantes não divulguem) a quaisquer terceiros qualquer Informação Confidencial sem a aprovação da Parte divulgadora da Informação Confidencial em questão."</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="info-important-title"><strong>Assinaturas</strong> </td>
+                </tr>
+                <tr>
+                    <td>"As Partes desde já acordam, que o presente Contrato, bem como demais documentos correlatos, poderão ser assinados eletronicamente, caso em que todos os signatários deverão assinar pela plataforma a ser informada pela
+CONTRATANTE, nos termos da Lei nº 14.063 de 2020 e demais alterações posteriores. Ficando assim justas e contratadas, assinam o presente instrumento eletronicamente, na presença de.02 (duas) testemunhas legalmente exigidas, reconhecendo as Partes seus efeitos, validade e eficácia nos termos da legislação em vigor."</td>
+                </tr>
+            </table>
+        </div>
 
         <h2>APROVAÇÕES</h2>
         <div class="assinaturas">
