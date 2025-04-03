@@ -354,7 +354,7 @@
         <table class="pagamento-table">
             <tr>
                 <td class="label">Condição de Pagamento:</td>
-                <td>Med. Mensais pagamento {{pedidoData.ddl}} DDL</td>
+                <td>{{pedidoData.ddl}} DDL</td>
                 <td class="label">Data Vencimento:</td>
                 <td>{{formatDate pedidoData.data_vencimento}}</td>
                 </tr>
@@ -367,7 +367,32 @@
                 <td>{{descricao}}</td>
             </tr>
         </table>
-            
+
+        <h2>Descrição dos Materiais</h2>
+        <table class="materials-table">
+            <tr>
+                <th>#</th>
+                <th>Descrição do material</th>
+                <th>Un</th>
+                <th>Qntd.</th>
+                <th>Valor Unitario</th>
+                <th>Valor Total</th>
+                <th>%</th>
+                <th>Prev. Entrega</th>
+            </tr>
+            {{#each pedidoData.materiais}}
+            <tr>
+                <td>{{this.item}}</td>
+                <td>{{this.descricao}}</td>
+                <td>{{this.unidade}}</td>
+                <td>{{this.quantidade}}</td>
+                <td>{{this.valor_unitario}}</td>
+                <td>{{this.valor_total}}</td>
+                <td>{{this.progresso}}</td>
+                <td>{{formatDate this.data_entrega}}</td>
+            </tr>
+            {{/each}}
+        </table>
 
         <div class="flex-container">
             <div style="width: 60%;">
@@ -404,32 +429,6 @@
                 </table>
             </div>
         </div>
-
-        <h2>Descrição dos Materiais</h2>
-        <table class="materials-table">
-            <tr>
-                <th>#</th>
-                <th>Descrição do material</th>
-                <th>Un</th>
-                <th>Qntd.</th>
-                <th>Valor Unitario</th>
-                <th>Valor Total</th>
-                <th>%</th>
-                <th>Prev. Entrega</th>
-            </tr>
-            {{#each pedidoData.materiais}}
-            <tr>
-                <td>{{this.item}}</td>
-                <td>{{this.descricao}}</td>
-                <td>{{this.unidade}}</td>
-                <td>{{this.quantidade}}</td>
-                <td>{{this.valor_unitario}}</td>
-                <td>{{this.valor_total}}</td>
-                <td>{{this.progresso}}</td>
-                <td>{{formatDate this.data_entrega}}</td>
-            </tr>
-            {{/each}}
-        </table>
 
         <h2>Dados Adicionais</h2>
         <table class="dados-adicionais-table">
@@ -545,8 +544,11 @@ Este pedido de compra deverá ser assinado e devolvido ao e-mail da Contratante 
                 <div class="assinatura-box">
                     <h3>CONTRATANTE</h3>
                     <div class="assinatura-linha">
-                        <div class="assinatura-info">Comprador: Erick Alves</div>
+                        <div class="assinatura-info">Comprador</div>
                     </div>
+
+                    <br>
+                    <br>
                    
                     <div class="assinatura-linha">
                         <div class="assinatura-info">Autorização: Erick H. S. Alves</div>
