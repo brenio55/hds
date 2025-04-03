@@ -264,8 +264,8 @@
                                 <td>{{formatDate created_at}}</td>
                             </tr>
                             <tr>
-                                <td>Revisão:</td>
-                                <td>1.0</td>
+                                <td>Data Vencimento:</td>
+                                <td>{{formatDate data_vencimento}}</td>
                             </tr>
                         </table>
                     </div>
@@ -291,389 +291,141 @@
         <h2>DADOS DO FORNECEDOR</h2>
         <table class="info-table">
             <tr>
-                <td colspan="2"><span class="label">Razão Social:</span> {{fornecedor.razao_social}}</td>
-                <td colspan="2"><span class="label">CNPJ:</span> {{fornecedor.cnpj}}</td>
-                <td colspan="2"><span class="label">Inscrição Estadual:</span> {{fornecedor.inscricao_estadual}}</td>
-                <td colspan="2"><span class="label">Inscrição Municipal:</span> {{fornecedor.inscricao_municipal}}</td>
+                <td class="label">Empresa:</td>
+                <td>{{fornecedor.razao_social}}</td>
+                <td class="label">CNPJ:</td>
+                <td>{{fornecedor.cnpj}}</td>
+                <td class="label">Inscrição Estadual:</td>
+                <td>{{fornecedor.inscricao_estadual}}</td>
+                <td class="label">Inscrição Municipal:</td>
+                <td>{{fornecedor.inscricao_municipal}}</td>
             </tr>
             <tr>
-                <td colspan="2"><span class="label">Contato:</span> {{fornecedor.contato}}</td>
-                <td colspan="2"><span class="label">Telefone:</span> {{#if fornecedor.telefone}}{{fornecedor.telefone}}{{else}}{{fornecedor.celular}}{{/if}}</td>
-                <td colspan="2"><span class="label">Endereço:</span> {{fornecedor.endereco}}</td>
-                <td colspan="2"><span class="label">CEP:</span> {{fornecedor.cep}}</td>
-            </tr>
-            <tr>
-                <td colspan="8"><span class="label">Cidade/UF:</span> {{fornecedor.municipio_uf}}</td>
+                <td class="label">Endereço:</td>
+                <td colspan="3">{{fornecedor.endereco}}</td>
+                <td class="label">Cidade/UF:</td>
+                <td>{{fornecedor.municipio_uf}}</td>
             </tr>
         </table>
 
-        <h2>ITENS DO SERVIÇO</h2>
-        <table class="materials-table">
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Descrição</th>
-                    <th>UN</th>
-                    <th>Quant.</th>
-                    <th>IPI (%)</th>
-                    <th>Valor Unit.</th>
-                    <th>Valor Total</th>
-                    <th>Desc. (%)</th>
-                    <th>Previsão Entrega</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each itens.materiais}}
-                <tr>
-                    <td>{{item}}</td>
-                    <td style="text-align: left">{{descricao}}</td>
-                    <td>{{unidade}}</td>
-                    <td>{{quantidade}}</td>
-                    <td>{{ipi}}%</td>
-                    <td>{{formatMoney valor_unitario}}</td>
-                    <td>{{formatMoney valor_total}}</td>
-                    <td>{{desconto}}%</td>
-                    <td>{{formatDate previsao_entrega}}</td>
-                </tr>
-                {{/each}}
-            </tbody>
+        <h2>CONDIÇÕES COMERCIAIS</h2>
+        <table class="pagamento-table">
+            <tr>
+                <td class="label">Condição de Pagamento:</td>
+                <td>{{itens.[0].condicao_pagamento}} DDL</td>
+                <td class="label">Prazo Máximo:</td>
+                <td>{{formatDate itens.[0].prazo_maximo}}</td>
+            </tr>
         </table>
 
-       
-
-        <h2>VALORES E CONDIÇÕES</h2>
         <div class="flex-container">
             <div style="width: 60%;">
-                <table class="valores-table">
+                <h2>TOTAIS</h2>
+                <table>
                     <tr>
-                        <th>Total Bruto:</th>
-                        <td>{{formatMoney itens.total_bruto}}</td>
-                    </tr>
-                    <tr>
-                        <th>IPI:</th>
-                        <td>{{formatMoney itens.total_ipi}}</td>
-                    </tr>
-                    <tr>
-                        <th>Frete:</th>
-                        <td>{{formatMoney itens.valor_frete}}</td>
+                        <th>Valor Frete:</th>
+                        <td class="valor-celula">{{formatMoney itens.[0].valor_frete}}</td>
                     </tr>
                     <tr>
                         <th>Outras Despesas:</th>
-                        <td>{{formatMoney itens.outras_despesas}}</td>
+                        <td class="valor-celula">{{formatMoney itens.[0].outras_despesas}}</td>
                     </tr>
                     <tr>
-                        <th>Descontos:</th>
-                        <td>{{formatMoney itens.total_descontos}}</td>
-                    </tr>
-                    <tr>
-                        <th>Valor Total:</th>
-                        <td class="valor-destaque">{{formatMoney itens.total_final}}</td>
+                        <th>Total Final:</th>
+                        <td class="valor-celula"><strong>{{formatMoney itens.[0].valor_total}}</strong></td>
                     </tr>
                 </table>
             </div>
             <div style="width: 35%;">
+                <h2>DATA FINAL DE ENTREGA</h2>
                 <table>
                     <tr>
-                        <th>Condição de Pagamento:</th>
-                        <td>{{itens.condicao_pagamento}}</td>
-                    </tr>
-                    <tr>
-                        <th>Tipo de Frete:</th>
-                        <td>{{itens.frete}}</td>
+                        <td>{{formatDate itens.[0].data_entrega}}</td>
                     </tr>
                 </table>
             </div>
         </div>
 
-        <h2>ESCOPO DA CONTRATAÇÃO</h2>
-        <div class="section-content">
-            <table>
-                <tr>
-                    <td class="escopo-texto">{{itens.escopo_contratacao}}</td>
-                </tr>
-            </table>
-        </div>
+        <h2>DESCRIÇÃO DOS SERVIÇOS</h2>
+        <table class="materials-table">
+            <tr>
+                <th>#</th>
+                <th>Descrição</th>
+                <th>UN</th>
+                <th>Qtde</th>
+                <th>Valor Unit.</th>
+                <th>IPI (%)</th>
+                <th>Desc. (%)</th>
+                <th>Valor Total</th>
+                <th>Data Entrega</th>
+            </tr>
+            {{#with itens.[0]}}
+            <tr>
+                <td>1</td>
+                <td>{{descricao}}</td>
+                <td>{{unidade}}</td>
+                <td>{{quantidade}}</td>
+                <td class="valor-celula">{{formatMoney valor_unitario}}</td>
+                <td>{{ipi}}</td>
+                <td>{{desconto}}</td>
+                <td class="valor-celula">{{formatMoney valor_total}}</td>
+                <td>{{formatDate data_entrega}}</td>
+            </tr>
+            {{/with}}
+        </table>
+
+        <h2>ESCOPO DO SERVIÇO</h2>
+        <table class="dados-adicionais-table">
+            <tr>
+                <td>{{itens.[0].escopo}}</td>
+            </tr>
+        </table>
 
         <h2>RESPONSABILIDADES DA CONTRATADA</h2>
-        <div class="section-content">
-            <table>
-                <tr>
-                    <td>
-                        <ul>
-                            {{#each itens.responsabilidade_contratada}}
-                            <li>{{this}}</li>
-                            {{/each}}
-                        </ul>
-                    </td>
-                </tr>
-            </table>
-        </div>
+        <table class="dados-adicionais-table">
+            <tr>
+                <td>
+                    <ul class="lista-items">
+                        {{#each itens.afazer_contratada}}
+                        <li>{{this}}</li>
+                        {{/each}}
+                    </ul>
+                </td>
+            </tr>
+        </table>
 
         <h2>RESPONSABILIDADES DA CONTRATANTE</h2>
-        <div class="section-content">
-            <table>
-                <tr>
-                    <td>
-                        <ul>
-                            {{#each itens.responsabilidade_contratante}}
-                            <li>{{this}}</li>
-                            {{/each}}
-                        </ul>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- {{#if itens.informacoes_importantes}}
-        <h2>INFORMAÇÕES IMPORTANTES</h2>
-        <div class="section-content">
-            <table>
-                <tr>
-                    <td class="escopo-texto">{{itens.informacoes_importantes}}</td>
-                </tr>
-            </table>
-        </div>
-        {{/if}} -->
-
-        <div class="informacoesImportantes">
-            <h2>Informações Importantes</h2>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>CARACTERÍSTICAS TÉCNICAS DA OBRA e OBSERVAÇÕES IMPORTANTES</strong> </td>
-                </tr>
-                <tr>
-                    <td> {{#if itens.informacoes_importantes}} {{itens.informacoes_importantes}} {{else}} {{"N/A"}} {{/if}} </td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>DADOS ADCIONAIS:</strong> </td>
-                </tr>
-                <tr>
-                    <td>A equipe será fichada pela HDS, onde custos com salários e valores adiantados serão descontadas do contrato, conforme combinado</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Medições</strong> </td>
-                </tr>
-                <tr>
-                    <td>As medições serão feitas mensalmente conforme descrito:
-                    <ul>
-                        <li style="list-style-type: none; margin: 0 0 8px -20px;">- Medições após a finalização do serviço pagamento 20DDL</li>
-                        <li style="list-style-type: none; margin: 0 0 8px -20px;">- Pagamento de 20% do contrato no ato de aprovação desse pedido</li>
-                        <li style="list-style-type: none; margin: 0 0 8px -20px;">- Boletim de Medição deverão ser enviados ao(s) e-mail(s) indicados abaixo:</li>  
-                        <li>erick.santos@hdsservico.com.br</li>
-                        <li>contato@hdsservico.com.br</li>
-                        <li>thais.oliveira@hdsservico.com.br</li>
-                        <li>jenyffer.cristina@hdsservico.com.br</li>
+        <table class="dados-adicionais-table">
+            <tr>
+                <td>
+                    <ul class="lista-items">
+                        {{#each itens.afazer_contratante}}
+                        <li>{{this}}</li>
+                        {{/each}}
                     </ul>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>OBRIGAÇÕES DA CONTRATANTE</strong> </td>
-                </tr>
-                <tr>
-                    <td>"Constituem obrigações da parte CONTRATANTE:
-Fornecer todas as informações e dados necessários à execução dos serviços
-Permitir acesso ao local da execução dos serviços a todos os funcionários indicados pela CONTRATADA
-Efetuar o pagamento dos valores contratados na forma e prazo estabelecidos neste Instrumento. Os pagamentos não efetuados nos respectivos vencimentos ficarão sujeitos à multa
-"</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>OBRIGAÇÕES DA CONTRATADA</strong> </td>
-                </tr>
-                <tr>
-                    <td>"Conduzir e executar os Serviços de acordo com as normas da Associação Brasileira de Normas Técnicas e de acordo com os projetos, desenhos, dados técnicos e informações que lhe forem previamente apresentadas pela CONTRATANTE.
-Cumprir o disposto em leis, regulamentos e normas que regulam os serviços, obrigando-se a comunicar imediatamente à CONTRATANTE eventuais imprevistos, falhas, acidentes, alterações, bem como as providências que adotará para adequação às novas disposições.
-Prestar, sempre que solicitado pela Contratante, todos os esclarecimentos, comprovantes e informações sobre o andamento dos serviços.
-Fornecer à equipe transporte, alojamento;
-Fornecimento de consumíveis, insumos;
-Fornecimento dos materiais
-Fornecimento de Almoço e café da manhã a equipe da contratada
-"</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>REGIME DE CONTRATAÇÃO</strong> </td>
-                </tr>
-                <tr>
-                    <td>Os preços da Planilha de Serviços - Anexo I deste contrato, são apenas referenciais, onde o regime desta contratação é PREÇO GLOBAL</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>REAJUSTES</strong> </td>
-                </tr>
-                <tr>
-                    <td>Os preços são fixos e irreajustáveis durante o prazo de vigência deste contrato. Caso a vigência do contrato ultrapasse o período de 12 (doze) meses, os preços deverão ser reajustados com base no valor de mercado, mediante aditamento contratual.</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>PAGAMENTOS</strong> </td>
-                </tr>
-                <tr>
-                    <td>"Os faturamentos mensais da CONTRATADA serão autorizados pela CONTRATANTE e o pagamento será feito 10 dias após a data de emissão da Nota Fiscal.
-Os pagamentos de serviços serão efetuados através de depósitobancário e ou boleto na conta bancária de titularidade da CONTRATADA, conforme DADOS ADCIONAIS"</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>ANEXOS CONTRATUAIS</strong> </td>
-                </tr>
-                <tr>
-                    <td>"
-"</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>MULTAS APLICAVEIS</strong> </td>
-                </tr>
-                <tr>
-                    <td>"Multa por atraso. No caso de descumprimento dos prazos aqui indicados, e/ou na conclusão prevista para os serviços, estabelecidos nesse contrato, a CONTRATADA incorrerá em multa diária correspondente a 1% um por cento) do Valor Total do contrato, de maneira cumulativa, até que o prazo seja cumprido.
+                </td>
+            </tr>
+        </table>
 
-Multa por infração. No caso de descumprimento de qualquer obrigação deste contrato, a Parte infratora incorrerá em multa de 10 % (dez por cento) do Valor Total do contrato, para cada infração devidamente comprovada.
-"</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>RESCISÃO CONTRATUAL</strong> </td>
-                </tr>
-                <tr>
-                    <td>"O inadimplemento total ou parcial deste Contrato poderá dar ensejo a sua imediata rescisão, mediante comunicado escrito à outra Parte, garantindo a esta o prazo de 5 (cinco) dias para sanar a sua falta contratual, sem o que o Contrato poderá ser rescindido de pleno direito.
+        {{#if itens.[0].informacao_importante}}
+        <h2>INFORMAÇÕES IMPORTANTES</h2>
+        <table class="dados-adicionais-table">
+            <tr>
+                <td>{{itens.[0].informacao_importante}}</td>
+            </tr>
+        </table>
+        {{/if}}
 
-Além das hipóteses legais, este Contrato ficará resolvido de pleno direito, independentemente de notificação judicial ou extrajudicial nas hipóteses de falência, pedido de recuperação judicial ou extrajudicial ou insolvência de qualquer das Partes.
-
-A CONTRATANTE poderá ainda considerar rescindindo de pleno direito o presente Contrato, cientificando a CONTRATADA mediante documento escrito e com 30 (trinta) dias de antecedência, sem prejuízo das demais penalidades previstas neste Instrumento e na legislação aplicável, em qualquer dos seguintes casos:
-	1 Abandono ou suspensão por 05 (cinco) dias consecutivos ou 10 (dez) dias alternados da realização dos serviços, ou falha em atender aos prazos ora pactuados.
-	2 Não cumprimento reiterado das obrigações que originaram a aplicação das multas previstas neste Contrato.
-	3 Incapacidade técnica, negligência, imprudência, imperícia ou dolo identificado na conduta da CONTRATADA.
-	4 Cessão do presente Contrato pela CONTRATADA, no todo ou em Parte, sem a expressa concordância da CONTRATANTE.
-	5 Transferência total dos Serviços contratados pela CONTRATADA a terceiros sem a prévia e expressa autorização da CONTRATANTE.
-
-Com a rescisão, resolução ou resilição deste Contrato, serão devidos à parte CONTRATADA somente os valores dos serviços/fornecimentos já concluídos e pendentes de pagamento"</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>GARANTIA</strong> </td>
-                </tr>
-                <tr>
-                    <td>A CONTRATADA deverá garantir a solidez, segurança, vícios e defeitos dos serviços que executar, pelo mesmo prazo estabelecido entre a CONTRATANTE ou o cliente final.</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Obediencia as normas</strong> </td>
-                </tr>
-                <tr>
-                    <td>"O FORNECEDOR deverá fazer com que todos os seus empregados ou de terceiros que venham a ser contratados obedeçam a todas as normas legais e regulamentadoras aplicáveis, relativamente à segurança, higiene e medicina do trabalho, especialmente a norma regulamentadora NR 18, do Ministério do Trabalho, bem como as normas internas expedidas pela CONTRATANTE.
-No caso de desobediència, as consequências, inclusive multas aplicadas pelos órgãos públicos, serão suportadas pelo FORNECEDOR, mesmo que lançadas contra a CONTRATANTE ou terceiros. Neste caso, ainda que passíveis de defesa, o valor respectivo será caucionado pela CONTRATANTE, que poderá descontá-los dos haveres do FORNECEDOR, sendo certo que o FORNECEDOR também estará sujeito a uma multa de R$ 200,00 por infração de cada funcionário"</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Multas e penalidades</strong> </td>
-                </tr>
-                <tr>
-                    <td>"Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento, em favor do CONTRATANTE, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE. Em caso de atraso na data de entrega pactuada, o FORNECEDOR ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa moratória diária no valor correspondente a 1,0% (um por cento) do valor total deste pedido de compra, sem prejuízo da indenização por perdas e danos que causar e do direito da rescisão do presente instrumento pela CONTRATANTE.
-A aplicação das multas previstas nesse contrato está limitada a 30% (trinta por cento) do valor total desse pedido de compra. Não serão deduzidos desse montante os valores diretamente pagos pelas seguradoras em decorrência dos seguros previstos neste contrato. As multas previstas neste contrato não excluem quaisquer outras penalidades previstas em lei."</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>CLAUSULAS CONTRATUAIS</strong> </td>
-                </tr>
-                <tr>
-                    <td>Não Vinculação com Clientes: A Contratada se compromete, durante a vigência deste contrato e pelo período de 5 (cinco) anos após o seu término, a não criar qualquer tipo de vínculo ou relacionamento comercial com os clientes da Contratante atraves do servico prestado na obra, salvo mediante autorização expressa e por escrito da Contratante.</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>COMPLIANCE, INTEGRIDADE E LEIS ANTICORRUPÇÃO</strong> </td>
-                </tr>
-                <tr>
-                    <td>"As Partes se obrigam, sob as penas previstas neste instrumento e na legislação aplicável, a observar e cumprir rigorosamente todas as leis e atos normativos a que estão submetidas, nacionais ou internacionais, que disponham contra a prática de atos de corrupção e lavagem de dinheiro (em conjunto ""Leis Anticorrupção""), assim como as normas e exigências constantes de suas políticas internas quando existentes (""Política Anticorrupção"").
-
-As Partes declaram e garantem por si e seus representantes legais, diretores, conselheiros, sócios ou acionistas que durante o cumprimento das obrigações previstas neste Termo, não executarão qualquer atividade ou terão prática que constitua uma infração aos termos das Leis Anticorrupção, seja direta ou indiretamente.
-
-As Partes declaram e garantem que não se encontram, assim como seus representantes legais, diretores, conselheiros, sócios ou acionistas (i) na posição de denunciados ou condenados por violação às Leis Anticorrupção; (ii) condenados em alguma entidade governamental por violação às Leis Anticorrupção; (iii) sujeitas a restrições ou sanções econômicas e de negócios por qualquer entidade governamental em decorrência de violação às Leis Anticorrupção; e (iv) banidas ou impedidas de funcionamento regular em decorrência de violação às Leis Anticorrupção.
-
-Toda documentação de cobrança a ser emitida nas condições deste CONTRATO deverá estar acompanhada de fatura detalhada, contendo discriminação dos serviços prestados e/ou bens adquiridos, conforme o caso. Cada uma das Partes obriga-se a manter livros, contas, registros e faturas precisos e concorda que, se considerar necessário em decorrência de alguma das situações previstas no parágrafo anterior, a outra Parte poderá ter o direito de, direta ou indiretamente, com o auxílio de Terceiros que venha a indicar, auditar os livros, contas, registros, faturas e documentação de suporte que embasem as cobranças e/ou os pedidos de reembolsos para verificar o cumprimento do disposto nas Leis Anticorrupção e também na Política Anticorrupção, sendo que a outra Parte irá cooperar totalmente no curso de qualquer auditoria, obrigando-se a apresentar as informações e documentos eventualmente necessários, sempre que solicitado.
-
-O comprovado descumprimento por quaisquer das Partes das declarações e garantias dadas nos termos desta cláusula ou a superveniência de quaisquer fatos que se enquadrem na cláusula acima, será considerada uma infração grave a este CONTRATO e conferirá à outra Parte o direito de, agindo de boa-fé, declarar rescindido imediatamente o presente CONTRATO, sem qualquer ônus ou penalidade. Caberá a Parte infratora, sem prejuízo das demais penalidades aplicáveis previstas no CONTRATO, a responsabilidade pelo ressarcimento de eventuais perdas e danos diretos sofridos pela Parte inocente em decorrência da violação da Parte infratora das Leis Anticorrupção e/ou da Política Anticorrupção."</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>APRESENTAÇÃO DE DOCUMENTOS</strong> </td>
-                </tr>
-                <tr>
-                    <td>"Para assinatura deste contrato deverao ser apresentados os seguintes documentos:
-
-1.1 Contrato Social da Empresa e Ultima Alteracao
-1.2 Cartao CNPJ
-1.3 Inscricao Estadual (se houver)
-1.4 Certidao Negativa de Debitos Estaduais
-1.5 Comprovante de Registro no Cadastro de Contribuinte Municipal no Município onde está Constituída (CCM)
-1.6 Certidão Negativa de Débitos Municipais no Município onde está Constituída
-1.7 Certidão Negativa de Tributos Federais
-1.8 Declaração Emitida em Papel Timbrado Demonstrando a Contabilidade Regular, assinada pelo representante legal da Empresa ou Contador
-1.9 Certidão de Registro junto ao CREA de origem e Certidão de Registro junto ao CREA no estado onde o serviço
-será prestado (caso o serviço não seja prestado no estado de origem)
-1.10 CND (Certidão Negativa de Débitos - INSS / Previdência Social) - receita.fazenda.gov.br
-1.11 CRF (Certificado de Regularidade do FGTS / Caixa Econômica Federal) - caixa.gov.br
-1.12 Certidão Negativa de Ações Trabalhistas - tst.gov.br
-1.13 Modelo de Nota Fiscal do Fornecedor (com o objeto contratado)"</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>DO SIGILO E CONFIDENCIALIDADE</strong> </td>
-                </tr>
-                <tr>
-                    <td>"Todas as informações, documentos, desenhos e dados fornecidos pela CONTRATANTE, relacionados ao objeto do presente Contrato, incluindo os documentos técnicos, deverão ser tratados com o mais absoluto sigilo e a mais rigorosa confidencialidade, de modo a evitar, por qualquer meio ou forma, o seu conhecimento por parte de terceiros, no todo ou em parte (""Informações Confidenciais""). Também deverão ser considerados materiais e Informações Confidenciais, os produzidos pela CONTRATADA durante e com a conclusão da execução dos Trabalhos.
-
-As Partes se comprometem a não divulgar (e a fazer com que seus respectivos Colaboradores e Representantes não divulguem) a quaisquer terceiros qualquer Informação Confidencial sem a aprovação da Parte divulgadora da Informação Confidencial em questão."</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="info-important-title"><strong>Assinaturas</strong> </td>
-                </tr>
-                <tr>
-                    <td>"As Partes desde já acordam, que o presente Contrato, bem como demais documentos correlatos, poderão ser assinados eletronicamente, caso em que todos os signatários deverão assinar pela plataforma a ser informada pela
-CONTRATANTE, nos termos da Lei nº 14.063 de 2020 e demais alterações posteriores. Ficando assim justas e contratadas, assinam o presente instrumento eletronicamente, na presença de.02 (duas) testemunhas legalmente exigidas, reconhecendo as Partes seus efeitos, validade e eficácia nos termos da legislação em vigor."</td>
-                </tr>
-            </table>
-        </div>
-
-        <h2>APROVAÇÕES</h2>
         <div class="assinaturas">
             <div class="flex-assinaturas">
                 <div class="assinatura-box">
                     <h3>CONTRATANTE</h3>
                     <div class="assinatura-linha">
-                        <div class="assinatura-info">Comprador</div>
+                        <div class="assinatura-info">Comprador: Erick Alves</div>
                     </div>
-                   
-                    <br>
-                    <br>
-
                     <div class="assinatura-linha">
-                        <div class="assinatura-info">Autorização: Erick H. S. Alves</div>
+                        <div class="assinatura-info">Faturamento: Edson Alves</div>
                     </div>
-
-                    <br>
-                    <br>
-
                     <div class="assinatura-linha">
                         <div class="assinatura-info">Testemunha</div>
                     </div>
@@ -682,21 +434,15 @@ CONTRATANTE, nos termos da Lei nº 14.063 de 2020 e demais alterações posterio
                 <div class="assinatura-box">
                     <h3>CONTRATADA</h3>
                     <div class="assinatura-linha">
-                        <div class="assinatura-info">{{fornecedor.nome}}</div>
+                        <div class="assinatura-info">{{fornecedor.razao_social}}</div>
                         <div class="assinatura-info">Contato: {{fornecedor.contato}}</div>
                     </div>
-
-                    <br>
-                    <br>
-
                     <div class="assinatura-linha">
                         <div class="assinatura-info">Testemunha</div>
                     </div>
-        
                 </div>
             </div>
         </div>
-
     </div>
 </body>
 </html> 
