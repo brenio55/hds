@@ -692,6 +692,73 @@ curl -X PUT http://localhost:3000/api/pedidos-compra/1 \
 - Ambos os endpoints de PDF geram o arquivo automaticamente se não existir
 - O PDF é gerado com base no template definido em src/templates/pedido_compra1.html
 
+### Pedidos de Locação
+
+#### Criar Pedido de Locação
+```http
+POST /api/pedidos-locacao
+```
+
+**Headers:**
+```http
+Authorization: Bearer seu_token
+Content-Type: application/json
+```
+
+**Corpo da Requisição:**
+```json
+{
+  "fornecedor_id": 1,
+  "clientInfo_id": 1,
+  "proposta_id": 1,
+  "itens": [
+    {
+      "descricao": "Item 1",
+      "quantidade": 2,
+      "valor_unitario": 100.00,
+      "valor_total": 200.00
+    }
+  ],
+  "total_bruto": 1000.00,
+  "total_ipi": 100.00,
+  "total_descontos": 50.00,
+  "frete": 75.00,           // Valor do frete (anteriormente valor_frete)
+  "outras_despesas": 25.00,
+  "total_final": 1150.00,
+  "informacoes_importantes": "Informações importantes aqui",
+  "cond_pagto": "30 dias",
+  "prazo_entrega": "2024-04-30"
+}
+```
+
+**Exemplo de uso com curl:**
+```bash
+curl -X POST \
+  'http://localhost:3000/api/pedidos-locacao' \
+  -H 'Authorization: Bearer seu_token_jwt' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "fornecedor_id": 1,
+    "clientInfo_id": 1,
+    "proposta_id": 1,
+    "itens": [...],
+    "total_bruto": 1000.00,
+    "total_ipi": 100.00,
+    "total_descontos": 50.00,
+    "frete": 75.00,
+    "outras_despesas": 25.00,
+    "total_final": 1150.00,
+    "informacoes_importantes": "Informações importantes aqui",
+    "cond_pagto": "30 dias",
+    "prazo_entrega": "2024-04-30"
+  }'
+```
+
+**Observações:**
+- O campo `valor_frete` foi substituído por `frete` para manter consistência com outros endpoints
+- O valor do frete deve ser enviado como número decimal
+- Internamente, o valor é armazenado na coluna `valor_frete` do banco de dados
+
 ### Aluguéis
 
 #### Criar Aluguel
