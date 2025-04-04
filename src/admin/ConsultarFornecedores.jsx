@@ -23,10 +23,25 @@ function ConsultarFornecedores() {
         setLoading(true);
         setError(null);
         try {
-            const data = await ApiService.buscarFornecedores();
-            setFornecedores(data);
+            const response = await ApiService.buscarFornecedores();
+            console.log("Resposta da API de fornecedores:", response);
+            
+            // Verificar e processar a resposta para extrair o array de fornecedores
+            if (response && response.fornecedores && Array.isArray(response.fornecedores)) {
+                // Resposta no formato { fornecedores: [...] }
+                setFornecedores(response.fornecedores);
+            } else if (Array.isArray(response)) {
+                // Resposta já é um array
+                setFornecedores(response);
+            } else {
+                // Formato não esperado - definir como array vazio
+                console.error('Formato de resposta inesperado:', response);
+                setFornecedores([]);
+                setError('Erro ao processar dados de fornecedores. Formato de resposta inválido.');
+            }
         } catch (error) {
             console.error('Erro ao buscar fornecedores:', error);
+            setFornecedores([]);
             setError('Erro ao carregar fornecedores. Por favor, tente novamente.');
         } finally {
             setLoading(false);
@@ -44,10 +59,25 @@ function ConsultarFornecedores() {
             .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
 
         try {
-            const data = await ApiService.buscarFornecedores(filtrosPreenchidos);
-            setFornecedores(data);
+            const response = await ApiService.buscarFornecedores(filtrosPreenchidos);
+            console.log("Resposta da busca filtrada:", response);
+            
+            // Verificar e processar a resposta para extrair o array de fornecedores
+            if (response && response.fornecedores && Array.isArray(response.fornecedores)) {
+                // Resposta no formato { fornecedores: [...] }
+                setFornecedores(response.fornecedores);
+            } else if (Array.isArray(response)) {
+                // Resposta já é um array
+                setFornecedores(response);
+            } else {
+                // Formato não esperado - definir como array vazio
+                console.error('Formato de resposta inesperado:', response);
+                setFornecedores([]);
+                setError('Erro ao processar dados de fornecedores. Formato de resposta inválido.');
+            }
         } catch (error) {
             console.error('Erro ao buscar fornecedores:', error);
+            setFornecedores([]);
             setError('Erro ao buscar fornecedores. Por favor, tente novamente.');
         } finally {
             setLoading(false);
@@ -63,11 +93,11 @@ function ConsultarFornecedores() {
     };
 
     const handleEditarFornecedor = (id) => {
-        navigate(`/editarFornecedor/${id}`);
+        navigate(`/admin/editarFornecedor/${id}`);
     };
 
     const handleVisualizarFornecedor = (id) => {
-        navigate(`/visualizarFornecedor/${id}`);
+        navigate(`/admin/visualizarFornecedor/${id}`);
     };
 
     return (
@@ -138,7 +168,7 @@ function ConsultarFornecedores() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {fornecedores.length === 0 ? (
+                                {!Array.isArray(fornecedores) || fornecedores.length === 0 ? (
                                     <tr>
                                         <td colSpan="7" className="no-data">
                                             Nenhum fornecedor encontrado
@@ -180,7 +210,7 @@ function ConsultarFornecedores() {
                 <div className="actions">
                     <button 
                         className="add-button"
-                        onClick={() => navigate('/cadastrarFornecedor')}
+                        onClick={() => navigate('/admin/cadastrarFornecedor')}
                     >
                         Cadastrar Novo Fornecedor
                     </button>
