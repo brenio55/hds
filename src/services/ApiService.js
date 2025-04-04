@@ -1767,6 +1767,34 @@ class ApiService {
             throw error;
         }
     }
+
+    /**
+     * Exclui um aluguel
+     * @param {number} id - ID do aluguel a ser excluído
+     * @returns {Promise<Object>} - Resultado da operação
+     */
+    static async excluirAluguel(id) {
+        try {
+            console.log(`Excluindo aluguel com ID ${id}`);
+            
+            const response = await fetch(`${API_URL}/api/alugueis/${id}`, {
+                method: 'DELETE',
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Erro ao excluir aluguel com ID ${id}`);
+            }
+
+            const data = await response.json().catch(() => ({}));
+            console.log('Aluguel excluído com sucesso:', data);
+            return data;
+        } catch (error) {
+            console.error(`Erro ao excluir aluguel com ID ${id}:`, error);
+            throw error;
+        }
+    }
 }
 
 export default ApiService; 

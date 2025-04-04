@@ -909,7 +909,7 @@ function PedidosDeLocacao() {
                             </div>
                         </div>
                         <div className="form-row">
-                            <div className="form-group">
+                            {/* <div className="form-group">
                                 <label>Valor Frete:</label>
                                 <input
                                     type="text"
@@ -917,7 +917,7 @@ function PedidosDeLocacao() {
                                     value={dadosPedido.valorFrete}
                                     onChange={handleDadosPedidoChange}
                                 />
-                            </div>
+                            </div> */}
                             <div className="form-group">
                                 <label>Outras Despesas:</label>
                                 <input

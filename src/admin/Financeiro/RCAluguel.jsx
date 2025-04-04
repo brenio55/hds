@@ -9,6 +9,8 @@ function RCAluguel() {
     const [loading, setLoading] = useState(false);
     const [centrosCusto, setCentrosCusto] = useState([]);
     const [alugueis, setAlugueis] = useState([]);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [aluguelEmEdicao, setAluguelEmEdicao] = useState(null);
 
     // Estados para o formulário de registro
     const [formRegistro, setFormRegistro] = useState({
@@ -16,6 +18,19 @@ function RCAluguel() {
         detalhes: {
             dia_vencimento: '',
             pagamento: 'Transferência Bancária',
+            obra_id: '',
+            observacoes: ''
+        }
+    });
+
+    // Estado para o formulário de edição
+    const [formEdicao, setFormEdicao] = useState({
+        id: null,
+        valor: '',
+        detalhes: {
+            data_vencimento: '',
+            dia_vencimento: '',
+            pagamento: '',
             obra_id: '',
             observacoes: ''
         }
@@ -169,49 +184,99 @@ function RCAluguel() {
         }
     };
 
-    const handleAtualizarAluguel = async (id) => {
-        if (!id) return;
+    const handleExcluirAluguel = async (id) => {
+        if (window.confirm('Tem certeza que deseja excluir este aluguel? Esta ação é irreversível.')) {
+            try {
+                setLoading(true);
+                await ApiService.excluirAluguel(id);
+                alert('Aluguel excluído com sucesso!');
+                buscarAlugueis(); // Recarrega a lista
+            } catch (error) {
+                console.error('Erro ao excluir aluguel:', error);
+                alert('Erro ao excluir aluguel. Tente novamente.');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    // Abre o modal de edição e carrega os dados do aluguel
+    const abrirModalEdicao = (aluguel) => {
+        try {
+            setLoading(true);
+            
+            // Usar os dados do aluguel já carregados na lista
+            setAluguelEmEdicao(aluguel);
+            
+            // Formatar data de vencimento
+            let dataVencimento = new Date();
+            if (aluguel.detalhes.dia_vencimento) {
+                const dia = parseInt(aluguel.detalhes.dia_vencimento);
+                dataVencimento.setDate(dia);
+            }
+            
+            // Formatar data YYYY-MM-DD
+            const ano = dataVencimento.getFullYear();
+            const mes = String(dataVencimento.getMonth() + 1).padStart(2, '0');
+            const dia = String(dataVencimento.getDate()).padStart(2, '0');
+            const dataFormatada = `${ano}-${mes}-${dia}`;
+            
+            // Preencher o formulário de edição
+            setFormEdicao({
+                id: aluguel.id,
+                valor: aluguel.valor,
+                detalhes: {
+                    data_vencimento: dataFormatada,
+                    dia_vencimento: aluguel.detalhes.dia_vencimento,
+                    pagamento: aluguel.detalhes.pagamento || 'Transferência Bancária',
+                    obra_id: aluguel.detalhes.obra_id,
+                    observacoes: aluguel.detalhes.observacoes || ''
+                }
+            });
+            
+            setShowEditModal(true);
+        } catch (error) {
+            console.error('Erro ao carregar dados do aluguel:', error);
+            alert('Erro ao carregar dados para edição. Tente novamente.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEdicaoSubmit = async (e) => {
+        e.preventDefault();
         
         try {
             setLoading(true);
             
-            // Carregar dados do aluguel atual
-            const aluguel = await ApiService.buscarAluguelPorId(id);
-            
-            // Pedir confirmação e coletar novos dados
-            if (window.confirm(`Deseja atualizar o aluguel #${id}?`)) {
-                const novoValor = prompt('Novo valor:', aluguel.valor);
-                const novoDiaVencimento = prompt('Novo dia de vencimento (1-31):', aluguel.detalhes.dia_vencimento);
-                const novoPagamento = prompt('Tipo de pagamento:', aluguel.detalhes.pagamento);
-                const novasObservacoes = prompt('Observações:', aluguel.detalhes.observacoes);
-                
-                // Validar dados
-                const diaVencimento = parseInt(novoDiaVencimento);
-                if (!novoValor || isNaN(parseFloat(novoValor)) || 
-                    !novoDiaVencimento || isNaN(diaVencimento) || diaVencimento < 1 || diaVencimento > 31 || 
-                    !novoPagamento) {
-                    alert('Dados inválidos. A atualização foi cancelada.');
-                    return;
-                }
-                
-                // Atualizar aluguel
-                const dadosAtualizados = {
-                    valor: parseFloat(novoValor),
-                    detalhes: {
-                        dia_vencimento: parseInt(novoDiaVencimento),
-                        pagamento: novoPagamento,
-                        obra_id: aluguel.detalhes.obra_id,
-                        observacoes: novasObservacoes
-                    }
-                };
-                
-                await ApiService.atualizarAluguel(id, dadosAtualizados);
-                alert('Aluguel atualizado com sucesso!');
-                buscarAlugueis(); // Recarrega a lista
+            // Validação de dia de vencimento
+            const diaVencimento = parseInt(formEdicao.detalhes.dia_vencimento);
+            if (isNaN(diaVencimento) || diaVencimento < 1 || diaVencimento > 31) {
+                alert('O dia de vencimento deve ser um número entre 1 e 31.');
+                setLoading(false);
+                return;
             }
+            
+            // Formatar dados conforme esperado pela API
+            const dadosParaEnvio = {
+                valor: parseFloat(formEdicao.valor),
+                detalhes: {
+                    dia_vencimento: formEdicao.detalhes.dia_vencimento,
+                    pagamento: formEdicao.detalhes.pagamento,
+                    obra_id: parseInt(formEdicao.detalhes.obra_id),
+                    observacoes: formEdicao.detalhes.observacoes || ''
+                }
+            };
+            
+            // Enviar para API
+            await ApiService.atualizarAluguel(formEdicao.id, dadosParaEnvio);
+            
+            alert('Aluguel atualizado com sucesso!');
+            setShowEditModal(false);
+            buscarAlugueis(); // Recarrega a lista
         } catch (error) {
             console.error('Erro ao atualizar aluguel:', error);
-            alert('Erro ao atualizar aluguel. Tente novamente.');
+            alert('Erro ao atualizar aluguel. Verifique os dados e tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -234,6 +299,28 @@ function RCAluguel() {
             // Campo de nível superior
             setFormRegistro({
                 ...formRegistro,
+                [name]: value
+            });
+        }
+    };
+
+    const handleEdicaoChange = (e) => {
+        const { name, value } = e.target;
+        
+        // Se for um campo do objeto detalhes
+        if (name.includes('.')) {
+            const [parent, child] = name.split('.');
+            setFormEdicao({
+                ...formEdicao,
+                [parent]: {
+                    ...formEdicao[parent],
+                    [child]: value
+                }
+            });
+        } else {
+            // Campo de nível superior
+            setFormEdicao({
+                ...formEdicao,
                 [name]: value
             });
         }
@@ -276,7 +363,7 @@ function RCAluguel() {
                                     <label>VALOR LÍQUIDO:</label>
                                     <input
                                         type="number"
-                                        step="0.01"
+                                        step="1"
                                         name="valor"
                                         value={formRegistro.valor}
                                         onChange={handleInputChange}
@@ -463,17 +550,24 @@ function RCAluguel() {
                                                     <td className="acoes-cell">
                                                         <button
                                                             className="action-button"
-                                                            onClick={() => handleAtualizarAluguel(aluguel.id)}
+                                                            onClick={() => abrirModalEdicao(aluguel)}
                                                             disabled={loading || aluguel.finalizado}
                                                         >
                                                             Editar
                                                         </button>
-                                                        <button
+                                                        {/* <button
                                                             className="action-button"
                                                             onClick={() => handleFinalizarAluguel(aluguel.id)}
                                                             disabled={loading || aluguel.finalizado}
                                                         >
                                                             {aluguel.finalizado ? 'Finalizado' : 'Finalizar'}
+                                                        </button> */}
+                                                        <button
+                                                            className="action-button delete-button"
+                                                            onClick={() => handleExcluirAluguel(aluguel.id)}
+                                                            disabled={loading}
+                                                        >
+                                                            Excluir
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -481,6 +575,123 @@ function RCAluguel() {
                                         )}
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modal de Edição */}
+                    {showEditModal && (
+                        <div className="modal-overlay">
+                            <div className="modal-container">
+                                <div className="modal-header">
+                                    <h2>Editar Aluguel #{formEdicao.id}</h2>
+                                    <button 
+                                        className="close-button-aluguel"
+                                        onClick={() => setShowEditModal(false)}
+                                        disabled={loading}
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                                <form onSubmit={handleEdicaoSubmit} className="form-container modal-form">
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>VALOR LÍQUIDO:</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                name="valor"
+                                                value={formEdicao.valor}
+                                                onChange={handleEdicaoChange}
+                                                required
+                                            />
+                                        </div>
+
+                                        {/* <div className="form-group">
+                                            <label>DATA DE VENCIMENTO:</label>
+                                            <input
+                                                type="number"
+                                                name="detalhes.data_vencimento"
+                                                value={formEdicao.detalhes.data_vencimento ? new Date(formEdicao.detalhes.data_vencimento).getDate()+1 : 'ERR'} //este mais 1 é porque sem ele aparece o dia -1
+                                                onChange={handleEdicaoChange}
+                                                required
+                                            />
+                                        </div> */}
+                                    </div>
+
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>DIA DE VENCIMENTO (1-31):</label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="31"
+                                                name="detalhes.dia_vencimento"
+                                                value={formEdicao.detalhes.dia_vencimento}
+                                                onChange={handleEdicaoChange}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>TIPO DE PAGAMENTO:</label>
+                                            <select
+                                                name="detalhes.pagamento"
+                                                value={formEdicao.detalhes.pagamento}
+                                                onChange={handleEdicaoChange}
+                                                required
+                                            >
+                                                <option value="pix">PIX</option>
+                                                <option value="ted">TED</option>
+                                                <option value="boleto">Boleto</option>
+                                                <option value="Transferência Bancária">Transferência Bancária</option>
+                                                <option value="dinheiro">Dinheiro</option>
+                                                <option value="cartao">Cartão</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>PROPOSTA (CENTRO DE CUSTO):</label>
+                                            <select
+                                                name="detalhes.obra_id"
+                                                value={formEdicao.detalhes.obra_id}
+                                                onChange={handleEdicaoChange}
+                                                required
+                                            >
+                                                <option value="">Selecione uma proposta</option>
+                                                {centrosCusto.map(proposta => (
+                                                    <option key={proposta.id} value={proposta.id}>
+                                                        {formatarNomeProposta(proposta)}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>OBSERVAÇÕES:</label>
+                                            <textarea
+                                                name="detalhes.observacoes"
+                                                value={formEdicao.detalhes.observacoes}
+                                                onChange={handleEdicaoChange}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-row">
+                                        <button 
+                                            type="submit" 
+                                            className="submit-button"
+                                            disabled={loading}
+                                        >
+                                            {loading ? 'Atualizando...' : 'Atualizar Aluguel'}
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     )}
