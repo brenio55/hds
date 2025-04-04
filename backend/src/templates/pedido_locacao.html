@@ -367,27 +367,27 @@
                 <table>
                     <tr>
                         <th>Total Bruto</th>
-                        <td>R$ {{total_bruto}}</td>
+                        <td>{{formatMoney (sumNumericObjects itens 'valor_total')}}</td>
                     </tr>
                     <tr>
                         <th>Total IPI</th>
-                        <td>R$ {{total_ipi}}</td>
+                        <td>{{formatMoney (sumNumericObjects itens 'ipi')}}</td>
                     </tr>
                     <tr>
                         <th>Total Descontos</th>
-                        <td>R$ {{total_descontos}}</td>
+                        <td>{{formatPercent (avgNumericObjects itens 'desconto')}}</td>
                     </tr>
                     <tr>
                         <th>Frete</th>
-                        <td>R$ {{frete}}</td>
+                        <td>{{formatMoney frete}}</td>
                     </tr>
                     <tr>
                         <th>Outras Despesas</th>
-                        <td>R$ {{outras_despesas}}</td>
+                        <td>{{formatMoney outras_despesas}}</td>
                     </tr>
                     <tr>
                         <th>Total Final</th>
-                        <td>R$ {{total_final}}</td>
+                        <td>{{formatMoney (sumNumericObjects itens 'valor_total')}}</td>
                     </tr>
                 </table>
             </div>
