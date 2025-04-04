@@ -206,10 +206,7 @@ class PedidosConsolidadosController {
               id: pedido.cliente.id,
               nome: pedido.cliente.RazaoSocial || 'Cliente não identificado'
             } : null,
-            fornecedor: pedido.fornecedor ? {
-              id: pedido.fornecedor.id,
-              nome: pedido.fornecedor.razao_social || 'Fornecedor não identificado'
-            } : null,
+            fornecedor: pedido.fornecedor ? pedido.fornecedor : null,
             proposta: pedido.proposta ? {
               id: pedido.proposta.id,
               descricao: pedido.proposta.descricao ? 
@@ -775,10 +772,7 @@ class PedidosConsolidadosController {
             
             // Adicionar campos de relação de forma segura
             if (pedido.fornecedor) {
-              pedidoSeguro.fornecedor = {
-                id: pedido.fornecedor.id,
-                nome: pedido.fornecedor.razao_social || 'Fornecedor não identificado'
-              };
+              pedidoSeguro.fornecedor = pedido.fornecedor || 'Fornecedor não identificado'
             }
             
             if (pedido.proposta) {

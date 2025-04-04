@@ -323,16 +323,24 @@
                 <h2>TOTAIS</h2>
                 <table>
                     <tr>
-                        <th>Valor Frete:</th>
-                        <td class="valor-celula">{{formatMoney itens.[0].valor_frete}}</td>
+                        <th>IPI:</th>
+                        <td class="valor-celula">{{formatPercent (avgNumericObjects itens 'ipi')}}</td>
+                    </tr>
+                    <tr>
+                        <th>Frete:</th>
+                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_frete')}}</td>
                     </tr>
                     <tr>
                         <th>Outras Despesas:</th>
-                        <td class="valor-celula">{{formatMoney itens.[0].outras_despesas}}</td>
+                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'outras_despesas')}}</td>
+                    </tr>
+                    <tr>
+                        <th>Desconto:</th>
+                        <td class="valor-celula">{{formatPercent (avgNumericObjects itens 'desconto')}}</td>
                     </tr>
                     <tr>
                         <th>Total Final:</th>
-                        <td class="valor-celula"><strong>{{formatMoney itens.[0].valor_total}}</strong></td>
+                        <td class="valor-celula"><strong>{{formatMoney (sumNumericObjects itens 'valor_total')}}</strong></td>
                     </tr>
                 </table>
             </div>
@@ -359,19 +367,19 @@
                 <th>Valor Total</th>
                 <th>Data Entrega</th>
             </tr>
-            {{#with itens.[0]}}
+            {{#eachNumeric itens}}
             <tr>
-                <td>1</td>
+                <td>{{index}}</td>
                 <td>{{descricao}}</td>
                 <td>{{unidade}}</td>
                 <td>{{quantidade}}</td>
                 <td class="valor-celula">{{formatMoney valor_unitario}}</td>
-                <td>{{ipi}}</td>
-                <td>{{desconto}}</td>
+                <td>{{formatPercent ipi}}</td>
+                <td>{{formatPercent desconto}}</td>
                 <td class="valor-celula">{{formatMoney valor_total}}</td>
                 <td>{{formatDate data_entrega}}</td>
             </tr>
-            {{/with}}
+            {{/eachNumeric}}
         </table>
 
         <h2>ESCOPO DO SERVIÇO</h2>
