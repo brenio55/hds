@@ -15,7 +15,7 @@ function Footer(){
                         <a href="/#aboutUs"><li>Sobre Nós</li></a>
                         <a href="/#services"><li>Serviços</li></a>
                         <a href="/#contactUs"><li>Contato</li></a>
-                        <Link to={'/Login'}><li className="loginLi">Login - Administrativo</li></Link>
+                        <Link to={'/admin/login'}><li className="loginLi">Login - Administrativo</li></Link>
 
                     </ul>
                 </div>

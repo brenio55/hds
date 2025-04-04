@@ -1,7 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import ApiService from '../services/ApiService';
 
+// Criar e exportar o contexto
 const AdminContext = createContext();
+export { AdminContext };
 
 export function AdminProvider({ children }) {
     const [adminUser, setAdminUser] = useState(null);

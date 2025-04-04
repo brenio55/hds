@@ -221,16 +221,15 @@
     color: #0056b3;
 }
 
-.close-button-aluguel {
-    background: red;
+.close-button, .close-button-aluguel {
+    background: none;
     border: none;
     font-size: 1.8rem;
     cursor: pointer;
-    color: white;
-    line-height: 1;
+    color: #666;
 }
 
-.close-button:hover {
+.close-button:hover, .close-button-aluguel:hover {
     color: #000;
 }
 
