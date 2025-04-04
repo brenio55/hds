@@ -400,23 +400,19 @@
                 <table>
                     <tr>
                         <th>Descontos</th>
-                        <td>{{desconto}}</td>
+                        <td>{{formatPercent (avgNumericObjects pedidoData.materiais 'desconto')}}</td>
                     </tr>
                     <tr>
                         <th>Frete</th>
-                        <td>{{frete.valor}}</td>
+                        <td>{{formatMoney pedidoData.valor_frete}}</td>
                     </tr>
                     <tr>
                         <th>Outras Despesas</th>
-                        <td>{{despesas_adicionais}}</td>
-                    </tr>
-                    <tr>
-                        <th>Total Bruto</th>
-                        <td>{{totalBruto}}</td>
+                        <td>{{formatMoney pedidoData.despesas_adicionais}}</td>
                     </tr>   
                     <tr>
                         <th>Total Final</th>
-                        <td>{{totalFinal}}</td>
+                        <td>{{formatMoney (sumNumericObjects pedidoData.materiais 'valor_total')}}</td>
                     </tr>
                 </table>
             </div>
@@ -424,7 +420,7 @@
                 <h2>Data Final de Entrega</h2>
                 <table>
                     <tr>
-                        <td>{{formatDate pedidoData.data_final_entrega}}</td>
+                        <td>{{formatDate pedidoData.data_vencimento}}</td>
                     </tr>
                 </table>
             </div>
