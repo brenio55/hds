@@ -33,6 +33,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<UserHome />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/admin/login" element={<Login />} />
         <Route path="/admin/dashboard" element={<Dashboard />} />
         {/* <Route path="/pedidosDeCompra" element={<PedidosDeCompra />} /> */}
         <Route path="/admin/pedidosDeMaterial" element={<PedidosDeMaterial />} />
