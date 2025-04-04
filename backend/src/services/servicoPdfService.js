@@ -56,7 +56,8 @@ class ServicoPdfService {
       handlebars.registerHelper('formatDate', function(date) {
         console.log(`[formatDate helper] Formatando data: ${date}`);
         if (!date) return '';
-        return new Date(date).toLocaleDateString('pt-BR');
+        const d = new Date(date);
+        return d.toLocaleDateString('pt-BR');
       });
 
       handlebars.registerHelper('formatMoney', function(value) {
@@ -66,6 +67,61 @@ class ServicoPdfService {
           style: 'currency', 
           currency: 'BRL' 
         });
+      });
+
+      // Adicionar novo helper para formatar porcentagem
+      handlebars.registerHelper('formatPercent', function(value) {
+        if (!value && value !== 0) return '';
+        return `${Number(value).toFixed(2)}%`;
+      });
+
+      // Adicionar novo helper para calcular soma de valores
+      handlebars.registerHelper('sumItems', function(items, field) {
+        if (!items || !Array.isArray(items)) return 0;
+        return items.reduce((sum, item) => sum + (Number(item[field]) || 0), 0);
+      });
+
+      // Helper para iterar sobre objetos numerados e arrays
+      handlebars.registerHelper('eachNumeric', function(context, options) {
+        if (!context) return '';
+        
+        // Se for um array, usa o comportamento padrão do each
+        if (Array.isArray(context)) {
+          return context.map((item, index) => options.fn({ ...item, index })).join('');
+        }
+        
+        // Se for um objeto com chaves numéricas
+        const numericKeys = Object.keys(context).filter(key => !isNaN(key));
+        return numericKeys.map(key => options.fn({ ...context[key], index: key })).join('');
+      });
+
+      // Modificar o helper sumNumericObjects para somar valores específicos
+      handlebars.registerHelper('sumNumericObjects', function(obj, field) {
+        if (!obj) return 0;
+        
+        // Filtrar apenas as chaves numéricas do objeto
+        const numericKeys = Object.keys(obj).filter(key => !isNaN(key));
+        
+        // Somar os valores do campo específico
+        return numericKeys.reduce((sum, key) => {
+          const value = obj[key][field];
+          return sum + (Number(value) || 0);
+        }, 0);
+      });
+
+      // Adicionar helper para calcular média de percentuais
+      handlebars.registerHelper('avgNumericObjects', function(obj, field) {
+        if (!obj) return 0;
+        
+        const numericKeys = Object.keys(obj).filter(key => !isNaN(key));
+        if (numericKeys.length === 0) return 0;
+        
+        const sum = numericKeys.reduce((sum, key) => {
+          const value = obj[key][field];
+          return sum + (Number(value) || 0);
+        }, 0);
+        
+        return sum / numericKeys.length;
       });
 
       // Busca dados do fornecedor
