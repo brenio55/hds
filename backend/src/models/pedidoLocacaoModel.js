@@ -21,7 +21,7 @@ class PedidoLocacaoModel {
       data.total_bruto,
       data.total_ipi,
       data.total_descontos,
-      data.valor_frete,
+      data.frete,
       data.outras_despesas,
       data.total_final,
       data.informacoes_importantes,
