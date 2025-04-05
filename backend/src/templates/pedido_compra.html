@@ -271,7 +271,7 @@
     <table class="tabela-detalhes">
         <tr>
             <th>Descontos:</th>
-            <td class="valor-celula">{{formatMoney desconto}}</td>
+            <td class="valor-celula">{{formatPercent (avgNumericObjects materiais 'desconto')}}</td>
             <th>Frete:</th>
             <td class="valor-celula">{{formatMoney valor_frete}}</td>
         </tr>
@@ -279,11 +279,13 @@
             <th>Outras Despesas:</th>
             <td class="valor-celula">{{formatMoney outras_despesas}}</td>
             <th>Total Bruto:</th>
-            <td class="valor-celula">{{formatMoney valor_total}}</td>
+            <td class="valor-celula">{{formatMoney (sumNumericObjects materiais 'valor_total')}}</td>
         </tr>
         <tr>
             <th>Total Final:</th>
-            <td class="valor-celula" colspan="3"><strong>{{formatMoney valor_total_pedido}}</strong></td>
+            <td class="valor-celula" colspan="3">
+                <strong>{{formatMoney (sumNumericObjects materiais 'valor_total')}}</strong>
+            </td>
         </tr>
     </table>
 

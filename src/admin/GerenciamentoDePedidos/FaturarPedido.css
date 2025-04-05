@@ -109,6 +109,31 @@
     font-weight: 500;
 }
 
+/* Estilos para os tipos de pedidos no dropdown */
+option.pedido-tipo-compra {
+    background-color: #e8f4f8;
+}
+
+option.pedido-tipo-locacao {
+    background-color: #f8f4e8;
+}
+
+option.pedido-tipo-servico {
+    background-color: #e8f8e8;
+}
+
+/* Melhoria na apresentação do select */
+select {
+    padding: 10px;
+    font-size: 14px;
+    max-height: 300px;
+}
+
+select option {
+    padding: 8px;
+    white-space: normal;
+}
+
 @media (max-width: 768px) {
     .pedido-form {
         grid-template-columns: 1fr;
@@ -118,4 +143,29 @@
     .submit-button {
         grid-column: 1;
     }
+}
+
+.input-valor-readonly {
+    background-color: #f5f5f5;
+    color: #333;
+    font-weight: bold;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    font-size: 16px;
+}
+
+.valor-disponivel {
+    background-color: #e7f3e8;
+    border-color: #28a745;
+    color: #28a745;
+    font-size: 18px;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #6c757d;
+    font-style: italic;
 } 

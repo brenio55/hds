@@ -34,9 +34,47 @@ function ConsultarPropostas() {
         setLoading(true);
         setError(null);
         try {
-            const data = await ApiService.buscarPropostas();
-            const propostasOrdenadas = ordenarPropostasPorData(data.propostas || []);
+            console.log("Iniciando carregamento de todas as propostas...");
+            const resposta = await ApiService.buscarPropostas();
+            console.log("Resposta da API de propostas:", resposta);
+            
+            let propostasCarregadas = [];
+            
+            // Garantir que a resposta tenha um array de propostas
+            if (resposta && Array.isArray(resposta.propostas)) {
+                console.log("Propostas carregadas com sucesso:", resposta.propostas.length);
+                propostasCarregadas = resposta.propostas;
+            } else {
+                console.warn("Formato inesperado na resposta de propostas:", resposta);
+                // Verificar se resposta é um array diretamente
+                if (Array.isArray(resposta)) {
+                    console.log("Usando array diretamente da resposta");
+                    propostasCarregadas = resposta;
+                } else {
+                    // Tentar extrair propostas de qualquer formato de resposta
+                    const propostasExtraidas = resposta && typeof resposta === 'object' ? 
+                        Object.values(resposta).filter(item => item && typeof item === 'object') : [];
+                    console.log("Tentando extrair propostas manualmente:", propostasExtraidas.length);
+                    propostasCarregadas = propostasExtraidas;
+                }
+            }
+            
+            // Garantir que cada proposta tenha o campo client_info
+            propostasCarregadas = propostasCarregadas.map(proposta => {
+                if (!proposta.client_info) {
+                    proposta.client_info = {};
+                }
+                return proposta;
+            });
+            
+            const propostasOrdenadas = ordenarPropostasPorData(propostasCarregadas);
             setPropostas(propostasOrdenadas);
+            
+            if (propostasOrdenadas.length === 0) {
+                console.log("Nenhuma proposta encontrada após processamento");
+            } else {
+                console.log("Exemplo da primeira proposta após processamento:", propostasOrdenadas[0]);
+            }
         } catch (error) {
             setError('Erro ao carregar propostas. Por favor, tente novamente.');
             console.error('Erro ao buscar propostas:', error);

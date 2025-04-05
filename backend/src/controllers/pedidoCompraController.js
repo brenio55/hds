@@ -5,6 +5,7 @@ const PropostaModel = require('../models/propostaModel');
 const FornecedorModel = require('../models/fornecedorModel');
 const path = require('path');
 const fs = require('fs').promises;
+const db = require('../config/database');
 
 
 class PedidoCompraController {
@@ -15,7 +16,105 @@ class PedidoCompraController {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const pedido = await PedidoCompraModel.create(req.body);
+      // Dados recebidos do frontend
+      const data = req.body;
+      console.log('Dados recebidos para criar pedido de compra:', data);
+
+      // Validar fornecedores_id
+      if (!data.fornecedores_id) {
+        return res.status(400).json({ error: 'O ID do fornecedor é obrigatório' });
+      }
+
+      // Garantir que o campo materiais seja processado corretamente para formato JSONB
+      try {
+        // Se materiais já é um objeto (array), converter para string JSON para o modelo
+        if (Array.isArray(data.materiais)) {
+          console.log('Materiais recebidos como array, convertendo para string JSON');
+          data.materiais = JSON.stringify(data.materiais);
+        } else if (typeof data.materiais === 'string') {
+          // Verificar se é um JSON válido
+          console.log('Materiais recebidos como string, verificando se é JSON válido');
+          JSON.parse(data.materiais);
+        } else if (!data.materiais) {
+          // Definir um array vazio se não houver materiais
+          console.log('Materiais não fornecidos, usando array vazio');
+          data.materiais = '[]';
+        } else {
+          // Tentar converter qualquer outro formato para string JSON
+          console.log('Materiais em formato desconhecido, tentando converter');
+          data.materiais = JSON.stringify(data.materiais);
+        }
+      } catch (e) {
+        console.error('Erro ao processar campo materiais:', e);
+        return res.status(400).json({ error: 'Formato inválido para o campo materiais' });
+      }
+
+      // Garantir que o campo frete seja processado corretamente para formato JSONB
+      try {
+        // Se frete já é um objeto, converter para string JSON para o modelo
+        if (typeof data.frete === 'object' && data.frete !== null) {
+          console.log('Frete recebido como objeto, convertendo para string JSON');
+          data.frete = JSON.stringify(data.frete);
+        } else if (typeof data.frete === 'string') {
+          // Verificar se é um JSON válido
+          console.log('Frete recebido como string, verificando se é JSON válido');
+          JSON.parse(data.frete);
+        } else if (!data.frete) {
+          // Definir um objeto vazio se não houver frete
+          console.log('Frete não fornecido, usando objeto vazio');
+          data.frete = '{}';
+        } else {
+          // Tentar converter qualquer outro formato para string JSON
+          console.log('Frete em formato desconhecido, tentando converter');
+          data.frete = JSON.stringify(data.frete);
+        }
+      } catch (e) {
+        console.error('Erro ao processar campo frete:', e);
+        data.frete = '{}';
+      }
+
+      // Garantir que campos numéricos sejam números
+      if (data.fornecedores_id) {
+        data.fornecedores_id = parseInt(data.fornecedores_id);
+      }
+      
+      if (data.clientinfo_id) {
+        data.clientinfo_id = parseInt(data.clientinfo_id);
+      }
+      
+      if (data.proposta_id) {
+        data.proposta_id = parseInt(data.proposta_id);
+      }
+
+      console.log('Dados processados para criar pedido de compra:', data);
+
+      // Criar o pedido
+      const pedido = await PedidoCompraModel.create(data);
+      console.log('Pedido criado com sucesso:', pedido);
+      
+      // Gerar PDF
+      try {
+        const proposta = await PropostaModel.findById(pedido.proposta_id);
+        const fornecedor = await FornecedorModel.findById(pedido.fornecedores_id);
+        
+        if (proposta && fornecedor) {
+          console.log('Gerando PDF para o pedido...');
+          const pdf_uid = await PedidoCompraService.generatePdf(pedido, proposta, fornecedor);
+          
+          // Atualizar o pedido com o uid do PDF
+          if (pdf_uid) {
+            await PedidoCompraModel.update(pedido.id, { ...pedido, pdf_uid });
+            pedido.pdf_uid = pdf_uid;
+            console.log('PDF gerado com sucesso:', pdf_uid);
+          }
+        } else {
+          console.warn('Não foi possível gerar PDF: proposta ou fornecedor não encontrado');
+        }
+      } catch (pdfError) {
+        console.error('Erro ao gerar PDF do pedido:', pdfError);
+        // Não falha a criação do pedido se o PDF falhar
+      }
+      
       res.status(201).json(pedido);
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
@@ -28,11 +127,10 @@ class PedidoCompraController {
       const { campo, valor } = req.query;
 
       // Se não houver parâmetros de busca, retorna todos os pedidos
+      let pedidos = [];
       if (!campo || !valor) {
-        const pedidos = await PedidoCompraModel.findAll();
-        return res.json(pedidos);
-      }
-
+        pedidos = await PedidoCompraModel.findAll();
+      } else {
       // Validar campos permitidos para busca (apenas colunas da tabela)
       const camposPermitidos = [
         'id',
@@ -59,16 +157,65 @@ class PedidoCompraController {
       }
 
       // Busca pedidos com o filtro
-      const pedidos = await PedidoCompraModel.findByField(campo, valor);
+        pedidos = await PedidoCompraModel.findByField(campo, valor);
       
       if (!pedidos || pedidos.length === 0) {
         return res.status(404).json({ 
           message: 'Nenhum pedido encontrado com os critérios informados',
           exemplo: 'Tente outro valor ou verifique se o campo está correto'
         });
+        }
       }
 
-      res.json(pedidos);
+      // Buscar informações de faturamento para cada pedido
+      const pedidosEnriquecidos = await Promise.all(pedidos.map(async (pedido) => {
+        try {
+          // Calcular valor total
+          let valorTotal = 0;
+          if (pedido.materiais && typeof pedido.materiais === 'string') {
+            try {
+              const materiais = JSON.parse(pedido.materiais);
+              if (Array.isArray(materiais)) {
+                valorTotal = materiais.reduce((sum, item) => 
+                  sum + (parseFloat(item.valor_total) || 0), 0);
+              }
+            } catch (e) {
+              console.error(`Erro ao parsear materiais para pedido ID=${pedido.id}:`, e);
+            }
+          } else if (Array.isArray(pedido.materiais)) {
+            valorTotal = pedido.materiais.reduce((sum, item) => 
+              sum + (parseFloat(item.valor_total) || 0), 0);
+          }
+          
+          // Buscar informações de faturamento
+          const faturamentos = await db.query(
+            'SELECT * FROM faturamento WHERE id_type = $1 AND id_number = $2 ORDER BY created_at DESC LIMIT 1',
+            ['compra', pedido.id]
+          );
+          
+          let valorFaturado = 0;
+          let valorAFaturar = valorTotal;
+          
+          if (faturamentos.rows.length > 0) {
+            const faturamento = faturamentos.rows[0];
+            valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
+            valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+          }
+          
+          // Retornar pedido com campos adicionais
+          return {
+            ...pedido,
+            valor_total: valorTotal,
+            valor_faturado: valorFaturado,
+            valor_a_faturar: valorAFaturar
+          };
+        } catch (error) {
+          console.error(`Erro ao processar pedido ID=${pedido.id}:`, error);
+          return pedido; // Em caso de erro, manter o pedido original
+        }
+      }));
+
+      res.json(pedidosEnriquecidos);
     } catch (error) {
       console.error('Erro ao listar pedidos:', error);
       res.status(400).json({ error: error.message });
@@ -81,7 +228,48 @@ class PedidoCompraController {
       if (!pedido) {
         return res.status(404).json({ error: 'Pedido não encontrado' });
       }
-      res.json(pedido);
+      
+      // Calcular valor total
+      let valorTotal = 0;
+      if (pedido.materiais && typeof pedido.materiais === 'string') {
+        try {
+          const materiais = JSON.parse(pedido.materiais);
+          if (Array.isArray(materiais)) {
+            valorTotal = materiais.reduce((sum, item) => 
+              sum + (parseFloat(item.valor_total) || 0), 0);
+          }
+        } catch (e) {
+          console.error(`Erro ao parsear materiais para pedido ID=${pedido.id}:`, e);
+        }
+      } else if (Array.isArray(pedido.materiais)) {
+        valorTotal = pedido.materiais.reduce((sum, item) => 
+          sum + (parseFloat(item.valor_total) || 0), 0);
+      }
+      
+      // Buscar informações de faturamento
+      const faturamentos = await db.query(
+        'SELECT * FROM faturamento WHERE id_type = $1 AND id_number = $2 ORDER BY created_at DESC LIMIT 1',
+        ['compra', pedido.id]
+      );
+      
+      let valorFaturado = 0;
+      let valorAFaturar = valorTotal;
+      
+      if (faturamentos.rows.length > 0) {
+        const faturamento = faturamentos.rows[0];
+        valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
+        valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+      }
+      
+      // Retornar pedido com campos adicionais
+      const pedidoEnriquecido = {
+        ...pedido,
+        valor_total: valorTotal,
+        valor_faturado: valorFaturado,
+        valor_a_faturar: valorAFaturar
+      };
+      
+      res.json(pedidoEnriquecido);
     } catch (error) {
       console.error('Erro ao buscar pedido:', error);
       res.status(400).json({ error: error.message });

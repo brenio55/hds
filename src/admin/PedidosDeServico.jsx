@@ -4,6 +4,52 @@ import HeaderAdmin from './HeaderAdmin';
 import './pedidos.scss';
 import ApiService from '../services/ApiService';
 
+// Estilos para o popup de sucesso
+const styles = `
+.success-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.success-popup-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 400px;
+    text-align: center;
+}
+
+.success-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.success-buttons button {
+    min-width: 120px;
+    height: 35px;
+    font-size: 14px;
+    border-radius: 3px;
+}
+
+#viewPdfButton {
+    background-color: #4284c5;
+}
+
+#viewPdfButton:hover {
+    background-color: #3573b0;
+}
+`;
+
 function PedidosDeServico() {
     const [itens, setItens] = useState([]);
     const [itemAtual, setItemAtual] = useState({
@@ -36,7 +82,7 @@ function PedidosDeServico() {
         informacoesImportantes: '',
         condPagto: '',
         prazoEntrega: '',
-        frete: ''
+        frete: '0'
     });
     const [listaFornecedores, setListaFornecedores] = useState([]);
     const [loadingListaFornecedores, setLoadingListaFornecedores] = useState(false);
@@ -105,13 +151,67 @@ function PedidosDeServico() {
         carregarPropostas();
     }, []);
 
+    useEffect(() => {
+        // Adiciona os estilos apenas se eles ainda não existirem
+        if (!document.getElementById('servico-styles')) {
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'servico-styles';
+            styleSheet.textContent = styles;
+            document.head.appendChild(styleSheet);
+            
+            // Limpar estilos ao desmontar o componente
+            return () => {
+                const styleElement = document.getElementById('servico-styles');
+                if (styleElement) {
+                    document.head.removeChild(styleElement);
+                }
+            };
+        }
+    }, []);
+
     const carregarFornecedores = async () => {
-        setLoadingListaFornecedores(true);
         try {
-            const fornecedores = await ApiService.buscarFornecedores();
-            setListaFornecedores(fornecedores);
+            console.log("Iniciando carregamento de fornecedores...");
+            setLoadingListaFornecedores(true);
+            
+            const resposta = await ApiService.buscarFornecedores();
+            console.log("Resposta da API de fornecedores:", resposta);
+            
+            let listaFornecedores = [];
+            
+            // Verificar o formato da resposta e extrair os fornecedores
+            if (resposta && Array.isArray(resposta.fornecedores)) {
+                console.log("Fornecedores recebidos como array dentro do objeto resposta");
+                listaFornecedores = resposta.fornecedores;
+            } else if (Array.isArray(resposta)) {
+                console.log("Fornecedores recebidos diretamente como array");
+                listaFornecedores = resposta;
+            } else if (resposta && typeof resposta === 'object') {
+                console.log("Tentando extrair fornecedores de formato desconhecido");
+                // Tentar extrair a lista de fornecedores de qualquer formato
+                const possiveisFornecedores = Object.values(resposta).filter(
+                    item => item && typeof item === 'object' && item.id !== undefined
+                );
+                
+                if (possiveisFornecedores.length > 0) {
+                    console.log("Fornecedores encontrados através de filtragem de objetos");
+                    listaFornecedores = possiveisFornecedores;
+                }
+            }
+            
+            console.log(`Total de ${listaFornecedores.length} fornecedores processados`);
+            
+            // Verificar conteúdo da lista para debug
+            if (listaFornecedores.length > 0) {
+                console.log("Exemplo do primeiro fornecedor:", listaFornecedores[0]);
+            } else {
+                console.warn("Nenhum fornecedor encontrado na resposta");
+            }
+            
+            setListaFornecedores(listaFornecedores);
         } catch (error) {
-            console.error('Erro ao carregar lista de fornecedores:', error);
+            console.error("Erro ao carregar fornecedores:", error);
+            setErrorFornecedor("Erro ao carregar fornecedores. Por favor, tente novamente.");
         } finally {
             setLoadingListaFornecedores(false);
         }
@@ -120,10 +220,31 @@ function PedidosDeServico() {
     const carregarPropostas = async () => {
         setLoadingPropostas(true);
         try {
-            const data = await ApiService.buscarPropostas();
-            setListaPropostas(data.propostas || []);
+            console.log("Iniciando carregamento de propostas para serviços...");
+            const resposta = await ApiService.buscarPropostas();
+            console.log("Resposta da API de propostas:", resposta);
+            
+            // Garantir que a resposta tenha um array de propostas
+            if (resposta && Array.isArray(resposta.propostas)) {
+                console.log("Propostas carregadas com sucesso:", resposta.propostas.length);
+                setListaPropostas(resposta.propostas);
+            } else {
+                console.warn("Formato inesperado na resposta de propostas:", resposta);
+                // Verificar se resposta é um array diretamente
+                if (Array.isArray(resposta)) {
+                    console.log("Usando array diretamente da resposta");
+                    setListaPropostas(resposta);
+                } else {
+                    // Tentar extrair propostas de qualquer formato de resposta
+                    const propostasExtraidas = resposta && typeof resposta === 'object' ? 
+                        Object.values(resposta).filter(item => item && typeof item === 'object') : [];
+                    console.log("Tentando extrair propostas manualmente:", propostasExtraidas.length);
+                    setListaPropostas(propostasExtraidas);
+                }
+            }
         } catch (error) {
-            console.error('Erro ao carregar propostas:', error);
+            console.error('Erro ao carregar propostas para serviços:', error);
+            setListaPropostas([]); // Garantir que mesmo com erro, temos uma lista vazia
         } finally {
             setLoadingPropostas(false);
         }
@@ -312,11 +433,31 @@ function PedidosDeServico() {
 
     const handleFornecedorSelectChange = (e) => {
         const selectedId = e.target.value;
+        console.log(`Fornecedor selecionado do dropdown: ID=${selectedId}`);
+        
         if (selectedId) {
             setFornecedorId(selectedId);
+            
+            // Verificar se temos os dados do fornecedor na lista carregada
+            const fornecedorSelecionado = listaFornecedores.find(
+                f => f.id && f.id.toString() === selectedId.toString()
+            );
+            
+            if (fornecedorSelecionado) {
+                console.log("Fornecedor encontrado na lista carregada:", fornecedorSelecionado);
+                // Usar dados da lista para preencher os campos
+                setFornecedorNome(fornecedorSelecionado.razao_social || '');
+                setCnpj(formatCNPJ(fornecedorSelecionado.cnpj || ''));
+                setEndereco(fornecedorSelecionado.endereco || '');
+                setCep(formatCEP(fornecedorSelecionado.cep || ''));
+                setContato(formatTelefone(fornecedorSelecionado.telefone || fornecedorSelecionado.celular || ''));
+                setErrorFornecedor('');
+            } else {
+                console.log("Fornecedor não encontrado na lista, buscando da API");
             // Acionar a busca de detalhes do fornecedor
             const event = { target: { value: selectedId } };
             handleFornecedorIdChange(event);
+            }
         } else {
             // Limpar os campos se nenhum fornecedor for selecionado
             setFornecedorId('');
@@ -325,16 +466,29 @@ function PedidosDeServico() {
             setEndereco('');
             setCep('');
             setContato('');
+            setErrorFornecedor('');
         }
     };
 
     const handlePropostaChange = (e) => {
         const propostaId = e.target.value;
+        console.log("Proposta selecionada ID:", propostaId);
         setCentroCusto(propostaId);
         
         if (propostaId) {
-            const proposta = listaPropostas.find(p => p.id === propostaId);
+            // Buscar a proposta pelo ID na lista carregada
+            const proposta = listaPropostas.find(p => 
+                p.id && p.id.toString() === propostaId.toString()
+            );
+            console.log("Proposta encontrada na lista:", proposta);
+            
+            if (proposta) {
             setPropostaSelecionada(proposta);
+            } else {
+                console.warn("Proposta não encontrada na lista com ID:", propostaId);
+                console.log("Lista de propostas disponíveis:", listaPropostas);
+                setPropostaSelecionada(null);
+            }
         } else {
             setPropostaSelecionada(null);
         }
@@ -342,47 +496,85 @@ function PedidosDeServico() {
 
     const handleGerarPedido = async () => {
         try {
-            const totalBruto = calcularTotalBruto();
-            const ipiTotal = calcularTotalIPI();
-            const totalDescontos = calcularTotalDescontos();
-            const totalFinal = calcularTotalFinal();
-
-            // Obtém valores dos campos adicionais específicos para serviços
+            console.log("Iniciando processo de geração de pedido de serviço...");
+            
+            // Validar campos obrigatórios
+            if (!fornecedorId) {
+                alert('Por favor, selecione um fornecedor');
+                return;
+            }
+            
+            if (itens.length === 0) {
+                alert('Por favor, adicione pelo menos um item ao pedido');
+                return;
+            }
+            
+            // Função para formatar e limitar valores numéricos
+            const formatarValorNumerico = (valor) => {
+                if (typeof valor === 'string') {
+                    // Remover símbolos de moeda e substituir vírgula por ponto
+                    valor = valor.replace(/[^\d,-]/g, '').replace(',', '.');
+                }
+                
+                // Converter para número
+                let numero = parseFloat(valor);
+                
+                // Verificar se é um número válido
+                if (isNaN(numero)) {
+                    console.warn('Valor não numérico encontrado:', valor);
+                    return 0;
+                }
+                
+                return numero;
+            };
+            
+            // Obter os dados das áreas de texto para responsabilidades
             const escopoContratacao = document.querySelector('[name="escopoContratacao"]')?.value || '';
-            const respContratada = document.querySelector('[name="respContratada"]')?.value || '';
-            const respContratante = document.querySelector('[name="respContratante"]')?.value || '';
-
-            // Formatar o pedido de serviço no formato esperado pelo backend
+            const respContratada = document.querySelector('[name="respContratada"]')?.value?.split(/\r?\n/).filter(item => item.trim() !== '') || [];
+            const respContratante = document.querySelector('[name="respContratante"]')?.value?.split(/\r?\n/).filter(item => item.trim() !== '') || [];
+            
+            // Valores comuns para todos os itens
+            const valorFrete = formatarValorNumerico(dadosPedido.valorFrete);
+            const outrasDespesas = formatarValorNumerico(dadosPedido.outrasDespesas);
+            
+            // Construir o objeto de itens com cada item como uma propriedade numerada
+            const itensObj = {};
+            
+            // Adicionar cada item do pedido como uma propriedade numerada no objeto itens
+            itens.forEach((item, index) => {
+                itensObj[index] = {
+                    descricao: item.descricao || '',
+                    unidade: item.unidade || 'hora',
+                    quantidade: formatarValorNumerico(item.quantidade),
+                    valor_total: formatarValorNumerico(item.valorTotal),
+                    desconto: formatarValorNumerico(item.desconto),
+                    valor_unitario: formatarValorNumerico(item.valorUnitario),
+                    ipi: formatarValorNumerico(item.ipi),
+                    unidades: formatarValorNumerico(item.quantidade),
+                    data_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0],
+                    valor_frete: valorFrete,
+                    outras_despesas: outrasDespesas,
+                    informacao_importante: dadosPedido.informacoesImportantes || '',
+                    condicao_pagamento: dadosPedido.condPagto || '30 dias',
+                    prazo_maximo: dadosPedido.prazoEntrega || new Date().toISOString().split('T')[0],
+                    escopo: escopoContratacao
+                };
+            });
+            
+            // Adicionar os arrays de afazer_contratante e afazer_contratada ao objeto itens
+            itensObj.afazer_contratante = respContratante;
+            itensObj.afazer_contratada = respContratada;
+            
+            // Formatar o pedido de serviço seguindo exatamente o formato especificado
             const pedidoServico = {
-                fornecedor_id: parseInt(fornecedorId),
+                fornecedor_id: parseInt(fornecedorId) || 1,
                 data_vencimento: document.querySelector('[name="dataVencto"]')?.value || new Date().toISOString().split('T')[0],
                 proposta_id: parseInt(centroCusto) || null,
-                itens: {
-                    materiais: itens.map((item, index) => ({
-                        item: index + 1,
-                        descricao: item.descricao,
-                        unidade: item.unidade,
-                        quantidade: parseFloat(item.quantidade.replace(',', '.')) || 0,
-                        ipi: parseFloat(item.ipi.replace(',', '.')) || 0,
-                        valor_unitario: parseFloat(item.valorUnitario.replace(',', '.')) || 0,
-                        valor_total: parseFloat(item.valorTotal.replace(',', '.')) || 0,
-                        desconto: parseFloat(item.desconto.replace(',', '.')) || 0,
-                        previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-                    })),
-                    total_bruto: parseFloat(totalBruto.replace(',', '.')) || 0,
-                    total_ipi: parseFloat(ipiTotal.replace(',', '.')) || 0,
-                    total_descontos: parseFloat(totalDescontos.replace(',', '.')) || 0,
-                    valor_frete: parseFloat(dadosPedido.valorFrete.replace(',', '.')) || 0,
-                    outras_despesas: parseFloat(dadosPedido.outrasDespesas.replace(',', '.')) || 0,
-                    total_final: parseFloat(totalFinal.replace(',', '.')) || 0,
-                    frete: dadosPedido.frete || 'CIF',
-                    condicao_pagamento: dadosPedido.condPagto || '30',
-                    informacoes_importantes: dadosPedido.informacoesImportantes || '',
-                    escopo_contratacao: escopoContratacao,
-                    responsabilidade_contratada: respContratada.split(/\r?\n/).filter(item => item.trim() !== ''),
-                    responsabilidade_contratante: respContratante.split(/\r?\n/).filter(item => item.trim() !== '')
-                }
+                clientinfo_id: propostaSelecionada?.client_info?.id ? parseInt(propostaSelecionada.client_info.id) : null,
+                itens: itensObj
             };
+
+            console.log("Dados formatados para envio:", pedidoServico);
 
             // Chamar o método específico para criar pedido de serviço
             const resultado = await ApiService.criarPedidoServico(pedidoServico);
@@ -420,7 +612,7 @@ function PedidosDeServico() {
             }
         } catch (error) {
             console.error('Erro ao gerar pedido:', error);
-            alert('Erro ao gerar pedido. Por favor, tente novamente.');
+            alert('Erro ao gerar pedido. Por favor, tente novamente. Detalhes: ' + error.message);
         }
     };
 

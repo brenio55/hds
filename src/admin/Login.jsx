@@ -101,7 +101,7 @@ function Login() {
       
       setNotification({ message: `Bem-vindo, ${userData.user.username}!`, type: "success" });
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/admin/dashboard");
       }, 1000);
     } catch (error) {
       console.error('Erro completo:', error);

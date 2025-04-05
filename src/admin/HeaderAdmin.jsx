@@ -8,7 +8,7 @@ function HeaderAdmin() {
 
     const handleLogout = () => {
         logout();
-        navigate('/');
+        navigate('/admin/login');
     };
 
     return (
@@ -16,15 +16,20 @@ function HeaderAdmin() {
             
             <div className="flex logo-container">
                 <div className="logo">
-                    <img src="/img/LOGO.png" alt="Logo" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }} />    
+                    <img src="/img/LOGO.png" alt="Logo" onClick={() => navigate('/admin/dashboard')} style={{ cursor: 'pointer' }} />    
                 </div>
                 <p>ERP - Sistema de Gestão</p>
             </div>
             <div className="user-info">
-                {adminUser && (
+                {adminUser ? (
                     <>
                         <span>Olá, {adminUser.username}</span>
                         <button onClick={handleLogout}>Sair</button>
+                    </>
+                ) : (
+                    <>
+                        <p>Você está ou foi desconectado, faça login novamente para continuar com o acesso ao sistema.</p>
+                        <button onClick={() => navigate('/admin/login')}>Login</button>
                     </>
                 )}
             </div>

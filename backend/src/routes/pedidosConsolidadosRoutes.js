@@ -18,4 +18,15 @@ const router = express.Router();
  */
 router.get('/', authMiddleware, PedidosConsolidadosController.findAll);
 
+/**
+ * @swagger
+ * /api/pedidos-consolidados/{proposta_id}:
+ *   get:
+ *     summary: Busca pedidos consolidados por ID da proposta
+ *     tags: [Pedidos Consolidados]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/:proposta_id', authMiddleware, PedidosConsolidadosController.findByPropostaId);
+
 module.exports = router; 

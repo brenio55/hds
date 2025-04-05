@@ -367,27 +367,27 @@
                 <table>
                     <tr>
                         <th>Total Bruto</th>
-                        <td>{{total_bruto}}</td>
+                        <td>{{formatMoney (sumNumericObjects itens 'valor_total')}}</td>
                     </tr>
                     <tr>
                         <th>Total IPI</th>
-                        <td>{{total_ipi}}</td>
+                        <td>{{formatMoney (sumNumericObjects itens 'ipi')}}</td>
                     </tr>
                     <tr>
                         <th>Total Descontos</th>
-                        <td>{{total_descontos}}</td>
+                        <td>{{formatPercent (avgNumericObjects itens 'desconto')}}</td>
                     </tr>
                     <tr>
                         <th>Frete</th>
-                        <td>{{valor_frete}}</td>
+                        <td>{{formatMoney frete}}</td>
                     </tr>
                     <tr>
                         <th>Outras Despesas</th>
-                        <td>{{outras_despesas}}</td>
+                        <td>{{formatMoney outras_despesas}}</td>
                     </tr>
                     <tr>
                         <th>Total Final</th>
-                        <td>{{total_final}}</td>
+                        <td>{{formatMoney (sumNumericObjects itens 'valor_total')}}</td>
                     </tr>
                 </table>
             </div>
@@ -395,7 +395,7 @@
                 <h2>CONDIÇÕES GERAIS</h2>
                 <table>
                     <tr>
-                        <td><strong>Condição de Pagamento:</strong> {{cond_pagto}}</td>
+                        <td><strong>Condição de Pagamento:</strong> {{cond_pagto}} DDL</td>
                     </tr>
                     <tr>
                         <td><strong>Prazo de Entrega:</strong> {{formatDate prazo_entrega}}</td>
@@ -408,7 +408,7 @@
         <table>
             <tr>
                 <td>
-                    <p>[Descrever aqui o escopo detalhado da locação, incluindo especificações técnicas do equipamento, período de locação, local de utilização, etc.]</p>
+                    <p>{{{informacoes_importantes}}}</p>
                 </td>
             </tr>
         </table>
@@ -444,12 +444,12 @@
             </tr>
         </table>
 
-        <h2>DADOS ADICIONAIS</h2>
+        <!-- <h2>DADOS ADICIONAIS</h2>
         <table>
             <tr>
-                <td>{{informacoes_importantes}}</td>
+                <td></td>
             </tr>
-        </table>
+        </table> -->
 
         <h2>MEDIÇÕES</h2>
         <table>
@@ -482,7 +482,7 @@
         <table>
             <tr>
                 <td>
-                    <p>Os faturamentos mensais da CONTRATADA serão autorizados pela CONTRATANTE e o pagamento será feito 10 dias após a data de emissão da Nota Fiscal.</p>
+                    <p>Os faturamentos mensais da CONTRATADA serão autorizados pela CONTRATANTE e o pagamento será feito {{cond_pagto}} após a data de emissão da Nota Fiscal.</p>
                     <p>Os pagamentos de locação serão efetuados através de depósito bancário e ou boleto na conta bancária de titularidade da CONTRATADA, conforme DADOS ADICIONAIS</p>
                 </td>
             </tr>
@@ -581,7 +581,7 @@
             </tr>
         </table>
 
-        <h2>Dados Adicionais</h2>
+        <!--h2>Dados Adicionais</h2>
         <table>
             <tr>
                 <td></td>
@@ -611,7 +611,7 @@
                     <p><strong>Multas e penalidades:</strong> Caso o FORNECEDOR incorra em descumprimento de quaisquer das cláusulas ou condições deste presente pedido de compra, este ficará sujeito, a critério da CONTRATANTE, ao pagamento de multa não compensatória equivalente a 10% (dez por cento) do valor total deste instrumento.</p>
                 </td>
             </tr>
-        </table>
+        </table-->
     </div>
 </body>
 </html> 
