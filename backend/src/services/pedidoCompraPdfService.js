@@ -106,12 +106,43 @@ class PedidoCompraPdfService {
         return sum / numericKeys.length;
       });
 
+      // Helper para somar múltiplos valores
+      handlebars.registerHelper('sum', function(...args) {
+        // Remove o último argumento que é o objeto do Handlebars
+        const numbers = args.slice(0, -1);
+        
+        return numbers.reduce((total, num) => {
+          // Converte para número e soma, tratando valores nulos/undefined como 0
+          return total + (Number(num) || 0);
+        }, 0);
+      });
+
+      // Helper para calcular o total final com IPI e desconto
+      handlebars.registerHelper('total_final', function(total_bruto, ipi_percent, desconto_percent, frete, despesas_adicionais) {
+        // Converte todos os valores para número, tratando nulos como 0
+        const valorBruto = Number(total_bruto) || 0;
+        const ipi = Number(ipi_percent) || 0;
+        const desconto = Number(desconto_percent) || 0;
+        const valorFrete = Number(frete) || 0;
+        const valorDespesas = Number(despesas_adicionais) || 0;
+        
+        // Calcula o valor do IPI
+        const valorIPI = valorBruto / (ipi / 100);
+        
+        // Calcula o valor do desconto
+        const valorDesconto = valorBruto * (desconto / 100);
+        
+        // Soma todos os valores (incluindo IPI e subtraindo desconto)
+        const total = valorBruto + valorIPI - valorDesconto + valorFrete + valorDespesas;
+        
+        return total;
+      });
+
       // Calcular total bruto
-      const totalBruto = pedidoData.materiais.reduce((acc, item) => acc + item.valor_total, 0);
+      const totalBruto = pedidoData.materiais.reduce((acc, item) => acc + Number(item.valor_total || 0), 0);
 
       // Ajustar o cálculo do total final
-      const totalFinal = totalBruto - 
-        parseFloat(pedidoData.desconto || 0) + 
+      const totalFinal = totalBruto + 
         parseFloat(pedidoData.valor_frete || 0) + 
         parseFloat(pedidoData.despesas_adicionais || 0);
 
