@@ -388,7 +388,7 @@
                 <td>{{this.quantidade}}</td>
                 <td>{{this.valor_unitario}}</td>
                 <td>{{this.valor_total}}</td>
-                <td>{{this.desconto}}</td>
+                <td>{{formatPercent this.desconto}}</td>
                 <td>{{formatDate this.previsao_entrega}}</td>
             </tr>
             {{/each}}
