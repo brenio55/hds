@@ -324,7 +324,7 @@
                 <table>
                     <tr>
                         <th>IPI:</th>
-                        <td class="valor-celula">{{formatPercent (avgNumericObjects itens 'ipi')}}</td>
+                        <td class="valor-celula">{{formatPercent (sumNumericObjects itens 'ipi')}}</td>
                     </tr>
                     <tr>
                         <th>Frete:</th>
@@ -336,11 +336,20 @@
                     </tr>
                     <tr>
                         <th>Desconto:</th>
-                        <td class="valor-celula">{{formatPercent (avgNumericObjects itens 'desconto')}}</td>
+                        <td class="valor-celula">{{formatPercent (sumNumericObjects itens 'desconto')}}</td>
                     </tr>
                     <tr>
-                        <th>Total Final:</th>
+                        <th>Total Bruto:</th>
                         <td class="valor-celula"><strong>{{formatMoney (sumNumericObjects itens 'valor_total')}}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Total Final</th>
+                        <td>{{formatMoney (total_final 
+                            (sumNumericObjects itens 'valor_total')
+                            (avgNumericObjects itens 'ipi')
+                            (avgNumericObjects itens 'desconto')
+                            itens.valor_frete 
+                            itens.despesas_adicionais)}}</td>
                     </tr>
                 </table>
             </div>

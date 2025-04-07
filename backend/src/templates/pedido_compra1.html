@@ -322,7 +322,7 @@
             <h2>DADOS DO FORNECEDOR</h2>
         <table class="info-table">
                 <tr>
-                <td colspan="2"><span class="label">Empresa:</span> {{fornecedor.nome}}</td>
+                <td colspan="2"><span class="label">Empresa:</span> {{fornecedor.razao_social}}</td>
                 <td colspan="2"><span class="label">CNPJ:</span> {{fornecedor.cnpj}}</td>
                 <td colspan="2"><span class="label">Inscrição Estadual:</span> {{fornecedor.inscricao_estadual}}</td>
                 <td colspan="2"><span class="label">Inscrição Municipal:</span> {{fornecedor.inscricao_municipal}}</td>
@@ -364,7 +364,7 @@
         <table class="details-table">
             <tr>
                 <td>Centro de Custo:</td>
-                <td>{{descricao}}</td>
+                <td>#{{pedidoData.fornecedores_id}} {{this.descricao}}</td>
             </tr>
         </table>
 
@@ -388,8 +388,8 @@
                 <td>{{this.quantidade}}</td>
                 <td>{{this.valor_unitario}}</td>
                 <td>{{this.valor_total}}</td>
-                <td>{{this.progresso}}</td>
-                <td>{{formatDate this.data_entrega}}</td>
+                <td>{{formatPercent this.desconto}}</td>
+                <td>{{formatDate this.previsao_entrega}}</td>
             </tr>
             {{/each}}
         </table>
@@ -399,20 +399,33 @@
                 <h2>Totais</h2>
                 <table>
                     <tr>
+                        <th>Total IPI</th>
+                        <td>{{formatPercent (avgNumericObjects pedidoData.materiais 'ipi')}}</td>
+                    </tr>
+                    <tr>
                         <th>Descontos</th>
                         <td>{{formatPercent (avgNumericObjects pedidoData.materiais 'desconto')}}</td>
                     </tr>
                     <tr>
                         <th>Frete</th>
-                        <td>{{formatMoney pedidoData.valor_frete}}</td>
+                        <td>{{formatMoney (sumNumericObjects pedidoData.valor_frete)}}</td>
                     </tr>
                     <tr>
                         <th>Outras Despesas</th>
-                        <td>{{formatMoney pedidoData.despesas_adicionais}}</td>
+                        <td>{{formatMoney (sumNumericObjects pedidoData.despesas_adicionais)}}</td>
                     </tr>   
                     <tr>
-                        <th>Total Final</th>
+                        <th>Total Bruto</th>
                         <td>{{formatMoney (sumNumericObjects pedidoData.materiais 'valor_total')}}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Final</th>
+                        <td>{{formatMoney (total_final 
+                            (sumNumericObjects pedidoData.materiais 'valor_total')
+                            (avgNumericObjects pedidoData.materiais 'ipi')
+                            (avgNumericObjects pedidoData.materiais 'desconto')
+                            pedidoData.valor_frete 
+                            pedidoData.despesas_adicionais)}}</td>
                     </tr>
                 </table>
             </div>

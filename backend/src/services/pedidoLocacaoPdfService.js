@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const FornecedorModel = require('../models/fornecedorModel');
+const { registerPdfHelpers } = require('./pdfHelpers');
 
 class PedidoLocacaoPdfService {
   static async imageToBase64(imagePath) {
@@ -37,12 +38,8 @@ class PedidoLocacaoPdfService {
       console.log('Caminho do logo:', logoHorizontalPath);
       const logoHorizontalSrc = await this.imageToBase64(logoHorizontalPath);
 
-      // Registra helper para formatar data
-      handlebars.registerHelper('formatDate', function(date) {
-        if (!date) return '';
-        const d = new Date(date);
-        return d.toLocaleDateString('pt-BR');
-      });
+      // Registra os helpers globais
+      registerPdfHelpers();
 
       // Prepara os dados
       const data = {

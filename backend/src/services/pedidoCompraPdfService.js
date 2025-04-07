@@ -4,13 +4,14 @@ const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../config/database');
+const { registerPdfHelpers } = require('./pdfHelpers');
 
 class PedidoCompraPdfService {
   static async imageToBase64(imagePath) {
     try {
       const imageBuffer = await fs.readFile(imagePath);
       const base64Image = imageBuffer.toString('base64');
-      const mimeType = 'image/png'; // Ajuste conforme o tipo da imagem
+      const mimeType = 'image/png';
       return `data:${mimeType};base64,${base64Image}`;
     } catch (error) {
       console.error('Erro ao converter imagem para base64:', error);
@@ -45,73 +46,14 @@ class PedidoCompraPdfService {
       const logoPath = path.join(__dirname, '../imgs/logo_horizontal.png');
       const logoBase64 = await this.imageToBase64(logoPath);
 
-      // Helper para formatar datas
-      handlebars.registerHelper('formatDate', (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR');
-      });
-
-      // Helper para formatar valores monetários
-      handlebars.registerHelper('formatMoney', (value) => {
-        if (!value && value !== 0) return '';
-        return new Intl.NumberFormat('pt-BR', {
-          style: 'currency',
-          currency: 'BRL'
-        }).format(Number(value));
-      });
-
-      // Helper para formatar percentuais
-      handlebars.registerHelper('formatPercent', function(value) {
-        if (!value && value !== 0) return '';
-        return `${Number(value).toFixed(2)}%`;
-      });
-
-      // Registrar helpers para cálculos de totais e médias
-      handlebars.registerHelper('sumNumericObjects', function(obj, field) {
-        if (!obj) return 0;
-        
-        // Se for um array
-        if (Array.isArray(obj)) {
-          return obj.reduce((sum, item) => sum + (Number(item[field]) || 0), 0);
-        }
-        
-        // Se for um objeto com chaves numéricas
-        const numericKeys = Object.keys(obj).filter(key => !isNaN(key));
-        return numericKeys.reduce((sum, key) => {
-          const value = obj[key][field];
-          return sum + (Number(value) || 0);
-        }, 0);
-      });
-
-      handlebars.registerHelper('avgNumericObjects', function(obj, field) {
-        if (!obj) return 0;
-        
-        // Se for um array
-        if (Array.isArray(obj)) {
-          if (obj.length === 0) return 0;
-          const sum = obj.reduce((acc, item) => acc + (Number(item[field]) || 0), 0);
-          return sum / obj.length;
-        }
-        
-        // Se for um objeto com chaves numéricas
-        const numericKeys = Object.keys(obj).filter(key => !isNaN(key));
-        if (numericKeys.length === 0) return 0;
-        
-        const sum = numericKeys.reduce((acc, key) => {
-          const value = obj[key][field];
-          return acc + (Number(value) || 0);
-        }, 0);
-        
-        return sum / numericKeys.length;
-      });
+      // Registra os helpers globais
+      registerPdfHelpers();
 
       // Calcular total bruto
-      const totalBruto = pedidoData.materiais.reduce((acc, item) => acc + item.valor_total, 0);
+      const totalBruto = pedidoData.materiais.reduce((acc, item) => acc + Number(item.valor_total || 0), 0);
 
-      // Ajustar o cálculo do total final
-      const totalFinal = totalBruto - 
-        parseFloat(pedidoData.desconto || 0) + 
+      // Ajustar o cálculo do total final usando o helper global
+      const totalFinal = totalBruto + 
         parseFloat(pedidoData.valor_frete || 0) + 
         parseFloat(pedidoData.despesas_adicionais || 0);
 
@@ -131,7 +73,7 @@ class PedidoCompraPdfService {
         logoSrc: logoBase64,
         pedidoData: {
           ...pedidoData,
-          centro_custo: descricaoProposta || 'Não especificado' // Usar a descrição da proposta como centro de custo
+          centro_custo: descricaoProposta || 'Não especificado'
         },
         descricao: propostaData.descricao,
         dataEmissao: new Date(pedidoData.created_at).toLocaleDateString('pt-BR'),
