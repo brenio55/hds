@@ -355,7 +355,7 @@
                 <td>{{this.ipi}}</td>
                 <td>{{this.valor_unitario}}</td>
                 <td>{{this.valor_total}}</td>
-                <td>{{this.desconto}}</td>
+                <td>{{formatPercent this.desconto}}</td>
                 <td>{{formatDate this.previsao_entrega}}</td>
             </tr>
             {{/each}}
@@ -371,7 +371,7 @@
                     </tr>
                     <tr>
                         <th>Total IPI</th>
-                        <td>{{formatMoney (sumNumericObjects itens 'ipi')}}</td>
+                        <td>{{formatPercent (avgNumericObjects itens 'ipi')}}</td>
                     </tr>
                     <tr>
                         <th>Total Descontos</th>
@@ -387,7 +387,12 @@
                     </tr>
                     <tr>
                         <th>Total Final</th>
-                        <td>{{formatMoney (sumNumericObjects itens 'valor_total')}}</td>
+                        <td>{{formatMoney (total_final 
+                            (sumNumericObjects itens 'valor_total')
+                            (avgNumericObjects itens 'ipi')
+                            (avgNumericObjects itens 'desconto')
+                            frete
+                            outras_despesas)}}</td>
                     </tr>
                 </table>
             </div>
