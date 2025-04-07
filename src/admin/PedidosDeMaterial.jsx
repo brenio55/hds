@@ -90,6 +90,9 @@ function PedidosDeMaterial() {
     const [loadingPropostas, setLoadingPropostas] = useState(false);
     const [centroCusto, setCentroCusto] = useState('');
     const [propostaSelecionada, setPropostaSelecionada] = useState(null);
+    // Novos estados para controlar o carregamento dos botões
+    const [loadingGerarPedido, setLoadingGerarPedido] = useState(false);
+    const [loadingVisualizarPdf, setLoadingVisualizarPdf] = useState(false);
 
     const dadosTeste = {
         codigo: '001',
@@ -354,6 +357,7 @@ function PedidosDeMaterial() {
     const handleGerarPedido = async () => {
         try {
             console.log("Iniciando processo de geração de pedido de material...");
+            setLoadingGerarPedido(true);
 
             // Validação dos campos obrigatórios
             if (!fornecedorId) {
@@ -480,12 +484,24 @@ function PedidosDeMaterial() {
             
             // Adicionar evento para visualizar o PDF
             if (resultado && resultado.id) {
-                document.getElementById('viewPdfButton').addEventListener('click', async () => {
+                const viewPdfButton = document.getElementById('viewPdfButton');
+                viewPdfButton.addEventListener('click', async () => {
                     try {
+                        // Desabilitar o botão e mostrar o spinner
+                        viewPdfButton.disabled = true;
+                        viewPdfButton.innerHTML = `
+                            <span class="spinner"></span>
+                            Carregando PDF...
+                        `;
+                        
                         await ApiService.visualizarPedidoPdf(resultado.id);
-        } catch (error) {
+                    } catch (error) {
                         console.error('Erro ao visualizar PDF de material:', error);
                         alert('Erro ao visualizar o PDF. Tente novamente mais tarde.');
+                        
+                        // Restaurar o botão em caso de erro
+                        viewPdfButton.disabled = false;
+                        viewPdfButton.innerHTML = 'Visualizar PDF';
                     }
                 });
             }
@@ -493,6 +509,8 @@ function PedidosDeMaterial() {
         } catch (error) {
             console.error('Erro ao gerar pedido de material:', error);
             alert('Erro ao gerar pedido de material. Por favor, verifique os dados e tente novamente. Detalhes: ' + error.message);
+        } finally {
+            setLoadingGerarPedido(false);
         }
     };
 
@@ -1020,7 +1038,16 @@ function PedidosDeMaterial() {
                         </label>
                     </div>
 
-                    <button type="submit">Gerar Pedido</button>
+                    <button type="submit" disabled={loadingGerarPedido}>
+                        {loadingGerarPedido ? (
+                            <>
+                                <span className="spinner"></span>
+                                Gerando Pedido...
+                            </>
+                        ) : (
+                            'Gerar Pedido'
+                        )}
+                    </button>
                 </form>
             </div>
         </>

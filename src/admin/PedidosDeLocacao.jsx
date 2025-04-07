@@ -90,6 +90,9 @@ function PedidosDeLocacao() {
     const [loadingPropostas, setLoadingPropostas] = useState(false);
     const [centroCusto, setCentroCusto] = useState('');
     const [propostaSelecionada, setPropostaSelecionada] = useState(null);
+    // Novos estados para controlar o carregamento dos botões
+    const [loadingGerarPedido, setLoadingGerarPedido] = useState(false);
+    const [loadingVisualizarPdf, setLoadingVisualizarPdf] = useState(false);
 
     const dadosTeste = {
         codigo: '001',
@@ -476,6 +479,7 @@ function PedidosDeLocacao() {
     const handleGerarPedido = async () => {
         try {
             console.log("Iniciando processo de geração de pedido de locação...");
+            setLoadingGerarPedido(true);
             
             // Função para formatar e limitar valores numéricos
             const formatarValorNumerico = (valor) => {
@@ -576,18 +580,32 @@ function PedidosDeLocacao() {
             
             // Adicionar evento para visualizar o PDF
             if (resultado && resultado.id) {
-                document.getElementById('viewPdfButton').addEventListener('click', async () => {
+                const viewPdfButton = document.getElementById('viewPdfButton');
+                viewPdfButton.addEventListener('click', async () => {
                     try {
+                        // Desabilitar o botão e mostrar o spinner
+                        viewPdfButton.disabled = true;
+                        viewPdfButton.innerHTML = `
+                            <span class="spinner"></span>
+                            Carregando PDF...
+                        `;
+                        
                         await ApiService.visualizarPedidoLocacaoPdf(resultado.id);
                     } catch (error) {
                         console.error('Erro ao visualizar PDF:', error);
                         alert('Erro ao visualizar o PDF. Tente novamente mais tarde.');
+                        
+                        // Restaurar o botão em caso de erro
+                        viewPdfButton.disabled = false;
+                        viewPdfButton.innerHTML = 'Visualizar PDF';
                     }
                 });
             }
         } catch (error) {
             console.error('Erro ao gerar pedido de locação:', error);
             alert('Erro ao gerar pedido de locação. Por favor, tente novamente. Detalhes: ' + error.message);
+        } finally {
+            setLoadingGerarPedido(false);
         }
     };
 
@@ -967,7 +985,16 @@ function PedidosDeLocacao() {
                         </div>
                     </div>
 
-                    <button type="submit">Gerar Pedido</button>
+                    <button type="submit" disabled={loadingGerarPedido}>
+                        {loadingGerarPedido ? (
+                            <>
+                                <span className="spinner"></span>
+                                Gerando Pedido...
+                            </>
+                        ) : (
+                            'Gerar Pedido'
+                        )}
+                    </button>
                 </form>
             </div>
         </>
