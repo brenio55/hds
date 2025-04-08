@@ -194,58 +194,69 @@ function ConsultarCentroCusto() {
                         </button>
                     </div>
                     
+                    {loading && (
+                        <div className="loading-message">
+                            <p>Carregando dados, por favor aguarde...</p>
+                        </div>
+                    )}
+                    
+                    {!loading && !centroCusto && !error && (
+                        <div className="instrucoes-message">
+                            <p>Selecione um centro de custo para visualizar os dados detalhados.</p>
+                        </div>
+                    )}
+                    
                     {centroCusto && (
                         <div className="resultado-container">
-                            <div className="resumo-box">
-                                <h2>Resumo do Centro de Custo #{centroCusto.proposta_id}</h2>
-                                
-                                <div className="resumo-grid">
-                                    <div className="resumo-item">
-                                        <h3>Valor da Proposta</h3>
-                                        <p className="valor">{formatarValor(centroCusto.valor_proposta)}</p>
-                                    </div>
-                                    
-                                    <div className="resumo-item">
-                                        <h3>Valor Total em Pedidos</h3>
-                                        <p className="valor">{formatarValor(centroCusto.valor_somado)}</p>
-                                    </div>
-                                    
-                                    <div className="resumo-item">
-                                        <h3>Pedidos de Compra</h3>
-                                        <p>
-                                            <span className="contador">{calcularTotalPedidos(centroCusto.pedidos.compra)}</span>
-                                            <span className="valor">{formatarValor(centroCusto.valor_pedidos.compra)}</span>
-                                        </p>
-                                    </div>
-                                    
-                                    <div className="resumo-item">
-                                        <h3>Pedidos de Locação</h3>
-                                        <p>
-                                            <span className="contador">{calcularTotalPedidos(centroCusto.pedidos.locacao)}</span>
-                                            <span className="valor">{formatarValor(centroCusto.valor_pedidos.locacao)}</span>
-                                        </p>
-                                    </div>
-                                    
-                                    <div className="resumo-item">
-                                        <h3>Pedidos de Serviço</h3>
-                                        <p>
-                                            <span className="contador">{calcularTotalPedidos(centroCusto.pedidos.servico)}</span>
-                                            <span className="valor">{formatarValor(centroCusto.valor_pedidos.servico)}</span>
-                                        </p>
-                                    </div>
-                                    
-                                    <div className="resumo-item">
-                                        <h3>Saldo</h3>
-                                        <p className="valor">{formatarValor(parseFloat(centroCusto.valor_proposta) - centroCusto.valor_somado)}</p>
-                                    </div>
+                            <h2>Resumo do Centro de Custo</h2>
+                            <div className="resumo-container">
+                                <div className="resumo-item">
+                                    <h4>Valor da Proposta</h4>
+                                    <span className="valor">
+                                        {formatarValor(centroCusto.valor_proposta)}
+                                    </span>
+                                </div>
+
+                                <div className="resumo-item">
+                                    <h4>Valor Total em Pedidos</h4>
+                                    <span className="valor">
+                                        {formatarValor(centroCusto.valor_somado)}
+                                    </span>
+                                </div>
+
+                                <div className="resumo-item">
+                                    <h4>Pedidos de Compra</h4>
+                                    <span className="valor">
+                                        {formatarValor(centroCusto.valor_pedidos.compra)}
+                                    </span>
+                                </div>
+
+                                <div className="resumo-item">
+                                    <h4>Pedidos de Locação</h4>
+                                    <span className="valor">
+                                        {formatarValor(centroCusto.valor_pedidos.locacao)}
+                                    </span>
+                                </div>
+
+                                <div className="resumo-item">
+                                    <h4>Pedidos de Serviço</h4>
+                                    <span className="valor">
+                                        {formatarValor(centroCusto.valor_pedidos.servico)}
+                                    </span>
+                                </div>
+
+                                <div className="resumo-item">
+                                    <h4>Saldo Restante</h4>
+                                    <span className="valor">
+                                        {formatarValor(parseFloat(centroCusto.valor_proposta) - centroCusto.valor_somado)}
+                                    </span>
                                 </div>
                             </div>
-                            
-                            {/* Seção de Pedidos de Compra */}
-                            {centroCusto.pedidos.compra && centroCusto.pedidos.compra.length > 0 && (
-                                <div className="pedidos-section">
-                                    <h2>Pedidos de Compra</h2>
-                                    <div className="table-container">
+
+                            <div className="pedidos-container">
+                                {centroCusto.pedidos.compra && centroCusto.pedidos.compra.length > 0 && (
+                                    <div>
+                                        <h3>Pedidos de Compra</h3>
                                         <table className="itens-table">
                                             <thead>
                                                 <tr>
@@ -274,14 +285,11 @@ function ConsultarCentroCusto() {
                                             </tbody>
                                         </table>
                                     </div>
-                                </div>
-                            )}
-                            
-                            {/* Seção de Pedidos de Locação */}
-                            {centroCusto.pedidos.locacao && centroCusto.pedidos.locacao.length > 0 && (
-                                <div className="pedidos-section">
-                                    <h2>Pedidos de Locação</h2>
-                                    <div className="table-container">
+                                )}
+
+                                {centroCusto.pedidos.locacao && centroCusto.pedidos.locacao.length > 0 && (
+                                    <div>
+                                        <h3>Pedidos de Locação</h3>
                                         <table className="itens-table">
                                             <thead>
                                                 <tr>
@@ -301,14 +309,11 @@ function ConsultarCentroCusto() {
                                             </tbody>
                                         </table>
                                     </div>
-                                </div>
-                            )}
-                            
-                            {/* Seção de Pedidos de Serviço */}
-                            {centroCusto.pedidos.servico && centroCusto.pedidos.servico.length > 0 && (
-                                <div className="pedidos-section">
-                                    <h2>Pedidos de Serviço</h2>
-                                    <div className="table-container">
+                                )}
+
+                                {centroCusto.pedidos.servico && centroCusto.pedidos.servico.length > 0 && (
+                                    <div>
+                                        <h3>Pedidos de Serviço</h3>
                                         <table className="itens-table">
                                             <thead>
                                                 <tr>
@@ -349,20 +354,16 @@ function ConsultarCentroCusto() {
                                             </tbody>
                                         </table>
                                     </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                    
-                    {loading && (
-                        <div className="loading-message">
-                            <p>Carregando dados, por favor aguarde...</p>
-                        </div>
-                    )}
-                    
-                    {!loading && !centroCusto && !error && (
-                        <div className="instrucoes-message">
-                            <p>Selecione um centro de custo para visualizar os dados detalhados.</p>
+                                )}
+                                
+                                {(!centroCusto.pedidos.compra || centroCusto.pedidos.compra.length === 0) && 
+                                  (!centroCusto.pedidos.locacao || centroCusto.pedidos.locacao.length === 0) && 
+                                  (!centroCusto.pedidos.servico || centroCusto.pedidos.servico.length === 0) && (
+                                    <div className="sem-itens">
+                                        Não há pedidos associados a este centro de custo.
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
