@@ -21,6 +21,7 @@ import FaturarPedido from './admin/GerenciamentoDePedidos/FaturarPedido';
 import ConsultarFaturamentos from './admin/GerenciamentoDePedidos/ConsultarFaturamentos';
 import RCReembolso from './admin/Financeiro/RCReembolso';
 import RCAluguel from './admin/Financeiro/RCAluguel';
+import ConsultarCentroCusto from './admin/Financeiro/ConsultarCentroCusto';
 import CadastrarFuncionario from './admin/CadastrarFuncionario';
 import ConsultarFuncionarios from './admin/ConsultarFuncionarios';
 
@@ -50,6 +51,7 @@ function AppRoutes() {
         <Route path="/admin/consultarFaturamentos" element={<ConsultarFaturamentos />} />
         <Route path="/admin/rcReembolso" element={<RCReembolso />} />
         <Route path="/admin/rcAluguel" element={<RCAluguel />} />
+        <Route path="/admin/consultarCentroCusto" element={<ConsultarCentroCusto />} />
         <Route path="/admin/cadastrarFuncionario" element={<CadastrarFuncionario />} />
         <Route path="/admin/consultarFuncionarios" element={<ConsultarFuncionarios />} />
       </Routes>

@@ -1795,6 +1795,56 @@ class ApiService {
             throw error;
         }
     }
+
+    /**
+     * Busca dados de centro de custo por ID da proposta
+     * @param {number} id - ID da proposta/centro de custo
+     * @returns {Promise<Object>} - Dados do centro de custo e seus pedidos
+     */
+    static async buscarCentroCusto(id) {
+        try {
+            console.log(`ApiService: Buscando centro de custo ID ${id}`);
+            
+            const url = `${API_URL}/api/pedidos-consolidados/${id}`;
+            console.log(`ApiService: URL da requisição: ${url}`);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders(),
+                method: 'GET'
+            });
+
+            if (!response.ok) {
+                console.error(`ApiService: Erro na resposta (status ${response.status}): ${response.statusText}`);
+                throw new Error(`Erro ao buscar centro de custo: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`ApiService: Dados do centro de custo obtidos com sucesso.`);
+            
+            return data;
+        } catch (error) {
+            console.error(`ApiService: Erro ao buscar centro de custo ID ${id}:`, error);
+            
+            // Retornar objeto estruturado mesmo em caso de erro
+            return {
+                proposta_id: id,
+                valor_proposta: "0.00",
+                valor_somado: 0,
+                valor_pedidos: {
+                    compra: 0,
+                    locacao: 0,
+                    servico: 0
+                },
+                pedidos: {
+                    compra: [],
+                    locacao: [],
+                    servico: []
+                },
+                erro: true,
+                mensagem: error.message
+            };
+        }
+    }
 }
 
 export default ApiService; 

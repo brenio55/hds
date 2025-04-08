@@ -43,7 +43,7 @@ function Dashboard(){
                         <h2>Financeiro - Registro e Consulta</h2>
                         <div className="service-buttons"> 
                             <div className="serviceButton">Relatório Geral de Centros de Custo</div>
-                            <div className="serviceButton">Consultar Custo de Obra de Centro de Custo</div>
+                            <div className="serviceButton working" onClick={() => handleNavigation('/admin/consultarCentroCusto')}>Consultar Custo de Obra de Centro de Custo</div>
                             <div className="serviceButton working" onClick={() => handleNavigation('/admin/rcAluguel')}>RC - Aluguel de Casas</div>
                             <div className="serviceButton working" onClick={() => handleNavigation('/admin/rcReembolso')}>RC - Reembolso Funcionário</div>
                         
