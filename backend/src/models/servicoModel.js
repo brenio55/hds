@@ -21,22 +21,52 @@ class ServicoModel {
       processedItens = items.map(item => {
         const valor_total = parseFloat(item.valor_total) || 0;
         const desconto = parseFloat(item.desconto) || 0;
-        const valor_final = valor_total * (1 - (desconto / 100));
+        const valor_frete = parseFloat(item.valor_frete) || 0;
+        const outras_despesas = parseFloat(item.outras_despesas) || 0;
+        
+        // Calculate valor_final: apply discount to valor_total, add freight and outras_despesas
+        const valor_final = (valor_total * (1 - (desconto / 100))) + valor_frete + outras_despesas;
         total += valor_final;
+        
         return { ...item, valor_final };
       });
     } else if (typeof items === 'object') {
       // Handle object with numeric keys
       processedItens = {};
+      
+      // Process numeric keys (items)
       Object.entries(items).forEach(([key, item]) => {
-        if (item && typeof item === 'object' && 'valor_total' in item) {
+        if (key.match(/^[0-9]+$/) && item && typeof item === 'object' && 'valor_total' in item) {
           const valor_total = parseFloat(item.valor_total) || 0;
           const desconto = parseFloat(item.desconto) || 0;
-          const valor_final = valor_total * (1 - (desconto / 100));
+          const valor_frete = parseFloat(item.valor_frete) || 0;
+          const outras_despesas = parseFloat(item.outras_despesas) || 0;
+          
+          // Calculate valor_final: apply discount to valor_total, add freight and outras_despesas
+          const valor_final = (valor_total * (1 - (desconto / 100))) + valor_frete + outras_despesas;
           total += valor_final;
+          
           processedItens[key] = { ...item, valor_final };
+        } else {
+          // Copy non-numeric keys as is (like afazer_contratada, afazer_contratante, informacao_importante)
+          processedItens[key] = item;
         }
       });
+      
+      // Ensure afazer arrays exist
+      if (!processedItens.afazer_contratada) {
+        processedItens.afazer_contratada = [
+          "- Fazer o que esta acordado em contrato",
+          "- Ser responsavel"
+        ];
+      }
+      
+      if (!processedItens.afazer_contratante) {
+        processedItens.afazer_contratante = [
+          "- Ser responsavel",
+          "- cumprir acordo"
+        ];
+      }
     }
     
     return { processedItens, total };
