@@ -364,11 +364,11 @@
                     </tr>
                     <tr>
                         <th>Frete:</th>
-                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_frete')}}</td>
+                        <td class="valor-celula">{{formatMoney (getFirstNonZeroValue itens 'valor_frete')}}</td>
                     </tr>
                     <tr>
                         <th>Outras Despesas:</th>
-                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'outras_despesas')}}</td>
+                        <td class="valor-celula">{{formatMoney (getFirstNonZeroValue itens 'outras_despesas')}}</td>
                     </tr>
                     <tr>
                         <th>Desconto (sobre Produtos + IPI):</th>
