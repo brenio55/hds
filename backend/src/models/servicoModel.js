@@ -8,7 +8,11 @@ class ServicoModel {
    */
   static calculateValues(itens) {
     let total = 0;
+    let totalFrete = 0;
+    let totalOutrasDespesas = 0;
     let processedItens = itens;
+    let freteDefined = false;
+    let outrasDespesasDefined = false;
     
     if (!itens) {
       return { processedItens: {}, total: 0 };
@@ -27,6 +31,17 @@ class ServicoModel {
         const valor_frete = parseFloat(item.valor_frete) || 0;
         const outras_despesas = parseFloat(item.outras_despesas) || 0;
         
+        // Registramos o valor do frete e outras despesas apenas se ainda não definidos
+        if (!freteDefined && valor_frete > 0) {
+          totalFrete = valor_frete;
+          freteDefined = true;
+        }
+        
+        if (!outrasDespesasDefined && outras_despesas > 0) {
+          totalOutrasDespesas = outras_despesas;
+          outrasDespesasDefined = true;
+        }
+        
         // Calcular valor do IPI
         const valor_ipi = valor_total * (ipi / 100);
         
@@ -36,9 +51,10 @@ class ServicoModel {
         // Calcular desconto sobre (PRODUTOS + IPI)
         const valor_desconto = valor_com_ipi * (desconto / 100);
         
-        // Calcular valor final: (PRODUTOS + IPI) + FRETE + OUTRAS DESPESAS - DESCONTO
-        const valor_final = valor_com_ipi + valor_frete + outras_despesas - valor_desconto;
+        // Calcular valor final: (PRODUTOS + IPI) - DESCONTO (sem contar frete e outras despesas)
+        const valor_final = valor_com_ipi - valor_desconto;
         
+        // Somamos o valor_final ao total
         total += valor_final;
         
         return { 
@@ -67,6 +83,17 @@ class ServicoModel {
           const valor_frete = parseFloat(item.valor_frete) || 0;
           const outras_despesas = parseFloat(item.outras_despesas) || 0;
           
+          // Registramos o valor do frete e outras despesas apenas se ainda não definidos
+          if (!freteDefined && valor_frete > 0) {
+            totalFrete = valor_frete;
+            freteDefined = true;
+          }
+          
+          if (!outrasDespesasDefined && outras_despesas > 0) {
+            totalOutrasDespesas = outras_despesas;
+            outrasDespesasDefined = true;
+          }
+          
           // Calcular valor do IPI
           const valor_ipi = valor_total * (ipi / 100);
           
@@ -76,9 +103,10 @@ class ServicoModel {
           // Calcular desconto sobre (PRODUTOS + IPI)
           const valor_desconto = valor_com_ipi * (desconto / 100);
           
-          // Calcular valor final: (PRODUTOS + IPI) + FRETE + OUTRAS DESPESAS - DESCONTO
-          const valor_final = valor_com_ipi + valor_frete + outras_despesas - valor_desconto;
+          // Calcular valor final: (PRODUTOS + IPI) - DESCONTO (sem contar frete e outras despesas)
+          const valor_final = valor_com_ipi - valor_desconto;
           
+          // Somamos o valor_final ao total
           total += valor_final;
           
           processedItens[key] = { 
@@ -109,6 +137,9 @@ class ServicoModel {
         ];
       }
     }
+    
+    // Adicionar frete e outras despesas ao total final (apenas uma vez)
+    total += totalFrete + totalOutrasDespesas;
     
     return { processedItens, total };
   }

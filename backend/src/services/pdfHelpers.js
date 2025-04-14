@@ -98,6 +98,38 @@ function registerPdfHelpers() {
       return total + (Number(num) || 0);
     }, 0);
   });
+
+  // Helper para verificar igualdade
+  handlebars.registerHelper('eq', function(a, b) {
+    return a === b;
+  });
+
+  // Helper para calcular o valor total do IPI em R$
+  handlebars.registerHelper('calculateTotalValue', function(total_bruto, ipi_percent) {
+    // Converte todos os valores para número, tratando nulos como 0
+    const valorBruto = Number(total_bruto) || 0;
+    const ipi = Number(ipi_percent) || 0;
+    
+    // Calcula o valor do IPI em reais
+    return valorBruto * (ipi / 100);
+  });
+
+  // Helper para calcular o valor total do desconto em R$
+  handlebars.registerHelper('calculateDiscountValue', function(total_bruto, ipi_percent, desconto_percent) {
+    // Converte todos os valores para número, tratando nulos como 0
+    const valorBruto = Number(total_bruto) || 0;
+    const ipi = Number(ipi_percent) || 0;
+    const desconto = Number(desconto_percent) || 0;
+    
+    // Calcula o valor do IPI
+    const valorIPI = valorBruto * (ipi / 100);
+    
+    // Soma produtos + IPI
+    const valorComIPI = valorBruto + valorIPI;
+    
+    // Calcula o valor do desconto sobre (PRODUTOS + IPI) em reais
+    return valorComIPI * (desconto / 100);
+  });
 }
 
 module.exports = {

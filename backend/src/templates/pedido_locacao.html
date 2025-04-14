@@ -342,8 +342,9 @@
                 <th>Qtde</th>
                 <th>IPI %</th>
                 <th>Valor Unit.</th>
+                
+                <th>Desconto %</th>
                 <th>Valor Total</th>
-                <th>Desconto</th>
                 <th>Prev. Entrega</th>
             </tr>
             {{#each itens}}
@@ -354,8 +355,9 @@
                 <td>{{this.quantidade}}</td>
                 <td>{{this.ipi}}</td>
                 <td>{{this.valor_unitario}}</td>
+                
+                <td>{{this.desconto}}</td>
                 <td>{{this.valor_total}}</td>
-                <td>{{formatPercent this.desconto}}</td>
                 <td>{{formatDate this.previsao_entrega}}</td>
             </tr>
             {{/each}}
@@ -365,25 +367,32 @@
             <div style="width: 60%;">
                 <h2>VALORES</h2>
                 <table>
-                    <tr>
-                        <th>Total Bruto</th>
-                        <td>{{formatMoney (sumNumericObjects itens 'valor_total')}}</td>
-                    </tr>
+                    
                     <tr>
                         <th>Total IPI</th>
-                        <td>{{formatPercent (avgNumericObjects itens 'ipi')}}</td>
+                        <td>{{formatMoney (calculateTotalValue 
+                            (sumNumericObjects itens 'valor_total')
+                            (avgNumericObjects itens 'ipi'))}}</td>
                     </tr>
                     <tr>
-                        <th>Total Descontos</th>
-                        <td>{{formatPercent (avgNumericObjects itens 'desconto')}}</td>
+                        <th>Descontos</th>
+                        <td>{{formatMoney (calculateDiscountValue 
+                            (sumNumericObjects itens 'valor_total')
+                            (avgNumericObjects itens 'ipi')
+                            (avgNumericObjects itens 'desconto'))}}</td>
                     </tr>
                     <tr>
                         <th>Frete</th>
-                        <td>{{formatMoney frete}}</td>
+                        <td>{{formatMoney valor_frete}}</td>
                     </tr>
+                    
                     <tr>
                         <th>Outras Despesas</th>
                         <td>{{formatMoney outras_despesas}}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Bruto</th>
+                        <td>{{formatMoney (sumNumericObjects itens 'valor_total')}}</td>
                     </tr>
                     <tr>
                         <th>Total Final</th>
@@ -391,7 +400,7 @@
                             (sumNumericObjects itens 'valor_total')
                             (avgNumericObjects itens 'ipi')
                             (avgNumericObjects itens 'desconto')
-                            frete
+                            valor_frete
                             outras_despesas)}}</td>
                     </tr>
                 </table>
@@ -404,6 +413,12 @@
                     </tr>
                     <tr>
                         <td><strong>Prazo de Entrega:</strong> {{formatDate prazo_entrega}}</td>
+                    </tr>
+                    <tr>
+                        <!-- <th>Tipo de Frete</th> -->
+                        <td>Tipo de Frete: $ f $</td>
+                        <!-- o valor acima ainda será definido -->
+                        <!-- <td>{{frete}} ({{#if (eq frete "CIF")}}Frete por conta do fornecedor{{else}}Frete por conta do destinatário{{/if}})</td> -->
                     </tr>
                 </table>
             </div>

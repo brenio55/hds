@@ -318,6 +318,34 @@
             </tr>
         </table>
 
+        <h2>DESCRIÇÃO DOS SERVIÇOS</h2>
+        <table class="materials-table">
+            <tr>
+                <th>#</th>
+                <th>Descrição</th>
+                <th>UN</th>
+                <th>Qtde</th>
+                <th>Valor Unit.</th>
+                <th>IPI (%)</th>
+                <th>Desc. (%)</th>
+                <th>Valor Total</th>
+                <th>Data Entrega</th>
+            </tr>
+            {{#eachNumeric itens}}
+            <tr>
+                <td>{{index}}</td>
+                <td>{{descricao}}</td>
+                <td>{{unidade}}</td>
+                <td>{{quantidade}}</td>
+                <td class="valor-celula">{{formatMoney valor_unitario}}</td>
+                <td>{{formatPercent ipi}}</td>
+                <td>{{formatPercent desconto}}</td>
+                <td class="valor-celula">{{formatMoney valor_total}}</td>
+                <td>{{formatDate data_entrega}}</td>
+            </tr>
+            {{/eachNumeric}}
+        </table>
+
         <div class="flex-container">
             <div style="width: 60%;">
                 <h2>TOTAIS</h2>
@@ -361,34 +389,6 @@
                 </table>
             </div>
         </div>
-
-        <h2>DESCRIÇÃO DOS SERVIÇOS</h2>
-        <table class="materials-table">
-            <tr>
-                <th>#</th>
-                <th>Descrição</th>
-                <th>UN</th>
-                <th>Qtde</th>
-                <th>Valor Unit.</th>
-                <th>IPI (%)</th>
-                <th>Desc. (%)</th>
-                <th>Valor Total</th>
-                <th>Data Entrega</th>
-            </tr>
-            {{#eachNumeric itens}}
-            <tr>
-                <td>{{index}}</td>
-                <td>{{descricao}}</td>
-                <td>{{unidade}}</td>
-                <td>{{quantidade}}</td>
-                <td class="valor-celula">{{formatMoney valor_unitario}}</td>
-                <td>{{formatPercent ipi}}</td>
-                <td>{{formatPercent desconto}}</td>
-                <td class="valor-celula">{{formatMoney valor_total}}</td>
-                <td>{{formatDate data_entrega}}</td>
-            </tr>
-            {{/eachNumeric}}
-        </table>
 
         <h2>ESCOPO DO SERVIÇO</h2>
         <table class="dados-adicionais-table">

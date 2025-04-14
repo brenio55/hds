@@ -378,8 +378,8 @@
                 <th>Valor Unitario</th>
                 <th>IPI %</th>
                 <th>Desconto %</th>
-                <th>Prev. Entrega</th>
                 <th>Valor Total Bruto</th>
+                <th>Prev. Entrega</th>                
             </tr>
             {{#each pedidoData.materiais}}
             <tr>
@@ -390,8 +390,8 @@
                 <td>{{this.valor_unitario}}</td>
                 <td>{{formatPercent this.ipi}}</td>
                 <td>{{formatPercent this.desconto}}</td>
-                <td>{{formatDate this.previsao_entrega}}</td>
                 <td>{{this.valor_total}}</td>
+                <td>{{formatDate this.previsao_entrega}}</td>
             </tr>
             {{/each}}
         </table>
