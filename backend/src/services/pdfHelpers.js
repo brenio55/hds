@@ -82,8 +82,8 @@ function registerPdfHelpers() {
     // Calcula o valor do desconto sobre (PRODUTOS + IPI)
     const valorDesconto = valorComIPI * (desconto / 100);
     
-    // (PRODUTOS + IPI) + OUTRAS DESPESAS + FRETE - DESCONTO
-    const total = valorComIPI + valorDespesas + valorFrete - valorDesconto;
+    // (PRODUTOS + IPI) - DESCONTO + OUTRAS DESPESAS + FRETE
+    const total = (valorComIPI - valorDesconto) + valorDespesas + valorFrete;
     
     return total;
   });

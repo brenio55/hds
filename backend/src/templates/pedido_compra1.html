@@ -422,10 +422,8 @@
                     </tr>
                     <tr>
                         <th>Total Final</th>
-                        <td>{{formatMoney (total_final 
-                            (sumNumericObjects pedidoData.materiais 'valor_total')
-                            (avgNumericObjects pedidoData.materiais 'ipi')
-                            (avgNumericObjects pedidoData.materiais 'desconto')
+                        <td>{{formatMoney (sum 
+                            (sumNumericObjects pedidoData.materiais 'valor_final')
                             pedidoData.valor_frete 
                             pedidoData.despesas_adicionais)}}</td>
                     </tr>

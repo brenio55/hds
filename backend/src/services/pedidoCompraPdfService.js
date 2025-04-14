@@ -87,7 +87,8 @@ class PedidoCompraPdfService {
           ...item,
           valor_ipi: valorIPI,
           valor_com_ipi: valorComIPI,
-          valor_desconto: valorDesconto
+          valor_desconto: valorDesconto,
+          valor_final: valorComIPI - valorDesconto // Adicionando o valor final do item
         };
       });
       
@@ -98,9 +99,15 @@ class PedidoCompraPdfService {
       const valorFrete = parseFloat(pedidoData.valor_frete || 0);
       const despesasAdicionais = parseFloat(pedidoData.despesas_adicionais || 0);
 
+      // Calcular a soma dos valores finais dos itens
+      const somaValoresFinais = itensProcessados.reduce(
+        (sum, item) => sum + (parseFloat(item.valor_final) || 0), 
+        0
+      );
+
       // Ajustar o cálculo do total final usando a nova fórmula
-      // (PRODUTOS + IPI) + OUTRAS DESPESAS + FRETE - DESCONTO
-      const totalFinal = valorComIPI + despesasAdicionais + valorFrete - descontoTotal;
+      // Soma dos valores finais dos itens + frete + outras despesas
+      const totalFinal = somaValoresFinais + valorFrete + despesasAdicionais;
 
       // Encontrar a data de entrega mais distante
       const dataEntregaMaisDistante = pedidoData.materiais.reduce((maxDate, item) => {

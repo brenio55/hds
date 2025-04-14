@@ -916,6 +916,54 @@ class ApiService {
             throw error;
         }
     }
+    
+    /**
+     * Registra o faturamento de um pedido
+     * @param {FormData} formData - Dados do faturamento incluindo arquivos 
+     * @returns {Promise<Object>} - Dados do faturamento criado
+     */
+    static async faturarPedidoCompra(formData) {
+        try {
+            console.log("ApiService: Iniciando faturamento de pedido...");
+            
+            // Log dos dados enviados (sem expor arquivos binários)
+            const dadosParaLog = {};
+            for (const pair of formData.entries()) {
+                if (pair[0] !== 'arquivoNF' && pair[0] !== 'arquivoBoleto') {
+                    dadosParaLog[pair[0]] = pair[1];
+                } else {
+                    dadosParaLog[pair[0]] = pair[1] ? '[Arquivo binário]' : null;
+                }
+            }
+            console.log("ApiService: Dados do faturamento:", dadosParaLog);
+            
+            // Preparar o endpoint correto com base no tipo de pedido
+            const tipoPedido = formData.get('tipoPedido') || 'compra';
+            console.log(`ApiService: Tipo de pedido sendo faturado: ${tipoPedido}`);
+            
+            const response = await fetch(`${API_URL}/api/faturamentos`, {
+                method: 'POST',
+                headers: {
+                    ...createAuthHeaders(),
+                    // Não definir Content-Type para que o navegador possa configurar o boundary para FormData
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`ApiService: Erro ao faturar pedido (${response.status}): ${errorText}`);
+                throw new Error(`Erro ao faturar pedido: ${response.statusText}`);
+            }
+
+            const resultado = await response.json();
+            console.log("ApiService: Faturamento registrado com sucesso:", resultado);
+            return resultado;
+        } catch (error) {
+            console.error('ApiService: Erro ao faturar pedido:', error);
+            throw error;
+        }
+    }
 
     static async buscarFaturamentos(filtros = {}) {
         try {

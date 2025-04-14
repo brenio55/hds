@@ -154,112 +154,60 @@ function FaturarPedido() {
             setLoading(true);
             console.log(`Carregando detalhes do pedido ${pedidoId}...`);
             
-            // Buscar detalhes do pedido para obter valor total
-            const pedido = await ApiService.buscarPedidoCompraPorId(pedidoId);
-            console.log("Detalhes do pedido:", pedido);
+            // Encontrar o pedido nos pedidos já carregados
+            const pedidoEncontrado = pedidosAtivos.find(p => p.id.toString() === pedidoId.toString());
             
-            if (pedido) {
-                // Calcular valor total considerando o formato do pedido recebido da API
-                let valorTotalPedido = 0;
-                
-                // Somar valores dos materiais
-                if (pedido.materiais && Array.isArray(pedido.materiais)) {
-                    valorTotalPedido = pedido.materiais.reduce(
-                        (total, material) => total + parseFloat(material.valor_total || 0), 
-                        0
-                    );
-                    console.log(`Valor total de materiais: ${valorTotalPedido}`);
-                }
-                
-                // Adicionar frete, se existir
-                if (pedido.valor_frete) {
-                    const valorFrete = parseFloat(pedido.valor_frete);
-                    if (!isNaN(valorFrete)) {
-                        valorTotalPedido += valorFrete;
-                        console.log(`Adicionando frete: ${valorFrete}`);
-                    }
-                } else if (pedido.frete && typeof pedido.frete === 'object' && pedido.frete.valor) {
-                    const valorFrete = parseFloat(pedido.frete.valor);
-                    if (!isNaN(valorFrete)) {
-                        valorTotalPedido += valorFrete;
-                        console.log(`Adicionando frete (objeto): ${valorFrete}`);
-                    }
-                }
-                
-                // Adicionar despesas adicionais, se existirem
-                if (pedido.despesas_adicionais) {
-                    const despesasAdicionais = parseFloat(pedido.despesas_adicionais);
-                    if (!isNaN(despesasAdicionais)) {
-                        valorTotalPedido += despesasAdicionais;
-                        console.log(`Adicionando despesas adicionais: ${despesasAdicionais}`);
-                    }
-                }
-                
-                // Subtrair descontos, se existirem
-                if (pedido.desconto) {
-                    const valorDesconto = parseFloat(pedido.desconto);
-                    if (!isNaN(valorDesconto)) {
-                        valorTotalPedido -= valorDesconto;
-                        console.log(`Subtraindo desconto: ${valorDesconto}`);
-                    }
-                }
-                
-                // Usar valor da proposta se valor calculado for zero
-                if (valorTotalPedido <= 0 && pedido.proposta && pedido.proposta.valor_final) {
-                    valorTotalPedido = parseFloat(pedido.proposta.valor_final);
-                    console.log(`Usando valor da proposta: ${valorTotalPedido}`);
-                }
-                
-                // Verificar se existe um valor_total direto no pedido
-                if (valorTotalPedido <= 0 && pedido.valor_total) {
-                    valorTotalPedido = parseFloat(pedido.valor_total);
-                    console.log(`Usando valor_total direto do pedido: ${valorTotalPedido}`);
-                }
-                
-                console.log(`Valor total calculado do pedido: ${valorTotalPedido}`);
-                setValorTotal(valorTotalPedido);
-                
-                // Buscar faturamentos existentes para este pedido
-                const faturamentos = await ApiService.consultarFaturamentos({ 
-                    tipo: pedido.tipo || 'compra',
-                    numeroPedido: pedidoId 
-                });
-                
-                console.log("Faturamentos para este pedido:", faturamentos);
-                
-                // Calcular valor já faturado
-                const totalFaturado = faturamentos.reduce(
-                    (total, fat) => total + parseFloat(fat.valorFaturado || 0), 
-                    0
-                );
-                
-                setValorFaturado(totalFaturado);
-                
-                // Calcular porcentagem faturada
-                if (valorTotalPedido > 0) {
-                    const porcentagem = (totalFaturado / valorTotalPedido) * 100;
-                    setPorcentagemFaturada(Math.min(porcentagem, 100).toFixed(2));
-                } else {
-                    setPorcentagemFaturada(0);
-                }
-                
-                // Sugerir valor restante para faturamento
-                const valorRestante = valorTotalPedido - totalFaturado;
-                if (valorRestante > 0) {
-                    setNovoValorFaturamento(valorRestante.toFixed(2));
-                } else {
-                    setNovoValorFaturamento('');
-                }
-                
-                setError(null);
-            } else {
-                console.error("Pedido não encontrado");
+            if (!pedidoEncontrado) {
+                console.error("Pedido não encontrado nos pedidos ativos");
                 setError("Pedido não encontrado ou indisponível");
                 setValorTotal(0);
                 setValorFaturado(0);
                 setPorcentagemFaturada(0);
                 setNovoValorFaturamento('');
+                setLoading(false);
+                return;
             }
+            
+            console.log("Usando dados do pedido já carregado:", pedidoEncontrado);
+            
+            // Usar o valor total já disponível no pedido
+            const valorTotalPedido = parseFloat(pedidoEncontrado.valor_total) || 0;
+            console.log(`Valor total do pedido: ${valorTotalPedido}`);
+            setValorTotal(valorTotalPedido);
+            
+            // Buscar faturamentos existentes para este pedido
+            const faturamentos = await ApiService.consultarFaturamentos({ 
+                tipo: pedidoEncontrado.tipo || 'compra',
+                numeroPedido: pedidoId 
+            });
+            
+            console.log("Faturamentos para este pedido:", faturamentos);
+            
+            // Calcular valor já faturado
+            const totalFaturado = faturamentos.reduce(
+                (total, fat) => total + parseFloat(fat.valorFaturado || 0), 
+                0
+            );
+            
+            setValorFaturado(totalFaturado);
+            
+            // Calcular porcentagem faturada
+            if (valorTotalPedido > 0) {
+                const porcentagem = (totalFaturado / valorTotalPedido) * 100;
+                setPorcentagemFaturada(Math.min(porcentagem, 100).toFixed(2));
+            } else {
+                setPorcentagemFaturada(0);
+            }
+            
+            // Sugerir valor restante para faturamento
+            const valorRestante = valorTotalPedido - totalFaturado;
+            if (valorRestante > 0) {
+                setNovoValorFaturamento(valorRestante.toFixed(2));
+            } else {
+                setNovoValorFaturamento('');
+            }
+            
+            setError(null);
         } catch (error) {
             console.error('Erro ao carregar detalhes do pedido:', error);
             setError("Erro ao carregar detalhes do pedido");
