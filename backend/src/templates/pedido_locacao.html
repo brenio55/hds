@@ -367,25 +367,18 @@
             <div style="width: 60%;">
                 <h2>TOTAIS</h2>
                 <table>
-                    
                     <tr>
                         <th>Total IPI</th>
-                        <td>{{formatMoney (calculateTotalValue 
-                            (sumNumericObjects itens 'valor_total')
-                            (avgNumericObjects itens 'ipi'))}}</td>
+                        <td>{{formatMoney (sumNumericObjects itens 'valor_ipi')}}</td>
                     </tr>
                     <tr>
                         <th>Descontos</th>
-                        <td>{{formatMoney (calculateDiscountValue 
-                            (sumNumericObjects itens 'valor_total')
-                            (avgNumericObjects itens 'ipi')
-                            (avgNumericObjects itens 'desconto'))}}</td>
+                        <td>{{formatMoney (sumNumericObjects itens 'valor_desconto')}}</td>
                     </tr>
                     <tr>
                         <th>Frete</th>
                         <td>{{formatMoney valor_frete}}</td>
                     </tr>
-                    
                     <tr>
                         <th>Outras Despesas</th>
                         <td>{{formatMoney outras_despesas}}</td>
@@ -396,11 +389,9 @@
                     </tr>
                     <tr>
                         <th>Total Final</th>
-                        <td>{{formatMoney (total_final 
-                            (sumNumericObjects itens 'valor_total')
-                            (avgNumericObjects itens 'ipi')
-                            (avgNumericObjects itens 'desconto')
-                            valor_frete
+                        <td>{{formatMoney (sum 
+                            (sumNumericObjects itens 'valor_final')
+                            valor_frete 
                             outras_despesas)}}</td>
                     </tr>
                 </table>
