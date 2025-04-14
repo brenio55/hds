@@ -154,7 +154,7 @@ function FaturarPedido() {
             setLoading(true);
             console.log(`Carregando detalhes do pedido ${pedidoId}...`);
             
-            // Encontrar o pedido nos pedidos já carregados
+            // Encontrar o pedido nos pedidos já carregados para obter o tipo
             const pedidoEncontrado = pedidosAtivos.find(p => p.id.toString() === pedidoId.toString());
             
             if (!pedidoEncontrado) {
@@ -168,41 +168,54 @@ function FaturarPedido() {
                 return;
             }
             
-            console.log("Usando dados do pedido já carregado:", pedidoEncontrado);
+            // Determinar o tipo de pedido
+            const tipoPedido = pedidoEncontrado.tipo || 'compra';
+            console.log(`Tipo de pedido identificado: ${tipoPedido}`);
             
-            // Usar o valor total já disponível no pedido
-            const valorTotalPedido = parseFloat(pedidoEncontrado.valor_total) || 0;
+            // Buscar detalhes completos do pedido usando o endpoint apropriado com base no tipo
+            let pedidoDetalhado;
+            
+            switch (tipoPedido) {
+                case 'compra':
+                    pedidoDetalhado = await ApiService.buscarPedidoCompraPorId(pedidoId);
+                    break;
+                case 'locacao':
+                    pedidoDetalhado = await ApiService.buscarPedidoLocacaoPorId(pedidoId);
+                    break;
+                case 'servico':
+                    pedidoDetalhado = await ApiService.buscarPedidoServicoPorId(pedidoId);
+                    break;
+                default:
+                    // Fallback para tipo desconhecido
+                    pedidoDetalhado = await ApiService.buscarPedidoPorId(pedidoId, tipoPedido);
+            }
+            
+            console.log("Detalhes completos do pedido recebidos:", pedidoDetalhado);
+            
+            // Usar os valores diretamente do pedido detalhado obtido via API
+            const valorTotalPedido = parseFloat(pedidoDetalhado.valor_total) || 0;
+            const valorFaturadoPedido = parseFloat(pedidoDetalhado.valor_faturado) || 0;
+            const valorAFaturarPedido = parseFloat(pedidoDetalhado.valor_a_faturar) || 0;
+            
             console.log(`Valor total do pedido: ${valorTotalPedido}`);
+            console.log(`Valor já faturado: ${valorFaturadoPedido}`);
+            console.log(`Valor a faturar: ${valorAFaturarPedido}`);
+            
+            // Atualizar estados com os valores obtidos diretamente do pedido
             setValorTotal(valorTotalPedido);
-            
-            // Buscar faturamentos existentes para este pedido
-            const faturamentos = await ApiService.consultarFaturamentos({ 
-                tipo: pedidoEncontrado.tipo || 'compra',
-                numeroPedido: pedidoId 
-            });
-            
-            console.log("Faturamentos para este pedido:", faturamentos);
-            
-            // Calcular valor já faturado
-            const totalFaturado = faturamentos.reduce(
-                (total, fat) => total + parseFloat(fat.valorFaturado || 0), 
-                0
-            );
-            
-            setValorFaturado(totalFaturado);
+            setValorFaturado(valorFaturadoPedido);
             
             // Calcular porcentagem faturada
             if (valorTotalPedido > 0) {
-                const porcentagem = (totalFaturado / valorTotalPedido) * 100;
+                const porcentagem = (valorFaturadoPedido / valorTotalPedido) * 100;
                 setPorcentagemFaturada(Math.min(porcentagem, 100).toFixed(2));
             } else {
                 setPorcentagemFaturada(0);
             }
             
             // Sugerir valor restante para faturamento
-            const valorRestante = valorTotalPedido - totalFaturado;
-            if (valorRestante > 0) {
-                setNovoValorFaturamento(valorRestante.toFixed(2));
+            if (valorAFaturarPedido > 0) {
+                setNovoValorFaturamento(valorAFaturarPedido.toFixed(2));
             } else {
                 setNovoValorFaturamento('');
             }

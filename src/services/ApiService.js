@@ -698,15 +698,23 @@ class ApiService {
      */
     static async buscarPedidoServicoPorId(id) {
         try {
-            const response = await fetch(`${API_URL}/api/servicos/${id}`, {
-                headers: createAuthHeaders()
-            });
+            // Primeiro tentar via API de pedidos consolidados
+            try {
+                return await this.buscarPedidoPorId(id, 'servico');
+            } catch (consolidadosError) {
+                console.log('Fallback para endpoint legado de serviços:', consolidadosError.message);
+                
+                // Fallback para o endpoint original
+                const response = await fetch(`${API_URL}/api/servicos/${id}`, {
+                    headers: createAuthHeaders()
+                });
 
-            if (!response.ok) {
-                throw new Error('Erro ao buscar pedido de serviço');
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar pedido de serviço');
+                }
+
+                return await response.json();
             }
-
-            return await response.json();
         } catch (error) {
             console.error('Erro ao buscar pedido de serviço:', error);
             throw error;
@@ -1891,6 +1899,97 @@ class ApiService {
                 erro: true,
                 mensagem: error.message
             };
+        }
+    }
+
+    /**
+     * Busca um pedido específico pelo ID e tipo
+     * @param {number|string} id - ID do pedido
+     * @param {string} tipo - Tipo do pedido ('compra', 'locacao', 'servico')
+     * @returns {Promise<Object>} - Detalhes do pedido
+     */
+    static async buscarPedidoPorId(id, tipo) {
+        try {
+            console.log(`ApiService: Buscando pedido de ${tipo} ID ${id}...`);
+            
+            // Usar o endpoint de pedidos consolidados que já existe
+            const response = await this.buscarPedidosConsolidados({
+                tipo: tipo,
+                id: id
+            });
+            
+            if (response && response.pedidos && response.pedidos.length > 0) {
+                // Retornar o primeiro pedido encontrado
+                console.log(`ApiService: Pedido de ${tipo} encontrado: ${id}`);
+                return response.pedidos[0];
+            }
+            
+            // Se não encontrar o pedido, lançar erro
+            console.error(`ApiService: Pedido de ${tipo} não encontrado: ${id}`);
+            throw new Error(`Pedido de ${tipo} ID ${id} não encontrado`);
+        } catch (error) {
+            console.error(`ApiService: Erro ao buscar pedido de ${tipo}: ${error.message}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Busca um pedido de compra específico pelo ID
+     * @param {number|string} id - ID do pedido de compra
+     * @returns {Promise<Object>} - Detalhes do pedido de compra
+     */
+    static async buscarPedidoCompraPorId(id) {
+        try {
+            // Primeiro tentar via API de pedidos consolidados
+            try {
+                return await this.buscarPedidoPorId(id, 'compra');
+            } catch (consolidadosError) {
+                console.log('Fallback para endpoint legado de compra:', consolidadosError.message);
+                
+                // Fallback para o endpoint original
+                const response = await fetch(`${API_URL}/api/pedidos-compra/${id}`, {
+                    headers: createAuthHeaders()
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar pedido de compra');
+                }
+
+                return await response.json();
+            }
+        } catch (error) {
+            console.error('Erro ao buscar pedido de compra:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Busca um pedido de locação por ID
+     * @param {number} id - ID do pedido de locação a ser buscado
+     * @returns {Promise<Object>} - Dados do pedido 
+     */
+    static async buscarPedidoLocacaoPorId(id) {
+        try {
+            // Primeiro tentar via API de pedidos consolidados
+            try {
+                return await this.buscarPedidoPorId(id, 'locacao');
+            } catch (consolidadosError) {
+                console.log('Fallback para endpoint legado de locação:', consolidadosError.message);
+                
+                // Fallback para o endpoint original
+                const response = await fetch(`${API_URL}/api/pedidos-locacao/${id}`, {
+                    headers: createAuthHeaders()
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar pedido de locação');
+                }
+
+                return await response.json();
+            }
+        } catch (error) {
+            console.error('Erro ao buscar pedido de locação:', error);
+            throw error;
         }
     }
 }
