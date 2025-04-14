@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const puppeteer = require('puppeteer');
 const handlebars = require('handlebars');
 const fs = require('fs').promises;
@@ -41,6 +42,36 @@ class PedidoLocacaoPdfService {
       // Registra os helpers globais
       registerPdfHelpers();
 
+      // Parse itens if they are a string
+      const itens = typeof pedido.itens === 'string' ? JSON.parse(pedido.itens) : pedido.itens;
+
+      // Process each item to calculate IPI and discount values
+      const itensProcessados = itens.map(item => {
+        const valorTotal = parseFloat(item.valor_total) || 0;
+        const ipi = parseFloat(item.ipi) || 0;
+        const desconto = parseFloat(item.desconto) || 0;
+
+        // Calculate IPI value
+        const valor_ipi = valorTotal * (ipi / 100);
+
+        // Calculate value with IPI
+        const valor_com_ipi = valorTotal + valor_ipi;
+
+        // Calculate discount on (PRODUCTS + IPI)
+        const valor_desconto = valor_com_ipi * (desconto / 100);
+
+        // Calculate final value for the item
+        const valor_final = valor_com_ipi - valor_desconto;
+
+        return {
+          ...item,
+          valor_ipi,
+          valor_com_ipi,
+          valor_desconto,
+          valor_final
+        };
+      });
+
       // Prepara os dados
       const data = {
         ...pedido,
@@ -48,7 +79,7 @@ class PedidoLocacaoPdfService {
         logoHorizontalSrc,
         dataEmissao: new Date().toLocaleDateString('pt-BR'),
         ano: new Date().getFullYear(),
-        itens: Array.isArray(pedido.itens) ? pedido.itens : JSON.parse(pedido.itens || '[]')
+        itens: itensProcessados
       };
       console.log('Dados preparados para o template:', JSON.stringify(data, null, 2));
 
