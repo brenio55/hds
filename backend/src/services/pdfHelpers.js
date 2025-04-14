@@ -76,11 +76,14 @@ function registerPdfHelpers() {
     // Calcula o valor do IPI
     const valorIPI = valorBruto * (ipi / 100);
     
-    // Calcula o valor do desconto
-    const valorDesconto = valorBruto * (desconto / 100);
+    // Soma produtos + IPI
+    const valorComIPI = valorBruto + valorIPI;
     
-    // Soma todos os valores (incluindo IPI e subtraindo desconto)
-    const total = valorBruto + valorIPI - valorDesconto + valorFrete + valorDespesas;
+    // Calcula o valor do desconto sobre (PRODUTOS + IPI)
+    const valorDesconto = valorComIPI * (desconto / 100);
+    
+    // (PRODUTOS + IPI) + OUTRAS DESPESAS + FRETE - DESCONTO
+    const total = valorComIPI + valorDespesas + valorFrete - valorDesconto;
     
     return total;
   });

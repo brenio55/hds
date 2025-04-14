@@ -323,8 +323,16 @@
                 <h2>TOTAIS</h2>
                 <table>
                     <tr>
+                        <th>Total de Produtos:</th>
+                        <td class="valor-celula"><strong>{{formatMoney (sumNumericObjects itens 'valor_total')}}</strong></td>
+                    </tr>
+                    <tr>
                         <th>IPI:</th>
-                        <td class="valor-celula">{{formatPercent (sumNumericObjects itens 'ipi')}}</td>
+                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_ipi')}}</td>
+                    </tr>
+                    <tr>
+                        <th>Total com IPI:</th>
+                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_com_ipi')}}</td>
                     </tr>
                     <tr>
                         <th>Frete:</th>
@@ -335,16 +343,12 @@
                         <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'outras_despesas')}}</td>
                     </tr>
                     <tr>
-                        <th>Desconto:</th>
-                        <td class="valor-celula">{{formatPercent (sumNumericObjects itens 'desconto')}}</td>
+                        <th>Desconto (sobre Produtos + IPI):</th>
+                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_desconto')}}</td>
                     </tr>
                     <tr>
-                        <th>Total Bruto:</th>
-                        <td class="valor-celula"><strong>{{formatMoney (sumNumericObjects itens 'valor_total')}}</strong></td>
-                    </tr>
-                    <tr>
-                        <th>Total Final</th>
-                        <td>{{formatMoney total}}</td>
+                        <th>Total Final:</th>
+                        <td class="valor-celula"><strong>{{formatMoney total}}</strong></td>
                     </tr>
                 </table>
             </div>

@@ -793,6 +793,37 @@ function PedidosDeLocacao() {
                         </div>
                     </div>
 
+                    {/* <div className="form-group">
+                                <label>Frete:</label>
+                                <input
+                                    type="text"
+                                    name="frete"
+                                    value={dadosPedido.frete}
+                                    onChange={handleDadosPedidoChange}
+                                    placeholder="Digite o valor do frete"
+                                />
+                    </div> */}
+
+                    <div className="form-group">
+                                <label>Valor Frete:</label>
+                                <input
+                                    type="text"
+                                    name="valorFrete"
+                                    value={dadosPedido.valorFrete}
+                                    onChange={handleDadosPedidoChange}
+                                />
+                            </div>
+                    <div className="form-group">
+                        <label>Outras Despesas:</label>
+                        <input
+                            type="text"
+                            name="outrasDespesas"
+                            value={dadosPedido.outrasDespesas}
+                            onChange={handleDadosPedidoChange}
+                            placeholder="Digite o valor das outras despesas"
+                        />
+                    </div>
+
                     <div className="items-section">
                         <h3>Itens do Pedido</h3>
                         <div className="form-row">
@@ -943,24 +974,7 @@ function PedidosDeLocacao() {
                             </div>
                         </div>
                         <div className="form-row">
-                            {/* <div className="form-group">
-                                <label>Valor Frete:</label>
-                                <input
-                                    type="text"
-                                    name="valorFrete"
-                                    value={dadosPedido.valorFrete}
-                                    onChange={handleDadosPedidoChange}
-                                />
-                            </div> */}
-                            <div className="form-group">
-                                <label>Outras Despesas:</label>
-                                <input
-                                    type="text"
-                                    name="outrasDespesas"
-                                    value={dadosPedido.outrasDespesas}
-                                    onChange={handleDadosPedidoChange}
-                                />
-                            </div>
+                            
                             <div className="form-group">
                                 <label>Total Final:</label>
                                 <input type="text" value={calcularTotalFinal()} readOnly title="(Produtos + IPI) + Outras Despesas + Frete - Descontos" />
@@ -989,15 +1003,7 @@ function PedidosDeLocacao() {
                                     onChange={handleDadosPedidoChange}
                                 />
                             </div>
-                            <div className="form-group">
-                                <label>Frete:</label>
-                                <input
-                                    type="text"
-                                    name="frete"
-                                    value={dadosPedido.frete}
-                                    onChange={handleDadosPedidoChange}
-                                />
-                            </div>
+                            
                         </div>
                     </div>
 

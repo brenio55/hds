@@ -52,10 +52,32 @@ class PedidoCompraPdfService {
       // Calcular total bruto
       const totalBruto = pedidoData.materiais.reduce((acc, item) => acc + Number(item.valor_total || 0), 0);
 
-      // Ajustar o cálculo do total final usando o helper global
-      const totalFinal = totalBruto + 
-        parseFloat(pedidoData.valor_frete || 0) + 
-        parseFloat(pedidoData.despesas_adicionais || 0);
+      // Calcular IPI total
+      const totalIPI = pedidoData.materiais.reduce((acc, item) => {
+        const valorTotal = Number(item.valor_total || 0);
+        const ipi = Number(item.ipi || 0);
+        return acc + (valorTotal * ipi / 100);
+      }, 0);
+
+      // Valor com IPI
+      const valorComIPI = totalBruto + totalIPI;
+
+      // Calcular desconto total (agora sobre PRODUTOS + IPI)
+      const descontoTotal = pedidoData.materiais.reduce((acc, item) => {
+        const valorTotal = Number(item.valor_total || 0);
+        const ipi = Number(item.ipi || 0);
+        const valorIPI = valorTotal * ipi / 100;
+        const desconto = Number(item.desconto || 0);
+        return acc + ((valorTotal + valorIPI) * desconto / 100);
+      }, 0);
+
+      // Frete e despesas adicionais
+      const valorFrete = parseFloat(pedidoData.valor_frete || 0);
+      const despesasAdicionais = parseFloat(pedidoData.despesas_adicionais || 0);
+
+      // Ajustar o cálculo do total final usando a nova fórmula
+      // (PRODUTOS + IPI) + OUTRAS DESPESAS + FRETE - DESCONTO
+      const totalFinal = valorComIPI + despesasAdicionais + valorFrete - descontoTotal;
 
       // Encontrar a data de entrega mais distante
       const dataEntregaMaisDistante = pedidoData.materiais.reduce((maxDate, item) => {

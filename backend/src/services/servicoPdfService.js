@@ -136,22 +136,24 @@ class ServicoPdfService {
         
         // Caso contrário, calcule o total
         let total = Number(valorTotal) || 0;
+        let valorIpi = 0;
         
         // Aplicar IPI se existir
         if (ipi) {
-          const valorIpi = total * (Number(ipi) / 100);
-          total += valorIpi;
+          valorIpi = total * (Number(ipi) / 100);
         }
         
-        // Aplicar desconto se existir
+        // Soma produtos + IPI
+        const valorComIPI = total + valorIpi;
+        
+        // Aplicar desconto se existir sobre (PRODUTOS + IPI)
+        let valorDesconto = 0;
         if (desconto) {
-          const valorDesconto = total * (Number(desconto) / 100);
-          total -= valorDesconto;
+          valorDesconto = valorComIPI * (Number(desconto) / 100);
         }
         
-        // Adicionar frete e despesas adicionais
-        total += Number(frete) || 0;
-        total += Number(despesasAdicionais) || 0;
+        // (PRODUTOS + IPI) + OUTRAS DESPESAS + FRETE - DESCONTO
+        total = valorComIPI + Number(frete || 0) + Number(despesasAdicionais || 0) - valorDesconto;
         
         console.log(`[total_final helper] Total final calculado: ${total}`);
         return total;
