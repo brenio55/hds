@@ -1,13 +1,9 @@
-/* eslint-env node */
-/* eslint-disable no-undef */
-
 const puppeteer = require('puppeteer');
 const handlebars = require('handlebars');
 const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const FornecedorModel = require('../models/fornecedorModel');
-const { registerPdfHelpers } = require('./pdfHelpers');
 
 class ServicoPdfService {
   static async imageToBase64(imagePath) {
@@ -26,9 +22,6 @@ class ServicoPdfService {
     try {
       console.log('========== INÍCIO DA GERAÇÃO DE PDF DE SERVIÇO ==========');
       console.log('Dados recebidos do serviço:', JSON.stringify(servico, null, 2));
-      
-      // Registra os helpers comuns do PDF
-      registerPdfHelpers();
       
       // Lê o template
       const templatePath = path.join(__dirname, '../templates/servico.html');

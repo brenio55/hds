@@ -1,6 +1,8 @@
--- Migration to update valor_final in itens to include outras_despesas
--- This migration updates the valor_final field in each item within the itens JSON
--- to be consistent with the calculation in ServicoModel.js
+-- Script para corrigir cálculos de valores e totais de serviços existentes
+-- Execute este script para recalcular todos os serviços
+
+-- Gera logs para acompanhamento
+\echo 'Iniciando correção de cálculos de serviços...';
 
 DO $$
 DECLARE
@@ -18,39 +20,42 @@ DECLARE
     valor_desconto NUMERIC;
     valor_final NUMERIC;
     total_servico NUMERIC;
+    servico_count INTEGER := 0;
 BEGIN
-    -- Loop through all records in the servico table
+    -- Loop através de todos os registros na tabela servico
     FOR servico_record IN SELECT id, itens FROM servico WHERE itens IS NOT NULL AND jsonb_typeof(itens) = 'object' LOOP
-        -- Initialize the updated itens JSON and totals
+        servico_count := servico_count + 1;
+        
+        -- Inicializa variáveis
         updated_itens := '{}'::JSONB;
         total_servico := 0;
         
-        -- Loop through each key-value pair in the itens JSON
+        -- Processa os itens numérais do serviço
         FOR item_key, item_value IN SELECT key, value FROM jsonb_each(servico_record.itens) WHERE key ~ '^[0-9]+$' LOOP
-            -- Extract values from the item with COALESCE to handle NULL values
+            -- Extrai valores do item (com tratamento de NULL)
             valor_total := COALESCE((item_value->>'valor_total')::NUMERIC, 0);
             ipi := COALESCE((item_value->>'ipi')::NUMERIC, 0);
             desconto := COALESCE((item_value->>'desconto')::NUMERIC, 0);
             valor_frete := COALESCE((item_value->>'valor_frete')::NUMERIC, 0);
             outras_despesas := COALESCE((item_value->>'outras_despesas')::NUMERIC, 0);
             
-            -- Calculate exactly like in ServicoModel.js:
-            -- 1. Calculate IPI value
+            -- Cálculos exatamente como em ServicoModel.js:
+            -- 1. Calcular valor do IPI
             valor_ipi := valor_total * (ipi / 100);
             
-            -- 2. Calculate value with IPI
+            -- 2. Valor com IPI
             valor_com_ipi := valor_total + valor_ipi;
             
-            -- 3. Calculate discount on (PRODUCTS + IPI)
+            -- 3. Calcular desconto sobre (PRODUTOS + IPI)
             valor_desconto := valor_com_ipi * (desconto / 100);
             
-            -- 4. Calculate final value: (PRODUCTS + IPI) - DISCOUNT
+            -- 4. Calcular valor final: (PRODUTOS + IPI) - DESCONTO
             valor_final := valor_com_ipi - valor_desconto;
             
-            -- Add to the total
+            -- Adiciona ao total
             total_servico := total_servico + valor_final;
             
-            -- Update the item with all calculated values
+            -- Atualiza o item com todos os valores calculados
             item_value := item_value || jsonb_build_object(
                 'valor_ipi', valor_ipi,
                 'valor_com_ipi', valor_com_ipi,
@@ -58,30 +63,59 @@ BEGIN
                 'valor_final', valor_final
             );
             
-            -- Add the updated item to the new itens JSON
+            -- Adiciona o item atualizado ao novo JSON de itens
             updated_itens := updated_itens || jsonb_build_object(item_key, item_value);
         END LOOP;
         
-        -- Copy non-numeric keys (like afazer_contratada, afazer_contratante, informacao_importante)
+        -- Copia as chaves não-numéricas (como afazer_contratada, afazer_contratante, informacao_importante)
         FOR item_key, item_value IN SELECT key, value FROM jsonb_each(servico_record.itens) WHERE key !~ '^[0-9]+$' LOOP
             updated_itens := updated_itens || jsonb_build_object(item_key, item_value);
         END LOOP;
         
-        -- Add frete and outras_despesas to the total - only once per servico
-        -- (This matches the logic in ServicoModel.js)
+        -- Adiciona frete e outras_despesas ao total - apenas uma vez por serviço
+        -- (Isso corresponde à lógica em ServicoModel.js)
         FOR item_key, item_value IN SELECT key, value FROM jsonb_each(servico_record.itens) WHERE key ~ '^[0-9]+$' LIMIT 1 LOOP
             valor_frete := COALESCE((item_value->>'valor_frete')::NUMERIC, 0);
             outras_despesas := COALESCE((item_value->>'outras_despesas')::NUMERIC, 0);
             total_servico := total_servico + valor_frete + outras_despesas;
         END LOOP;
         
-        -- Update the servico record with the new itens JSON and recalculated total
+        -- Atualiza o registro com os novos itens e o total recalculado
         UPDATE servico 
         SET itens = updated_itens,
             total = total_servico
         WHERE id = servico_record.id;
+        
+        -- Log para cada 10 serviços processados
+        IF servico_count % 10 = 0 THEN
+            RAISE NOTICE 'Processados % serviços', servico_count;
+        END IF;
     END LOOP;
+    
+    RAISE NOTICE 'Correção de cálculos concluída. Total de % serviços processados.', servico_count;
 END $$;
 
--- Update the comment to reflect the correct calculation
-COMMENT ON COLUMN servico.total IS 'Total do serviço calculado como a soma dos valores_finais dos itens [valor_final = (valor_total + valor_ipi) - desconto%] mais valores de frete e outras despesas'; 
+-- Verifica se há algum serviço com total inconsistente
+\echo 'Verificando se há serviços com totais inconsistentes...';
+
+SELECT 
+    id, 
+    total as total_atual,
+    (
+        SELECT COALESCE(SUM((value->>'valor_final')::NUMERIC), 0) + 
+               COALESCE((itens->'0'->>'valor_frete')::NUMERIC, 0) + 
+               COALESCE((itens->'0'->>'outras_despesas')::NUMERIC, 0)
+        FROM jsonb_each(itens)
+        WHERE key ~ '^[0-9]+$'
+    ) as total_calculado
+FROM servico
+WHERE itens IS NOT NULL AND jsonb_typeof(itens) = 'object'
+AND ABS(total - (
+    SELECT COALESCE(SUM((value->>'valor_final')::NUMERIC), 0) + 
+           COALESCE((itens->'0'->>'valor_frete')::NUMERIC, 0) + 
+           COALESCE((itens->'0'->>'outras_despesas')::NUMERIC, 0)
+    FROM jsonb_each(itens)
+    WHERE key ~ '^[0-9]+$'
+)) > 0.01;
+
+ 
