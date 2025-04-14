@@ -318,7 +318,7 @@
             </tr>
         </table>
 
-        <h2>DESCRIÇÃO DOS SERVIÇOS</h2>
+        <h2>LISTA DE ITENS</h2>
         <table class="materials-table">
             <tr>
                 <th>#</th>
@@ -350,32 +350,36 @@
             <div style="width: 60%;">
                 <h2>TOTAIS</h2>
                 <table>
-                    <tr>
+                    <!-- <tr>
                         <th>Total de Produtos:</th>
                         <td class="valor-celula"><strong>{{formatMoney (sumNumericObjects itens 'valor_total')}}</strong></td>
-                    </tr>
+                    </tr> -->
                     <tr>
-                        <th>IPI:</th>
+                        <th>Total IPI</th>
                         <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_ipi')}}</td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                         <th>Total com IPI:</th>
                         <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_com_ipi')}}</td>
-                    </tr>
+                    </tr> -->
                     <tr>
-                        <th>Frete:</th>
-                        <td class="valor-celula">{{formatMoney (getFirstNonZeroValue itens 'valor_frete')}}</td>
-                    </tr>
-                    <tr>
-                        <th>Outras Despesas:</th>
-                        <td class="valor-celula">{{formatMoney (getFirstNonZeroValue itens 'outras_despesas')}}</td>
-                    </tr>
-                    <tr>
-                        <th>Desconto (sobre Produtos + IPI):</th>
+                        <th>Descontos</th>
                         <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_desconto')}}</td>
                     </tr>
                     <tr>
-                        <th>Total Final:</th>
+                        <th>Frete</th>
+                        <td class="valor-celula">{{formatMoney (getFirstNonZeroValue itens 'valor_frete')}}</td>
+                    </tr>
+                    <tr>
+                        <th>Outras Despesas</th>
+                        <td class="valor-celula">{{formatMoney (getFirstNonZeroValue itens 'outras_despesas')}}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Bruto</th>
+                        <td class="valor-celula"><strong>{{formatMoney (sumNumericObjects itens 'valor_total')}}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Total Final</th>
                         <td class="valor-celula"><strong>{{formatMoney total}}</strong></td>
                     </tr>
                 </table>
