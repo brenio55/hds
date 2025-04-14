@@ -315,8 +315,11 @@ function PedidosDeLocacao() {
         let total = 0;
         itens.forEach(item => {
             const valorTotal = parseFloat(item.valorTotal.toString().replace(',', '.')) || 0;
+            const ipi = parseFloat(item.ipi.toString().replace(',', '.')) || 0;
+            const valorIPI = valorTotal * (ipi / 100);
             const desconto = parseFloat(item.desconto.toString().replace(',', '.')) || 0;
-            const descontoValor = valorTotal * (desconto / 100);
+            // Calcular desconto sobre (PRODUTOS + IPI)
+            const descontoValor = (valorTotal + valorIPI) * (desconto / 100);
             total += descontoValor;
         });
         return total.toFixed(2).replace('.', ',');
@@ -329,7 +332,8 @@ function PedidosDeLocacao() {
         const valorFrete = parseFloat(dadosPedido.valorFrete.replace(',', '.')) || 0;
         const outrasDespesas = parseFloat(dadosPedido.outrasDespesas.replace(',', '.')) || 0;
 
-        const total = totalBruto + totalIPI - totalDescontos + valorFrete + outrasDespesas;
+        // (PRODUTOS + IPI) + OUTRAS DESPESAS + FRETE - DESCONTO
+        const total = (totalBruto + totalIPI) + outrasDespesas + valorFrete - totalDescontos;
         return total.toFixed(2).replace('.', ',');
     };
 
@@ -505,6 +509,7 @@ function PedidosDeLocacao() {
                 return numero;
             };
             
+            // Calcular totais com a nova fórmula
             const totalBruto = formatarValorNumerico(calcularTotalBruto());
             const ipiTotal = formatarValorNumerico(calcularTotalIPI());
             const totalDescontos = formatarValorNumerico(calcularTotalDescontos());
@@ -522,17 +527,28 @@ function PedidosDeLocacao() {
             });
 
             // Formatar os itens no formato esperado
-            const itensFormatados = itens.map((item, index) => ({
-                item: index + 1,
-                descricao: item.descricao || '',
-                unidade: item.unidade || '',
-                quantidade: formatarValorNumerico(item.quantidade),
-                ipi: formatarValorNumerico(item.ipi),
-                valor_unitario: formatarValorNumerico(item.valorUnitario),
-                valor_total: formatarValorNumerico(item.valorTotal),
-                desconto: formatarValorNumerico(item.desconto),
-                previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
-            }));
+            const itensFormatados = itens.map((item, index) => {
+                const valorTotal = formatarValorNumerico(item.valorTotal);
+                const ipi = formatarValorNumerico(item.ipi);
+                const valorIPI = valorTotal * (ipi / 100);
+                const desconto = formatarValorNumerico(item.desconto);
+                // Cálculo do valor final com a fórmula correta
+                const descontoValor = (valorTotal + valorIPI) * (desconto / 100);
+                const valorFinalItem = valorTotal + valorIPI - descontoValor;
+                
+                return {
+                    item: index + 1,
+                    descricao: item.descricao || '',
+                    unidade: item.unidade || '',
+                    quantidade: formatarValorNumerico(item.quantidade),
+                    ipi: ipi,
+                    valor_unitario: formatarValorNumerico(item.valorUnitario),
+                    valor_total: valorTotal,
+                    desconto: desconto,
+                    valor_final: valorFinalItem, // Adicionando valor final calculado
+                    previsao_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0]
+                };
+            });
 
             // Formatar o pedido de locação no formato esperado pelo backend
             const pedidoLocacao = {
@@ -914,7 +930,7 @@ function PedidosDeLocacao() {
                     <div className="totals-section">
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Total Bruto:</label>
+                                <label>Total Produtos:</label>
                                 <input type="text" value={calcularTotalBruto()} readOnly />
                             </div>
                             <div className="form-group">
@@ -922,7 +938,7 @@ function PedidosDeLocacao() {
                                 <input type="text" value={calcularTotalIPI()} readOnly />
                             </div>
                             <div className="form-group">
-                                <label>Total Descontos:</label>
+                                <label>Total Descontos (sobre Produtos + IPI):</label>
                                 <input type="text" value={calcularTotalDescontos()} readOnly />
                             </div>
                         </div>
@@ -947,7 +963,7 @@ function PedidosDeLocacao() {
                             </div>
                             <div className="form-group">
                                 <label>Total Final:</label>
-                                <input type="text" value={calcularTotalFinal()} readOnly />
+                                <input type="text" value={calcularTotalFinal()} readOnly title="(Produtos + IPI) + Outras Despesas + Frete - Descontos" />
                             </div>
                         </div>
                     </div>
