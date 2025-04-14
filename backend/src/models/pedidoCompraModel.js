@@ -114,6 +114,40 @@ class PedidoCompraModel {
     // Reorganizar os dados em uma estrutura mais conscisa
     if (result.rows[0]) {
         const row = result.rows[0];
+        
+        // Processar materiais para adicionar campos de valor_ipi e valor_desconto
+        if (row.materiais) {
+            // Se materiais for string, converter para objeto
+            const materiaisArray = typeof row.materiais === 'string' ? JSON.parse(row.materiais) : row.materiais;
+            
+            // Processar cada material para calcular valores adicionais
+            const materiaisProcessados = Array.isArray(materiaisArray) ? materiaisArray.map(material => {
+                const valorTotal = Number(material.valor_total || 0);
+                const ipi = Number(material.ipi || 0);
+                const desconto = Number(material.desconto || 0);
+                
+                // Calcular valor do IPI
+                const valorIPI = valorTotal * (ipi / 100);
+                
+                // Calcular valor com IPI
+                const valorComIPI = valorTotal + valorIPI;
+                
+                // Calcular desconto sobre (PRODUTOS + IPI)
+                const valorDesconto = valorComIPI * (desconto / 100);
+                
+                // Retornar material com campos calculados
+                return {
+                    ...material,
+                    valor_ipi: valorIPI,
+                    valor_com_ipi: valorComIPI,
+                    valor_desconto: valorDesconto
+                };
+            }) : [];
+            
+            // Atualizar materiais no objeto row
+            row.materiais = materiaisProcessados;
+        }
+        
         const formattedResult = {
             ...row,
             fornecedor: {

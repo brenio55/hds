@@ -19,6 +19,8 @@ class ServicoModel {
     // Handle both array and object formats
     if (Array.isArray(items)) {
       processedItens = items.map(item => {
+        if (!item) return item;
+        
         const valor_total = parseFloat(item.valor_total) || 0;
         const ipi = parseFloat(item.ipi) || 0;
         const desconto = parseFloat(item.desconto) || 0;
@@ -53,7 +55,12 @@ class ServicoModel {
       
       // Process numeric keys (items)
       Object.entries(items).forEach(([key, item]) => {
-        if (key.match(/^[0-9]+$/) && item && typeof item === 'object' && 'valor_total' in item) {
+        if (!item) {
+          processedItens[key] = item;
+          return;
+        }
+        
+        if (key.match(/^[0-9]+$/) && typeof item === 'object') {
           const valor_total = parseFloat(item.valor_total) || 0;
           const ipi = parseFloat(item.ipi) || 0;
           const desconto = parseFloat(item.desconto) || 0;

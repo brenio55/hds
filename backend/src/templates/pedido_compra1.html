@@ -376,9 +376,10 @@
                 <th>Un</th>
                 <th>Qntd.</th>
                 <th>Valor Unitario</th>
-                <th>Valor Total</th>
-                <th>%</th>
+                <th>IPI %</th>
+                <th>Desconto %</th>
                 <th>Prev. Entrega</th>
+                <th>Valor Total Bruto</th>
             </tr>
             {{#each pedidoData.materiais}}
             <tr>
@@ -387,9 +388,10 @@
                 <td>{{this.unidade}}</td>
                 <td>{{this.quantidade}}</td>
                 <td>{{this.valor_unitario}}</td>
-                <td>{{this.valor_total}}</td>
+                <td>{{formatPercent this.ipi}}</td>
                 <td>{{formatPercent this.desconto}}</td>
                 <td>{{formatDate this.previsao_entrega}}</td>
+                <td>{{this.valor_total}}</td>
             </tr>
             {{/each}}
         </table>
@@ -400,19 +402,19 @@
                 <table>
                     <tr>
                         <th>Total IPI</th>
-                        <td>{{formatPercent (avgNumericObjects pedidoData.materiais 'ipi')}}</td>
+                        <td>{{formatMoney (sumNumericObjects pedidoData.materiais 'valor_ipi')}}</td>
                     </tr>
                     <tr>
                         <th>Descontos</th>
-                        <td>{{formatPercent (avgNumericObjects pedidoData.materiais 'desconto')}}</td>
+                        <td>{{formatMoney (sumNumericObjects pedidoData.materiais 'valor_desconto')}}</td>
                     </tr>
                     <tr>
                         <th>Frete</th>
-                        <td>{{formatMoney (sumNumericObjects pedidoData.valor_frete)}}</td>
+                        <td>{{formatMoney pedidoData.valor_frete}}</td>
                     </tr>
                     <tr>
                         <th>Outras Despesas</th>
-                        <td>{{formatMoney (sumNumericObjects pedidoData.despesas_adicionais)}}</td>
+                        <td>{{formatMoney pedidoData.despesas_adicionais}}</td>
                     </tr>   
                     <tr>
                         <th>Total Bruto</th>
