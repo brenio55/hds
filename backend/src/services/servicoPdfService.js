@@ -124,6 +124,39 @@ class ServicoPdfService {
         return sum / numericKeys.length;
       });
 
+      // Adicionar helper para calcular o total final
+      handlebars.registerHelper('total_final', function(valorTotal, ipi, desconto, frete, despesasAdicionais) {
+        console.log(`[total_final helper] Calculando total final com: valorTotal=${valorTotal}, ipi=${ipi}, desconto=${desconto}, frete=${frete}, despesasAdicionais=${despesasAdicionais}`);
+        
+        // Se o serviço já tem um total calculado, use-o
+        if (servico.total) {
+          console.log(`[total_final helper] Usando total já calculado: ${servico.total}`);
+          return servico.total;
+        }
+        
+        // Caso contrário, calcule o total
+        let total = Number(valorTotal) || 0;
+        
+        // Aplicar IPI se existir
+        if (ipi) {
+          const valorIpi = total * (Number(ipi) / 100);
+          total += valorIpi;
+        }
+        
+        // Aplicar desconto se existir
+        if (desconto) {
+          const valorDesconto = total * (Number(desconto) / 100);
+          total -= valorDesconto;
+        }
+        
+        // Adicionar frete e despesas adicionais
+        total += Number(frete) || 0;
+        total += Number(despesasAdicionais) || 0;
+        
+        console.log(`[total_final helper] Total final calculado: ${total}`);
+        return total;
+      });
+
       // Busca dados do fornecedor
       let fornecedor = null;
       if (servico.fornecedor_id) {

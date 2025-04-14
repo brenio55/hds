@@ -1,32 +1,108 @@
 const db = require('../config/database');
 
 class ServicoModel {
+  /**
+   * Calculates valor_final for each item and the total sum
+   * @param {Object|Array} itens - The items to process
+   * @returns {Object} - Object containing processed items and total
+   */
+  static calculateValues(itens) {
+    let total = 0;
+    let processedItens = itens;
+    
+    if (!itens) {
+      return { processedItens: {}, total: 0 };
+    }
+    
+    const items = typeof itens === 'string' ? JSON.parse(itens) : itens;
+    
+    // Handle both array and object formats
+    if (Array.isArray(items)) {
+      processedItens = items.map(item => {
+        const valor_total = parseFloat(item.valor_total) || 0;
+        const desconto = parseFloat(item.desconto) || 0;
+        const valor_frete = parseFloat(item.valor_frete) || 0;
+        const outras_despesas = parseFloat(item.outras_despesas) || 0;
+        
+        // Calculate valor_final: apply discount to valor_total, add freight and outras_despesas
+        const valor_final = (valor_total * (1 - (desconto / 100))) + valor_frete + outras_despesas;
+        total += valor_final;
+        
+        return { ...item, valor_final };
+      });
+    } else if (typeof items === 'object') {
+      // Handle object with numeric keys
+      processedItens = {};
+      
+      // Process numeric keys (items)
+      Object.entries(items).forEach(([key, item]) => {
+        if (key.match(/^[0-9]+$/) && item && typeof item === 'object' && 'valor_total' in item) {
+          const valor_total = parseFloat(item.valor_total) || 0;
+          const desconto = parseFloat(item.desconto) || 0;
+          const valor_frete = parseFloat(item.valor_frete) || 0;
+          const outras_despesas = parseFloat(item.outras_despesas) || 0;
+          
+          // Calculate valor_final: apply discount to valor_total, add freight and outras_despesas
+          const valor_final = (valor_total * (1 - (desconto / 100))) + valor_frete + outras_despesas;
+          total += valor_final;
+          
+          processedItens[key] = { ...item, valor_final };
+        } else {
+          // Copy non-numeric keys as is (like afazer_contratada, afazer_contratante, informacao_importante)
+          processedItens[key] = item;
+        }
+      });
+      
+      // Ensure afazer arrays exist
+      if (!processedItens.afazer_contratada) {
+        processedItens.afazer_contratada = [
+          "- Fazer o que esta acordado em contrato",
+          "- Ser responsavel"
+        ];
+      }
+      
+      if (!processedItens.afazer_contratante) {
+        processedItens.afazer_contratante = [
+          "- Ser responsavel",
+          "- cumprir acordo"
+        ];
+      }
+    }
+    
+    return { processedItens, total };
+  }
+
   static async create(data) {
     console.log("========== INÍCIO - CREATE SERVIÇO MODEL ==========");
     console.log("Dados recebidos para criar serviço:", JSON.stringify(data, null, 2));
     
-    const query = `
-      INSERT INTO servico (
-        fornecedor_id,
-        data_vencimento,
-        proposta_id,
-        itens
-      )
-      VALUES ($1, $2, $3, $4)
-      RETURNING *
-    `;
-
-    const values = [
-      data.fornecedor_id,
-      data.data_vencimento,
-      data.proposta_id,
-      data.itens
-    ];
-    
-    console.log("Query SQL:", query);
-    console.log("Valores para a query:", JSON.stringify(values, null, 2));
-
     try {
+      // Calculate total and valor_final from itens using the utility function
+      const { processedItens, total } = this.calculateValues(data.itens);
+      
+      const query = `
+        INSERT INTO servico (
+          fornecedor_id,
+          data_vencimento,
+          proposta_id,
+          itens,
+          total
+        )
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      `;
+      
+      const values = [
+        data.fornecedor_id,
+        data.data_vencimento,
+        data.proposta_id,
+        typeof processedItens === 'string' ? processedItens : JSON.stringify(processedItens),
+        total
+      ];
+      
+      console.log("Query SQL:", query);
+      console.log("Valores para a query:", JSON.stringify(values, null, 2));
+
       const result = await db.query(query, values);
       console.log("Resultado da inserção:", JSON.stringify(result.rows[0], null, 2));
       console.log("========== FIM - CREATE SERVIÇO MODEL ==========");
@@ -153,31 +229,36 @@ class ServicoModel {
     console.log(`========== INÍCIO - UPDATE SERVIÇO ID: ${id} ==========`);
     console.log("Dados recebidos para atualização:", JSON.stringify(data, null, 2));
     
-    const query = `
-      UPDATE servico
-      SET 
-        fornecedor_id = $1,
-        data_vencimento = $2,
-        proposta_id = $3,
-        itens = $4,
-        pdf_uid = $5
-      WHERE id = $6
-      RETURNING *
-    `;
-
-    const values = [
-      data.fornecedor_id,
-      data.data_vencimento,
-      data.proposta_id,
-      data.itens,
-      data.pdf_uid,
-      id
-    ];
-    
-    console.log("Query SQL:", query);
-    console.log("Valores para a query:", JSON.stringify(values, null, 2));
-
     try {
+      // Calculate total and valor_final from itens using the utility function
+      const { processedItens, total } = this.calculateValues(data.itens);
+      
+      const query = `
+        UPDATE servico
+        SET 
+          fornecedor_id = $1,
+          data_vencimento = $2,
+          proposta_id = $3,
+          itens = $4,
+          pdf_uid = $5,
+          total = $6
+        WHERE id = $7
+        RETURNING *
+      `;
+      
+      const values = [
+        data.fornecedor_id,
+        data.data_vencimento,
+        data.proposta_id,
+        typeof processedItens === 'string' ? processedItens : JSON.stringify(processedItens),
+        data.pdf_uid,
+        total,
+        id
+      ];
+      
+      console.log("Query SQL:", query);
+      console.log("Valores para a query:", JSON.stringify(values, null, 2));
+
       const result = await db.query(query, values);
       
       if (result.rows.length === 0) {
@@ -190,8 +271,7 @@ class ServicoModel {
       console.log("========== FIM - UPDATE SERVIÇO ==========");
       return result.rows[0];
     } catch (error) {
-      console.error(`Erro ao atualizar serviço com ID ${id}:`, error);
-      console.error("Stack trace:", error.stack);
+      console.error('Error in ServicoModel.update:', error);
       throw error;
     }
   }
