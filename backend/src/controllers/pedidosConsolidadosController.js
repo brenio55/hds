@@ -402,22 +402,66 @@ class PedidosConsolidadosController {
           .filter(pedido => pedido && pedido.id)
           .map(pedido => {
             try {
-              // Calcular valor total do pedido
+              // Calcular valor total do pedido considerando IPI e desconto
               let valorTotal = 0;
               if (pedido.materiais) {
                 if (typeof pedido.materiais === 'string') {
                   try {
                     const materiais = JSON.parse(pedido.materiais);
                     if (Array.isArray(materiais)) {
-                      valorTotal = materiais.reduce((sum, item) => 
-                        sum + (parseFloat(item.valor_total) || 0), 0);
+                      valorTotal = materiais.reduce((sum, item) => {
+                        const valorItemBruto = parseFloat(item.valor_total) || 0;
+                        const ipi = parseFloat(item.ipi) || 0;
+                        const desconto = parseFloat(item.desconto) || 0;
+                        
+                        // Calcular valor do IPI
+                        const valorIPI = valorItemBruto * (ipi / 100);
+                        
+                        // Calcular valor com IPI
+                        const valorComIPI = valorItemBruto + valorIPI;
+                        
+                        // Calcular desconto sobre (PRODUTOS + IPI)
+                        const valorDesconto = valorComIPI * (desconto / 100);
+                        
+                        // Valor final do item: (PRODUTOS + IPI) - DESCONTO
+                        const valorFinalItem = valorComIPI - valorDesconto;
+                        
+                        return sum + valorFinalItem;
+                      }, 0);
                     }
                   } catch (e) {
                     console.error(`Erro ao parsear materiais para pedido ID=${pedido.id}:`, e);
                   }
                 } else if (Array.isArray(pedido.materiais)) {
-                  valorTotal = pedido.materiais.reduce((sum, item) => 
-                    sum + (parseFloat(item.valor_total) || 0), 0);
+                  valorTotal = pedido.materiais.reduce((sum, item) => {
+                    const valorItemBruto = parseFloat(item.valor_total) || 0;
+                    const ipi = parseFloat(item.ipi) || 0;
+                    const desconto = parseFloat(item.desconto) || 0;
+                    
+                    // Calcular valor do IPI
+                    const valorIPI = valorItemBruto * (ipi / 100);
+                    
+                    // Calcular valor com IPI
+                    const valorComIPI = valorItemBruto + valorIPI;
+                    
+                    // Calcular desconto sobre (PRODUTOS + IPI)
+                    const valorDesconto = valorComIPI * (desconto / 100);
+                    
+                    // Valor final do item: (PRODUTOS + IPI) - DESCONTO
+                    const valorFinalItem = valorComIPI - valorDesconto;
+                    
+                    return sum + valorFinalItem;
+                  }, 0);
+                }
+                
+                // Adicionar valor do frete, se existir
+                if (parseFloat(pedido.valor_frete) > 0) {
+                  valorTotal += parseFloat(pedido.valor_frete);
+                }
+                
+                // Adicionar despesas adicionais, se existirem
+                if (parseFloat(pedido.despesas_adicionais) > 0) {
+                  valorTotal += parseFloat(pedido.despesas_adicionais);
                 }
               }
               
