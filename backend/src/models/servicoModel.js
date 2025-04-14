@@ -1,26 +1,33 @@
+/* eslint-env node */
+/* eslint-disable no-undef */
 const db = require('../config/database');
 
 class ServicoModel {
+  static getFirstNonZeroValue(values) {
+    if (!Array.isArray(values)) return 0;
+    return values.find(value => parseFloat(value) > 0) || 0;
+  }
+
   /**
    * Calculates valor_final for each item and the total sum
    * @param {Object|Array} itens - The items to process
    * @returns {Object} - Object containing processed items and total
    */
   static calculateValues(itens) {
-    let total = 0;
-    let totalFrete = 0;
-    let totalOutrasDespesas = 0;
+    let total_final = 0;
     let processedItens = itens;
-    let freteDefined = false;
-    let outrasDespesasDefined = false;
+    let total_frete = 0;
+    let total_outras_despesas = 0;
     
     if (!itens) {
-      return { processedItens: {}, total: 0 };
+      return { 
+        processedItens: {},
+        total_final: 0
+      };
     }
     
     const items = typeof itens === 'string' ? JSON.parse(itens) : itens;
     
-    // Handle both array and object formats
     if (Array.isArray(items)) {
       processedItens = items.map(item => {
         if (!item) return item;
@@ -31,17 +38,6 @@ class ServicoModel {
         const valor_frete = parseFloat(item.valor_frete) || 0;
         const outras_despesas = parseFloat(item.outras_despesas) || 0;
         
-        // Registramos o valor do frete e outras despesas apenas se ainda não definidos
-        if (!freteDefined && valor_frete > 0) {
-          totalFrete = valor_frete;
-          freteDefined = true;
-        }
-        
-        if (!outrasDespesasDefined && outras_despesas > 0) {
-          totalOutrasDespesas = outras_despesas;
-          outrasDespesasDefined = true;
-        }
-        
         // Calcular valor do IPI
         const valor_ipi = valor_total * (ipi / 100);
         
@@ -51,11 +47,19 @@ class ServicoModel {
         // Calcular desconto sobre (PRODUTOS + IPI)
         const valor_desconto = valor_com_ipi * (desconto / 100);
         
-        // Calcular valor final: (PRODUTOS + IPI) - DESCONTO (sem contar frete e outras despesas)
+        // Calcular valor final do item (sem frete e outras despesas)
         const valor_final = valor_com_ipi - valor_desconto;
         
-        // Somamos o valor_final ao total
-        total += valor_final;
+        // Acumular total final
+        total_final += valor_final;
+        
+        // Acumular frete e outras despesas apenas uma vez
+        if (valor_frete > 0 && total_frete === 0) {
+          total_frete = valor_frete;
+        }
+        if (outras_despesas > 0 && total_outras_despesas === 0) {
+          total_outras_despesas = outras_despesas;
+        }
         
         return { 
           ...item, 
@@ -65,11 +69,8 @@ class ServicoModel {
           valor_final 
         };
       });
-    } else if (typeof items === 'object') {
-      // Handle object with numeric keys
+    } else {
       processedItens = {};
-      
-      // Process numeric keys (items)
       Object.entries(items).forEach(([key, item]) => {
         if (!item) {
           processedItens[key] = item;
@@ -83,17 +84,6 @@ class ServicoModel {
           const valor_frete = parseFloat(item.valor_frete) || 0;
           const outras_despesas = parseFloat(item.outras_despesas) || 0;
           
-          // Registramos o valor do frete e outras despesas apenas se ainda não definidos
-          if (!freteDefined && valor_frete > 0) {
-            totalFrete = valor_frete;
-            freteDefined = true;
-          }
-          
-          if (!outrasDespesasDefined && outras_despesas > 0) {
-            totalOutrasDespesas = outras_despesas;
-            outrasDespesasDefined = true;
-          }
-          
           // Calcular valor do IPI
           const valor_ipi = valor_total * (ipi / 100);
           
@@ -103,11 +93,19 @@ class ServicoModel {
           // Calcular desconto sobre (PRODUTOS + IPI)
           const valor_desconto = valor_com_ipi * (desconto / 100);
           
-          // Calcular valor final: (PRODUTOS + IPI) - DESCONTO (sem contar frete e outras despesas)
+          // Calcular valor final do item (sem frete e outras despesas)
           const valor_final = valor_com_ipi - valor_desconto;
           
-          // Somamos o valor_final ao total
-          total += valor_final;
+          // Acumular total final
+          total_final += valor_final;
+          
+          // Acumular frete e outras despesas apenas uma vez
+          if (valor_frete > 0 && total_frete === 0) {
+            total_frete = valor_frete;
+          }
+          if (outras_despesas > 0 && total_outras_despesas === 0) {
+            total_outras_despesas = outras_despesas;
+          }
           
           processedItens[key] = { 
             ...item, 
@@ -117,7 +115,6 @@ class ServicoModel {
             valor_final 
           };
         } else {
-          // Copy non-numeric keys as is (like afazer_contratada, afazer_contratante, informacao_importante)
           processedItens[key] = item;
         }
       });
@@ -138,10 +135,13 @@ class ServicoModel {
       }
     }
     
-    // Adicionar frete e outras despesas ao total final (apenas uma vez)
-    total += totalFrete + totalOutrasDespesas;
+    // Adicionar frete e outras despesas apenas uma vez ao total final
+    total_final += total_frete + total_outras_despesas;
     
-    return { processedItens, total };
+    return { 
+      processedItens,
+      total_final
+    };
   }
 
   static async create(data) {
@@ -149,8 +149,11 @@ class ServicoModel {
     console.log("Dados recebidos para criar serviço:", JSON.stringify(data, null, 2));
     
     try {
-      // Calculate total and valor_final from itens using the utility function
-      const { processedItens, total } = this.calculateValues(data.itens);
+      // Calculate totals from itens using the utility function
+      const { 
+        processedItens,
+        total_final 
+      } = this.calculateValues(data.itens);
       
       const query = `
         INSERT INTO servico (
@@ -169,7 +172,7 @@ class ServicoModel {
         data.data_vencimento,
         data.proposta_id,
         typeof processedItens === 'string' ? processedItens : JSON.stringify(processedItens),
-        total
+        total_final
       ];
       
       console.log("Query SQL:", query);
@@ -302,8 +305,11 @@ class ServicoModel {
     console.log("Dados recebidos para atualização:", JSON.stringify(data, null, 2));
     
     try {
-      // Calculate total and valor_final from itens using the utility function
-      const { processedItens, total } = this.calculateValues(data.itens);
+      // Calculate totals from itens using the utility function
+      const { 
+        processedItens,
+        total_final 
+      } = this.calculateValues(data.itens);
       
       const query = `
         UPDATE servico
@@ -324,7 +330,7 @@ class ServicoModel {
         data.proposta_id,
         typeof processedItens === 'string' ? processedItens : JSON.stringify(processedItens),
         data.pdf_uid,
-        total,
+        total_final,
         id
       ];
       
