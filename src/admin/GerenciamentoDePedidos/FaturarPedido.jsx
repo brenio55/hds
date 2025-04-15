@@ -154,7 +154,7 @@ function FaturarPedido() {
             setLoading(true);
             console.log(`Carregando detalhes do pedido ${pedidoId}...`);
             
-            // Encontrar o pedido nos pedidos já carregados para obter o tipo
+            // Encontrar o pedido nos pedidos já carregados
             const pedidoEncontrado = pedidosAtivos.find(p => p.id.toString() === pedidoId.toString());
             
             if (!pedidoEncontrado) {
@@ -168,54 +168,41 @@ function FaturarPedido() {
                 return;
             }
             
-            // Determinar o tipo de pedido
-            const tipoPedido = pedidoEncontrado.tipo || 'compra';
-            console.log(`Tipo de pedido identificado: ${tipoPedido}`);
+            console.log("Usando dados do pedido já carregado:", pedidoEncontrado);
             
-            // Buscar detalhes completos do pedido usando o endpoint apropriado com base no tipo
-            let pedidoDetalhado;
-            
-            switch (tipoPedido) {
-                case 'compra':
-                    pedidoDetalhado = await ApiService.buscarPedidoCompraPorId(pedidoId);
-                    break;
-                case 'locacao':
-                    pedidoDetalhado = await ApiService.buscarPedidoLocacaoPorId(pedidoId);
-                    break;
-                case 'servico':
-                    pedidoDetalhado = await ApiService.buscarPedidoServicoPorId(pedidoId);
-                    break;
-                default:
-                    // Fallback para tipo desconhecido
-                    pedidoDetalhado = await ApiService.buscarPedidoPorId(pedidoId, tipoPedido);
-            }
-            
-            console.log("Detalhes completos do pedido recebidos:", pedidoDetalhado);
-            
-            // Usar os valores diretamente do pedido detalhado obtido via API
-            const valorTotalPedido = parseFloat(pedidoDetalhado.valor_total) || 0;
-            const valorFaturadoPedido = parseFloat(pedidoDetalhado.valor_faturado) || 0;
-            const valorAFaturarPedido = parseFloat(pedidoDetalhado.valor_a_faturar) || 0;
-            
+            // Usar o valor total já disponível no pedido
+            const valorTotalPedido = parseFloat(pedidoEncontrado.valor_total) || 0;
             console.log(`Valor total do pedido: ${valorTotalPedido}`);
-            console.log(`Valor já faturado: ${valorFaturadoPedido}`);
-            console.log(`Valor a faturar: ${valorAFaturarPedido}`);
-            
-            // Atualizar estados com os valores obtidos diretamente do pedido
             setValorTotal(valorTotalPedido);
-            setValorFaturado(valorFaturadoPedido);
+            
+            // Buscar faturamentos existentes para este pedido
+            const faturamentos = await ApiService.consultarFaturamentos({ 
+                tipo: pedidoEncontrado.tipo || 'compra',
+                numeroPedido: pedidoId 
+            });
+            
+            console.log("Faturamentos para este pedido:", faturamentos);
+            
+            // Calcular valor já faturado
+            const totalFaturado = faturamentos.reduce(
+                (total, fat) => total + parseFloat(fat.valorFaturado || 0), 
+                0
+            );
+            
+            setValorFaturado(totalFaturado);
             
             // Calcular porcentagem faturada
             if (valorTotalPedido > 0) {
-                const porcentagem = (valorFaturadoPedido / valorTotalPedido) * 100;
+                const porcentagem = (totalFaturado / valorTotalPedido) * 100;
                 setPorcentagemFaturada(Math.min(porcentagem, 100).toFixed(2));
             } else {
                 setPorcentagemFaturada(0);
             }
             
             // Sugerir valor restante para faturamento
-            if (valorAFaturarPedido > 0) {
-                setNovoValorFaturamento(valorAFaturarPedido.toFixed(2));
+            const valorRestante = valorTotalPedido - totalFaturado;
+            if (valorRestante > 0) {
+                setNovoValorFaturamento(valorRestante.toFixed(2));
             } else {
                 setNovoValorFaturamento('');
             }
@@ -235,7 +222,7 @@ function FaturarPedido() {
 
     const formatarNF = (valor) => {
         // Formato padrão NF: 999.999.999
-        return valor.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})/, '$1.$2.$3');
+        return valor.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})/, '$1$2$3');
     };
 
     const formatarBoleto = (valor) => {
@@ -266,9 +253,18 @@ function FaturarPedido() {
         }
 
         // Verificar se o valor de faturamento é válido
-        const valorFaturamentoNumerico = parseFloat(novoValorFaturamento.replace(',', '.'));
-        if (isNaN(valorFaturamentoNumerico) || valorFaturamentoNumerico <= 0) {
-            setError('Informe um valor de faturamento válido');
+        let valorFaturamentoNumerico = 0;
+        
+        try {
+            // Normalizar o valor (substituir vírgulas por pontos para parsing)
+            valorFaturamentoNumerico = parseFloat(novoValorFaturamento.replace(',', '.'));
+            
+            if (isNaN(valorFaturamentoNumerico) || valorFaturamentoNumerico <= 0) {
+                setError('Informe um valor de faturamento válido');
+                return;
+            }
+        } catch (e) {
+            setError('Formato de valor inválido');
             return;
         }
 
@@ -317,10 +313,12 @@ function FaturarPedido() {
             setError(null);
             setMensagemSucesso('');
             
+            // Preparar os dados do faturamento
             const formData = new FormData();
             formData.append('pedidoId', pedidoSelecionado);
             formData.append('tipoPedido', pedido.tipo);
-            formData.append('valorFaturamento', novoValorFaturamento);
+            // Garantir que o valor seja enviado no formato correto (com ponto como separador decimal)
+            formData.append('valorFaturamento', valorFaturamentoNumerico.toString());
             formData.append('dataVencimento', dataVencimento);
             formData.append('numeroNF', numeroNF);
             formData.append('metodoPagamento', metodoPagamento);
@@ -335,9 +333,11 @@ function FaturarPedido() {
             if (arquivoNF) formData.append('arquivoNF', arquivoNF);
     
             console.log(`Enviando dados de faturamento para pedido ${pedido.numero} (tipo: ${pedido.tipo})...`);
-            await ApiService.faturarPedidoCompra(formData);
+            console.log(`Valor a faturar: ${valorFaturamentoNumerico}`);
             
-            console.log("Faturamento registrado com sucesso!");
+            const resultado = await ApiService.faturarPedidoCompra(formData);
+            
+            console.log("Faturamento registrado com sucesso:", resultado);
             setMensagemSucesso('Faturamento registrado com sucesso!');
             
             // Limpar formulário
@@ -355,7 +355,11 @@ function FaturarPedido() {
             carregarPedidosAtivos();
         } catch (error) {
             console.error('Erro ao registrar faturamento:', error);
-            setError('Erro ao registrar faturamento: ' + (error.message || 'Tente novamente.'));
+            // Extrair a mensagem de erro mais específica
+            let mensagemErro = error.message || 'Tente novamente.';
+            // Remover prefixos técnicos para mensagem mais limpa
+            mensagemErro = mensagemErro.replace('Error: Erro ao faturar pedido: ', '');
+            setError('Erro ao registrar faturamento: ' + mensagemErro);
         } finally {
             setLoading(false);
         }
