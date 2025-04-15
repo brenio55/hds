@@ -33,52 +33,71 @@ function ConsultarFaturamentos() {
             
             console.log("Filtros aplicados:", filtros);
             
-            // Fator importante: não faça várias chamadas simultâneas que possam interferir uma na outra
-            // Primeiro buscar todos os faturamentos
-            const faturamentosDetalhados = await ApiService.consultarFaturamentos(filtros);
-            console.log("Faturamentos recebidos:", faturamentosDetalhados);
+            // Buscar dados dos pedidos consolidados
+            const resposta = await ApiService.buscarPedidosConsolidados(filtros);
+            console.log("Dados recebidos da API:", resposta);
             
-            if (faturamentosDetalhados.length === 0) {
+            if (!resposta || !resposta.pedidos || resposta.pedidos.length === 0) {
                 setError('Nenhum faturamento encontrado com os filtros selecionados.');
                 setFaturamentos([]);
                 setLoading(false);
                 return;
             }
             
-            // Depois, buscar detalhes dos pedidos relacionados a esses faturamentos
-            const pedidosFaturados = await ApiService.consultarPedidosFaturados(filtros);
-            console.log("Pedidos faturados recebidos:", pedidosFaturados);
-            
-            // Combinar as informações
-            const faturamentosCompletos = faturamentosDetalhados.map(faturamento => {
-                // Encontrar o pedido correspondente
-                const pedidoRelacionado = pedidosFaturados.find(
-                    p => p.id.toString() === faturamento.numeroPedido.toString() && 
-                         p.tipo === faturamento.tipoPedido
-                );
-                
-                // Extrair nome do fornecedor do pedido relacionado
+            // Mapear os pedidos para o formato esperado pela interface
+            const faturamentosProcessados = resposta.pedidos.map(pedido => {
+                // Extrair nome do fornecedor
                 let fornecedorNome = 'N/D';
-                if (pedidoRelacionado && pedidoRelacionado.fornecedor) {
-                    if (typeof pedidoRelacionado.fornecedor === 'object') {
-                        fornecedorNome = pedidoRelacionado.fornecedor.nome || pedidoRelacionado.fornecedor.razao_social;
+                if (pedido.fornecedor) {
+                    fornecedorNome = typeof pedido.fornecedor === 'object' 
+                        ? pedido.fornecedor.nome || pedido.fornecedor.razao_social 
+                        : pedido.fornecedor;
+                }
+                
+                // Gerar número do pedido com prefixo baseado no tipo
+                let prefixo = '';
+                switch (pedido.tipo) {
+                    case 'compra': prefixo = 'PC'; break;
+                    case 'locacao': prefixo = 'PL'; break;
+                    case 'servico': prefixo = 'PS'; break;
+                    default: prefixo = 'P'; break;
+                }
+                
+                // Calcular percentual faturado se disponível
+                let porcentagemFaturada = 0;
+                if (parseFloat(pedido.valor_total) > 0 && pedido.valor_faturado) {
+                    // Se valor_faturado estiver em percentual (0-100)
+                    if (pedido.valor_faturado <= 100) {
+                        porcentagemFaturada = pedido.valor_faturado;
                     } else {
-                        fornecedorNome = pedidoRelacionado.fornecedor;
+                        // Se for valor absoluto, calcular percentual
+                        porcentagemFaturada = (pedido.valor_faturado / parseFloat(pedido.valor_total)) * 100;
                     }
                 }
                 
-                // Usar valores do faturamento, complementando com os do pedido quando necessário
                 return {
-                    ...faturamento,
-                    // Adicionar informações extras do pedido se disponíveis
-                    cliente: pedidoRelacionado?.cliente || 'N/D',
+                    id: pedido.id,
+                    numeroPedido: pedido.id,
+                    numero: `${prefixo}-${pedido.id}`,
+                    tipoPedido: pedido.tipo,
+                    valorTotal: parseFloat(pedido.valor_total),
+                    // Se valor_faturado for percentual (0-100), converter para valor monetário
+                    valorFaturado: pedido.valor_faturado <= 100 
+                        ? (pedido.valor_faturado / 100) * parseFloat(pedido.valor_total)
+                        : parseFloat(pedido.valor_faturado),
+                    valorAFaturar: parseFloat(pedido.valor_a_faturar),
+                    dataFaturamento: pedido.data,
+                    dataVencimento: pedido.data_vencimento,
                     fornecedor: fornecedorNome,
-                    numero: pedidoRelacionado?.numero || `${faturamento.tipoPedido.toUpperCase().substring(0,1)}C-${faturamento.numeroPedido}`
+                    cliente: pedido.cliente_id ? `Cliente #${pedido.cliente_id}` : 'N/D',
+                    status: pedido.status,
+                    metodoPagamento: pedido.pagamento || 'N/D',
+                    porcentagemFaturada: porcentagemFaturada,
                 };
             });
             
-            console.log("Faturamentos com dados combinados:", faturamentosCompletos);
-            setFaturamentos(faturamentosCompletos);
+            console.log("Faturamentos processados:", faturamentosProcessados);
+            setFaturamentos(faturamentosProcessados);
         } catch (error) {
             console.error('Erro ao carregar faturamentos:', error);
             setFaturamentos([]);
@@ -233,26 +252,28 @@ function ConsultarFaturamentos() {
                                         <tr>
                                             <th>Nº Pedido</th>
                                             <th>Tipo</th>
+                                            <th>Fornecedor</th>
                                             <th>Valor Total do Pedido</th>
                                             <th>Valor Faturado</th>
                                             <th>Valor a Faturar</th>
-                                            <th>Data de Faturamento</th>
+                                            <th>Status</th>
+                                            <th>Data de Criação</th>
                                             <th>Data de Vencimento</th>
-                                            <th>Método de Pagamento</th>
                                             <th>Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {faturamentos.map((faturamento) => (
                                             <tr key={faturamento.id}>
-                                                <td>{faturamento.numeroPedido || 'N/D'}</td>
+                                                <td>{faturamento.numero || `${faturamento.tipoPedido.toUpperCase().charAt(0)}${faturamento.tipoPedido === 'compra' ? 'C' : faturamento.tipoPedido === 'locacao' ? 'L' : 'S'}-${faturamento.numeroPedido}`}</td>
                                                 <td>{obterNomeTipoPedido(faturamento.tipoPedido)}</td>
+                                                <td>{faturamento.fornecedor || 'N/D'}</td>
                                                 <td>{formatarValor(faturamento.valorTotal)}</td>
                                                 <td>{formatarValor(faturamento.valorFaturado)}</td>
                                                 <td>{formatarValor(faturamento.valorAFaturar)}</td>
+                                                <td>{faturamento.status || 'N/D'}</td>
                                                 <td>{formatarData(faturamento.dataFaturamento)}</td>
                                                 <td>{formatarData(faturamento.dataVencimento)}</td>
-                                                <td>{faturamento.metodoPagamento || 'N/D'}</td>
                                                 <td className="acoes-cell">
                                                     <button 
                                                         onClick={() => abrirDetalhes(faturamento)}
@@ -293,12 +314,12 @@ function ConsultarFaturamentos() {
                     {visualizandoDetalhes && (
                         <div className="modal-overlay">
                             <div className="modal-content">
-                                <h2>Detalhes do Faturamento</h2>
+                                <h2>Detalhes do Pedido</h2>
                                 
                                 <div className="detalhes-container">
                                     <div className="detalhes-item">
                                         <strong>Número do Pedido:</strong>
-                                        <span>{visualizandoDetalhes.numeroPedido || 'N/D'}</span>
+                                        <span>{visualizandoDetalhes.numero || `${visualizandoDetalhes.tipoPedido.toUpperCase().charAt(0)}${visualizandoDetalhes.tipoPedido === 'compra' ? 'C' : visualizandoDetalhes.tipoPedido === 'locacao' ? 'L' : 'S'}-${visualizandoDetalhes.id}`}</span>
                                     </div>
                                     
                                     <div className="detalhes-item">
@@ -307,13 +328,34 @@ function ConsultarFaturamentos() {
                                     </div>
                                     
                                     <div className="detalhes-item">
+                                        <strong>Status:</strong>
+                                        <span>{visualizandoDetalhes.status || 'N/D'}</span>
+                                    </div>
+                                    
+                                    <div className="detalhes-item">
+                                        <strong>Fornecedor:</strong>
+                                        <span>{visualizandoDetalhes.fornecedor || 'N/D'}</span>
+                                    </div>
+                                    
+                                    {visualizandoDetalhes.cliente && (
+                                        <div className="detalhes-item">
+                                            <strong>Cliente:</strong>
+                                            <span>{visualizandoDetalhes.cliente}</span>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="detalhes-item">
                                         <strong>Valor Total do Pedido:</strong>
                                         <span>{formatarValor(visualizandoDetalhes.valorTotal)}</span>
                                     </div>
                                     
                                     <div className="detalhes-item">
                                         <strong>Valor Faturado:</strong>
-                                        <span>{formatarValor(visualizandoDetalhes.valorFaturado)}</span>
+                                        <span>{formatarValor(visualizandoDetalhes.valorFaturado)} 
+                                        {visualizandoDetalhes.porcentagemFaturada !== undefined && (
+                                            <span className="porcentagem-info"> ({visualizandoDetalhes.porcentagemFaturada.toFixed(2)}%)</span>
+                                        )}
+                                        </span>
                                     </div>
                                     
                                     <div className="detalhes-item">
@@ -322,7 +364,7 @@ function ConsultarFaturamentos() {
                                     </div>
                                     
                                     <div className="detalhes-item">
-                                        <strong>Data de Faturamento:</strong>
+                                        <strong>Data de Criação:</strong>
                                         <span>{formatarData(visualizandoDetalhes.dataFaturamento)}</span>
                                     </div>
                                     
@@ -331,27 +373,31 @@ function ConsultarFaturamentos() {
                                         <span>{formatarData(visualizandoDetalhes.dataVencimento)}</span>
                                     </div>
                                     
-                                    <div className="detalhes-item">
-                                        <strong>Número da NF:</strong>
-                                        <span>{visualizandoDetalhes.numeroNF || 'N/D'}</span>
-                                    </div>
-                                    
-                                    <div className="detalhes-item">
-                                        <strong>Método de Pagamento:</strong>
-                                        <span>{visualizandoDetalhes.metodoPagamento || 'N/D'}</span>
-                                    </div>
-                                    
-                                    {visualizandoDetalhes.metodoPagamento === 'boleto' && (
+                                    {visualizandoDetalhes.numeroNF && (
                                         <div className="detalhes-item">
-                                            <strong>Código do Boleto:</strong>
-                                            <span>{visualizandoDetalhes.codigoBoleto || 'N/D'}</span>
+                                            <strong>Número da NF:</strong>
+                                            <span>{visualizandoDetalhes.numeroNF}</span>
                                         </div>
                                     )}
                                     
-                                    {(visualizandoDetalhes.metodoPagamento === 'pix' || visualizandoDetalhes.metodoPagamento === 'ted') && (
+                                    {visualizandoDetalhes.metodoPagamento && (
+                                        <div className="detalhes-item">
+                                            <strong>Método de Pagamento:</strong>
+                                            <span>{visualizandoDetalhes.metodoPagamento}</span>
+                                        </div>
+                                    )}
+                                    
+                                    {visualizandoDetalhes.metodoPagamento === 'boleto' && visualizandoDetalhes.codigoBoleto && (
+                                        <div className="detalhes-item">
+                                            <strong>Código do Boleto:</strong>
+                                            <span>{visualizandoDetalhes.codigoBoleto}</span>
+                                        </div>
+                                    )}
+                                    
+                                    {(visualizandoDetalhes.metodoPagamento === 'pix' || visualizandoDetalhes.metodoPagamento === 'ted') && visualizandoDetalhes.dadosConta && (
                                         <div className="detalhes-item">
                                             <strong>Dados da Conta:</strong>
-                                            <span>{visualizandoDetalhes.dadosConta || 'N/D'}</span>
+                                            <span>{visualizandoDetalhes.dadosConta}</span>
                                         </div>
                                     )}
                                 </div>

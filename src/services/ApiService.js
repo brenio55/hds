@@ -821,79 +821,43 @@ class ApiService {
      */
     static async buscarPedidosConsolidados(filtros = {}) {
         try {
-            console.log("ApiService: Buscando pedidos consolidados");
+            console.log("ApiService: Buscando pedidos consolidados com filtros:", filtros);
             
-            // Adicionar token de autorização ao cabeçalho
-            const authHeaders = createAuthHeaders();
+            // Construir query string para filtros
+            const queryParams = new URLSearchParams();
+            if (filtros.tipo && filtros.tipo !== 'todos') {
+                queryParams.append('tipo', filtros.tipo);
+            }
+            if (filtros.numeroPedido) {
+                queryParams.append('id', filtros.numeroPedido);
+            }
+            if (filtros.status) {
+                queryParams.append('status', filtros.status);
+            }
+            if (filtros.proposta_id) {
+                queryParams.append('proposta_id', filtros.proposta_id);
+            }
             
-            // Construir URL com parâmetros de consulta
-            const queryParams = new URLSearchParams(filtros).toString();
-            const url = `${API_URL}/api/pedidos-consolidados${queryParams ? `?${queryParams}` : ''}`;
+            const url = `${API_URL}/api/pedidos-consolidados${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            console.log('URL para busca de pedidos consolidados:', url);
             
-            console.log(`ApiService: URL da requisição: ${url}`);
-
             const response = await fetch(url, {
-                headers: authHeaders,
-                method: 'GET'
+                headers: createAuthHeaders()
             });
 
             if (!response.ok) {
-                console.error(`ApiService: Erro na resposta (status ${response.status}): ${response.statusText}`);
+                const errorText = await response.text();
+                console.error(`ApiService: Erro ao buscar pedidos consolidados (${response.status}):`, errorText);
                 throw new Error(`Erro ao buscar pedidos consolidados: ${response.statusText}`);
             }
 
-            console.log(`ApiService: Resposta recebida (status ${response.status})`);
+            const data = await response.json();
+            console.log("ApiService: Pedidos consolidados recebidos:", data);
             
-            try {
-                const data = await response.json();
-                console.log(`ApiService: JSON parseado com sucesso. Total: ${data.total || 0}`);
-                
-                // Garantir que o formato dos dados está correto
-                if (!data.pedidos || !Array.isArray(data.pedidos)) {
-                    console.warn('ApiService: Resposta da API não contém um array de pedidos');
-                    data.pedidos = [];
-                }
-                
-                // Garantir que cada pedido tenha as propriedades necessárias
-                const pedidosFormatados = data.pedidos.map(pedido => {
-                    // Adicionar valores padrão para campos importantes
-                    if (!pedido.cliente) {
-                        pedido.cliente = { id: 0, nome: 'Cliente não especificado' };
-                    }
-                    if (!pedido.fornecedor) {
-                        pedido.fornecedor = { id: 0, nome: 'Fornecedor não especificado' };
-                    }
-                    if (!pedido.proposta) {
-                        pedido.proposta = { id: 0, descricao: 'Proposta não especificada' };
-                    }
-                    
-                    // Garantir que os valores financeiros existam
-                    pedido.valor_total = pedido.valor_total || 0;
-                    pedido.valor_faturado = pedido.valor_faturado || 0;
-                    pedido.valor_a_faturar = pedido.valor_a_faturar || 0;
-                    
-                    return pedido;
-                });
-                
-                return {
-                    total: data.total || pedidosFormatados.length,
-                    pedidos: pedidosFormatados
-                };
-                
-                } catch (jsonError) {
-                console.error('ApiService: Erro ao processar JSON da resposta:', jsonError);
-                    throw new Error('Erro ao processar resposta do servidor');
-            }
+            return data;
         } catch (error) {
-            console.error('ApiService: Erro geral ao buscar pedidos consolidados:', error);
-            
-            // Retornar um objeto vazio em caso de erro para não quebrar a UI
-            return { 
-                total: 0, 
-                pedidos: [], 
-                erro: true,
-                mensagem: error.message 
-            };
+            console.error('ApiService: Erro ao buscar pedidos consolidados:', error);
+            throw error;
         }
     }
 
