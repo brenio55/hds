@@ -128,7 +128,9 @@ function ConsultarFaturamentos() {
                     valorFaturado: pedido.valor_faturado <= 100 
                         ? (pedido.valor_faturado / 100) * parseFloat(pedido.valor_total)
                         : parseFloat(pedido.valor_faturado),
-                    valorAFaturar: parseFloat(pedido.valor_a_faturar),
+                    valorAFaturar: Math.max(0, parseFloat(pedido.valor_total) - (pedido.valor_faturado <= 100 
+                        ? (pedido.valor_faturado / 100) * parseFloat(pedido.valor_total)
+                        : parseFloat(pedido.valor_faturado))),
                     dataFaturamento: pedido.data,
                     dataVencimento: pedido.data_vencimento,
                     fornecedor: fornecedorNome,

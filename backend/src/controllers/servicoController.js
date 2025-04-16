@@ -40,7 +40,7 @@ class ServicoController {
       if (faturamentos.rows.length > 0) {
         const faturamento = faturamentos.rows[0];
         valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-        valorAFaturar = parseFloat(faturamento.valor_a_faturar) || servico.total || 0;
+        valorAFaturar = Math.max(0, parseFloat(servico.total || 0) - valorFaturado);
       }
       
       // Retornar serviço com campos adicionais
@@ -84,7 +84,7 @@ class ServicoController {
           if (faturamentos.rows.length > 0) {
             const faturamento = faturamentos.rows[0];
             valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-            valorAFaturar = parseFloat(faturamento.valor_a_faturar) || servico.total || 0;
+            valorAFaturar = Math.max(0, parseFloat(servico.total || 0) - valorFaturado);
           }
           
           // Retornar serviço com campos adicionais

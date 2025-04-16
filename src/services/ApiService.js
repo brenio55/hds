@@ -1383,20 +1383,20 @@ class ApiService {
                 try {
                     // Mapear as propriedades do objeto retornado pelo backend para o formato esperado pelo frontend
                     const valorTotalPedido = parseFloat(fat.valor_total_pedido || 0);
-                    const valorAFaturar = parseFloat(fat.valor_a_faturar || 0);
+                    const valorFaturado = parseFloat(fat.valor_faturado || 0);
                     
                     // Obter valor faturado em valor monetário a partir da porcentagem
                     const porcentagemFaturada = parseFloat(fat.valor_faturado || 0); // 0-100
-                    const valorFaturadoCalculado = (porcentagemFaturada / 100) * valorTotalPedido;
+                    const valorFaturadoCalculado = valorFaturado;
                     
                     faturamentosDetalhados.push({
                         id: fat.id,
                         numeroPedido: fat.id_number,
                         tipoPedido: fat.id_type,
                         valorTotal: valorTotalPedido,
-                        valorFaturado: valorAFaturar, // Usar valor monetário, não porcentagem
+                        valorFaturado: valorFaturado,
                         valorTotalFaturado: valorFaturadoCalculado,
-                        valorAFaturar: Math.max(0, valorTotalPedido - valorFaturadoCalculado),
+                        valorAFaturar: Math.max(0, valorTotalPedido - valorFaturado),
                         dataFaturamento: fat.created_at,
                         dataVencimento: fat.data_vencimento,
                         numeroNF: fat.nf,
@@ -1414,8 +1414,8 @@ class ApiService {
                         numeroPedido: fat.id_number,
                         tipoPedido: fat.id_type,
                         valorTotal: parseFloat(fat.valor_total_pedido || 0),
-                        valorFaturado: parseFloat(fat.valor_a_faturar || 0),
-                        valorAFaturar: 0,
+                        valorFaturado: parseFloat(fat.valor_faturado || 0),
+                        valorAFaturar: Math.max(0, parseFloat(fat.valor_total_pedido || 0) - parseFloat(fat.valor_faturado || 0)),
                         dataFaturamento: fat.created_at,
                         dataVencimento: fat.data_vencimento,
                         numeroNF: fat.nf,

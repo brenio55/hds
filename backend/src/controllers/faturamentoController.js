@@ -9,7 +9,21 @@ class FaturamentoController {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const faturamento = await FaturamentoModel.create(req.body);
+      // NOTA: Agora apenas armazenamos o valor_faturado como valor monetário absoluto.
+      // O valor_a_faturar e valor_total_pedido são calculados no frontend quando necessário
+      // como (valor_total - valor_faturado).
+      const dadosFaturamento = {
+        id_number: req.body.id_number,
+        id_type: req.body.id_type,
+        valor_total_pedido: req.body.valor_total_pedido,
+        valor_faturado: req.body.valor_faturado,
+        data_vencimento: req.body.data_vencimento,
+        nf: req.body.nf,
+        nf_anexo: req.body.nf_anexo,
+        pagamento: req.body.pagamento
+      };
+
+      const faturamento = await FaturamentoModel.create(dadosFaturamento);
       res.status(201).json(faturamento);
     } catch (error) {
       console.error('Erro ao criar faturamento:', error);
@@ -61,7 +75,19 @@ class FaturamentoController {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const faturamento = await FaturamentoModel.update(req.params.id, req.body);
+      // NOTA: Apenas trabalhamos com o valor_faturado absoluto agora
+      const dadosFaturamento = {
+        id_number: req.body.id_number,
+        id_type: req.body.id_type,
+        valor_total_pedido: req.body.valor_total_pedido,
+        valor_faturado: req.body.valor_faturado,
+        data_vencimento: req.body.data_vencimento,
+        nf: req.body.nf,
+        nf_anexo: req.body.nf_anexo,
+        pagamento: req.body.pagamento
+      };
+
+      const faturamento = await FaturamentoModel.update(req.params.id, dadosFaturamento);
       if (!faturamento) {
         return res.status(404).json({ error: 'Faturamento não encontrado' });
       }

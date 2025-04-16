@@ -70,7 +70,7 @@ class PedidosConsolidadosController {
                   // Usar o último faturamento registrado
                   const ultimoFaturamento = faturamentos.rows[0];
                   valorFaturado = parseFloat(ultimoFaturamento.valor_faturado) || 0;
-                  valorAFaturar = parseFloat(ultimoFaturamento.valor_a_faturar) || valorTotal;
+                  valorAFaturar = Math.max(0, valorTotal - valorFaturado);
                 }
                 
                 pedido = {
@@ -113,7 +113,7 @@ class PedidosConsolidadosController {
                   // Usar o último faturamento registrado
                   const ultimoFaturamento = faturamentos.rows[0];
                   valorFaturado = parseFloat(ultimoFaturamento.valor_faturado) || 0;
-                  valorAFaturar = parseFloat(ultimoFaturamento.valor_a_faturar) || valorTotal;
+                  valorAFaturar = Math.max(0, valorTotal - valorFaturado);
                 }
                 
                 pedido = {
@@ -151,7 +151,7 @@ class PedidosConsolidadosController {
                   // Usar o último faturamento registrado
                   const ultimoFaturamento = faturamentos.rows[0];
                   valorFaturado = parseFloat(ultimoFaturamento.valor_faturado) || 0;
-                  valorAFaturar = parseFloat(ultimoFaturamento.valor_a_faturar) || pedido.total || 0;
+                  valorAFaturar = Math.max(0, parseFloat(pedido.total || 0) - valorFaturado);
                 }
                 
                 pedido = {
@@ -474,7 +474,7 @@ class PedidosConsolidadosController {
               
               if (faturamento) {
                 valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-                valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+                valorAFaturar = Math.max(0, valorTotal - valorFaturado);
               }
               
               const fornecedor = fornecedorMap.get(pedido.fornecedores_id);
@@ -545,7 +545,7 @@ class PedidosConsolidadosController {
               
               if (faturamento) {
                 valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-                valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+                valorAFaturar = Math.max(0, valorTotal - valorFaturado);
               }
               
               const fornecedor = fornecedorMap.get(pedido.fornecedor_id);
@@ -612,7 +612,7 @@ class PedidosConsolidadosController {
               
               if (faturamento) {
                 valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-                valorAFaturar = parseFloat(faturamento.valor_a_faturar) || servico.total || 0;
+                valorAFaturar = Math.max(0, parseFloat(servico.total || 0) - valorFaturado);
               }
               
               const fornecedor = fornecedorMap.get(servico.fornecedor_id);
