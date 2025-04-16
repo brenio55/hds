@@ -463,6 +463,50 @@ class ApiService {
         return this._visualizarPdf(`${API_URL}/api/propostas/${id}/pdf/download?version=${version}`);
     }
 
+    // Método para download do PDF de proposta
+    static async downloadPropostaPdf(id, version) {
+        try {
+            const response = await fetch(
+                `${API_URL}/api/propostas/${id}/pdf/download?version=${version}`,
+                {
+                    headers: createAuthHeaders()
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Erro ao baixar PDF da proposta');
+            }
+
+            // Obtém o nome do arquivo do header Content-Disposition
+            const contentDisposition = response.headers.get('content-disposition');
+            let filename = `proposta_${id}_v${version}.pdf`;
+            
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, '');
+                }
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            
+            // Cria um link temporário para download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Limpa após o download
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Erro ao baixar PDF da proposta:', error);
+            throw error;
+        }
+    }
+
     // Método para download do PDF de pedido de compra
     static async downloadPedidoPdf(id) {
         try {

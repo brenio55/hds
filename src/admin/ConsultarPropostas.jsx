@@ -126,7 +126,7 @@ function ConsultarPropostas() {
     const handleDownloadProposta = async (id, versao) => {
         try {
             setDownloadingId(id);
-            await ApiService.downloadPdf(id, versao);
+            await ApiService.downloadPropostaPdf(id, versao);
         } catch (error) {
             console.error('Erro ao baixar PDF:', error);
             alert('Erro ao baixar o PDF. Por favor, tente novamente.');

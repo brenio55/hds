@@ -477,4 +477,36 @@ textarea {
         width: 100%;
         min-height: 120px;
     }
+}
+
+// Spinner animation for downloading
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.btn-view-pdf {
+    position: relative;
+    
+    &:disabled {
+        cursor: not-allowed;
+        background-color: #6c9bd1;
+    }
+    
+    &.loading {
+        padding-left: 2.5rem;
+    }
+    
+    .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+        position: absolute;
+        left: 12px;
+        top: calc(50% - 8px);
+    }
 } 

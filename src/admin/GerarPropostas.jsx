@@ -11,7 +11,7 @@ const SuccessPopup = ({ onClose, propostaData }) => {
     const handleDownloadPDF = async () => {
         try {
             setDownloading(true);
-            await ApiService.downloadPdf(propostaData.id, propostaData.versao);
+            await ApiService.downloadPropostaPdf(propostaData.id, propostaData.versao);
         } catch (error) {
             console.error('Erro ao baixar PDF:', error);
             alert('Erro ao baixar PDF. Por favor, tente novamente.');
@@ -33,9 +33,10 @@ const SuccessPopup = ({ onClose, propostaData }) => {
                     <button onClick={onClose} className="btn-ok">OK</button>
                     <button 
                         onClick={handleDownloadPDF} 
-                        className="btn-view-pdf"
+                        className={`btn-view-pdf ${downloading ? 'loading' : ''}`}
                         disabled={downloading}
                     >
+                        {downloading && <span className="spinner"></span>}
                         {downloading ? 'Baixando...' : 'Download do PDF Gerado'}
                     </button>
                 </div>
