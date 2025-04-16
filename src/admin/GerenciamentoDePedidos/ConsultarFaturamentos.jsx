@@ -92,9 +92,11 @@ function ConsultarFaturamentos() {
                 // Extrair nome do fornecedor
                 let fornecedorNome = 'N/D';
                 if (pedido.fornecedor) {
-                    fornecedorNome = typeof pedido.fornecedor === 'object' 
-                        ? pedido.fornecedor.nome || pedido.fornecedor.razao_social 
-                        : pedido.fornecedor;
+                    if (typeof pedido.fornecedor === 'object' && pedido.fornecedor !== null) {
+                        fornecedorNome = pedido.fornecedor.nome || pedido.fornecedor.razao_social || 'N/D';
+                    } else {
+                        fornecedorNome = String(pedido.fornecedor);
+                    }
                 }
                 
                 // Gerar número do pedido com prefixo baseado no tipo
@@ -106,16 +108,24 @@ function ConsultarFaturamentos() {
                     default: prefixo = 'P'; break;
                 }
                 
-                // Calcular percentual faturado se disponível
+                // Converter strings para números onde necessário
+                const valorTotal = typeof pedido.valor_total === 'string' 
+                    ? parseFloat(pedido.valor_total) 
+                    : parseFloat(pedido.valor_total || 0);
+                
+                const valorFaturado = typeof pedido.valor_faturado === 'string'
+                    ? parseFloat(pedido.valor_faturado)
+                    : parseFloat(pedido.valor_faturado || 0);
+                
+                // Calcular valor a faturar baseado nos valores convertidos
+                const valorAFaturar = typeof pedido.valor_a_faturar === 'string'
+                    ? parseFloat(pedido.valor_a_faturar)
+                    : parseFloat(pedido.valor_a_faturar || 0);
+                
+                // Calcular percentual faturado
                 let porcentagemFaturada = 0;
-                if (parseFloat(pedido.valor_total) > 0 && pedido.valor_faturado) {
-                    // Se valor_faturado estiver em percentual (0-100)
-                    if (pedido.valor_faturado <= 100) {
-                        porcentagemFaturada = pedido.valor_faturado;
-                    } else {
-                        // Se for valor absoluto, calcular percentual
-                        porcentagemFaturada = (pedido.valor_faturado / parseFloat(pedido.valor_total)) * 100;
-                    }
+                if (valorTotal > 0) {
+                    porcentagemFaturada = (valorFaturado / valorTotal) * 100;
                 }
                 
                 return {
@@ -123,18 +133,15 @@ function ConsultarFaturamentos() {
                     numeroPedido: pedido.id,
                     numero: `${prefixo}-${pedido.id}`,
                     tipoPedido: pedido.tipo,
-                    valorTotal: parseFloat(pedido.valor_total),
-                    // Se valor_faturado for percentual (0-100), converter para valor monetário
-                    valorFaturado: pedido.valor_faturado <= 100 
-                        ? (pedido.valor_faturado / 100) * parseFloat(pedido.valor_total)
-                        : parseFloat(pedido.valor_faturado),
-                    valorAFaturar: Math.max(0, parseFloat(pedido.valor_total) - (pedido.valor_faturado <= 100 
-                        ? (pedido.valor_faturado / 100) * parseFloat(pedido.valor_total)
-                        : parseFloat(pedido.valor_faturado))),
+                    valorTotal: valorTotal,
+                    valorFaturado: valorFaturado,
+                    valorAFaturar: valorAFaturar,
                     dataFaturamento: pedido.data,
                     dataVencimento: pedido.data_vencimento,
                     fornecedor: fornecedorNome,
-                    cliente: pedido.cliente_id ? `Cliente #${pedido.cliente_id}` : 'N/D',
+                    cliente: pedido.cliente ? 
+                        (pedido.cliente.nome || `Cliente #${pedido.cliente.id}`) : 
+                        (pedido.cliente_id ? `Cliente #${pedido.cliente_id}` : 'N/D'),
                     status: pedido.status,
                     metodoPagamento: pedido.pagamento || 'N/D',
                     porcentagemFaturada: porcentagemFaturada,
@@ -172,7 +179,10 @@ function ConsultarFaturamentos() {
         if (!data) return 'N/D';
         
         try {
-            return new Date(data).toLocaleDateString('pt-BR');
+            const date = new Date(data);
+            // Verificar se a data é válida
+            if (isNaN(date.getTime())) return 'Data inválida';
+            return date.toLocaleDateString('pt-BR');
         } catch (error) {
             console.error('Erro ao formatar data:', error);
             return 'Data inválida';
@@ -183,10 +193,16 @@ function ConsultarFaturamentos() {
         if (valor === null || valor === undefined) return 'N/D';
         
         try {
+            // Garantir que o valor seja um número
+            const numero = parseFloat(valor);
+            if (isNaN(numero)) return 'Valor inválido';
+            
             return new Intl.NumberFormat('pt-BR', {
                 style: 'currency',
-                currency: 'BRL'
-            }).format(valor);
+                currency: 'BRL',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(numero);
         } catch (error) {
             console.error('Erro ao formatar valor:', error);
             return 'Valor inválido';
@@ -325,10 +341,10 @@ function ConsultarFaturamentos() {
                                             >
                                                 <td>{faturamento.numero || `${faturamento.tipoPedido.toUpperCase().charAt(0)}${faturamento.tipoPedido === 'compra' ? 'C' : faturamento.tipoPedido === 'locacao' ? 'L' : 'S'}-${faturamento.numeroPedido}`}</td>
                                                 <td>{obterNomeTipoPedido(faturamento.tipoPedido)}</td>
-                                                <td>{faturamento.fornecedor || 'N/D'}</td>
-                                                <td>{formatarValor(faturamento.valorTotal)}</td>
-                                                <td>{formatarValor(faturamento.valorFaturado)}</td>
-                                                <td>{formatarValor(faturamento.valorAFaturar)}</td>
+                                                <td title={faturamento.fornecedor || 'N/D'}>{faturamento.fornecedor || 'N/D'}</td>
+                                                <td title={formatarValor(faturamento.valorTotal)}>{formatarValor(faturamento.valorTotal)}</td>
+                                                <td title={formatarValor(faturamento.valorFaturado)}>{formatarValor(faturamento.valorFaturado)}</td>
+                                                <td title={formatarValor(faturamento.valorAFaturar)}>{formatarValor(faturamento.valorAFaturar)}</td>
                                                 <td className={`status-cell ${getStatusFaturamentoClass(faturamento)}`}>
                                                     {getStatusFaturamentoTexto(faturamento)}
                                                 </td>

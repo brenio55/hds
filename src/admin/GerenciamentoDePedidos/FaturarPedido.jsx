@@ -110,6 +110,11 @@ function FaturarPedido() {
                         default: prefixo = 'P'; break;
                     }
                     
+                    // Converter valores para números onde necessário
+                    const valorTotal = typeof pedido.valor_total === 'string'
+                        ? parseFloat(pedido.valor_total)
+                        : parseFloat(pedido.valor_total || 0);
+                    
                     // Criar descrição significativa com os dados disponíveis
                     let descricao = '';
                     if (pedido.proposta && pedido.proposta.descricao) {
@@ -133,7 +138,13 @@ function FaturarPedido() {
                         numero: `${prefixo}-${pedido.id}`,
                         descricao: `${descricao}${dataFormatada}`,
                         tipo: pedido.tipo,
-                        valor_total: pedido.valor_total || 0,
+                        valor_total: valorTotal,
+                        valor_faturado: typeof pedido.valor_faturado === 'string'
+                            ? parseFloat(pedido.valor_faturado)
+                            : parseFloat(pedido.valor_faturado || 0),
+                        valor_a_faturar: typeof pedido.valor_a_faturar === 'string'
+                            ? parseFloat(pedido.valor_a_faturar)
+                            : parseFloat(pedido.valor_a_faturar || 0),
                         status: pedido.status,
                         fornecedor: fornecedorNome,
                         data: pedido.data,
@@ -182,7 +193,7 @@ function FaturarPedido() {
             console.log("Usando dados do pedido já carregado:", pedidoEncontrado);
             
             // Usar o valor total já disponível no pedido
-            const valorTotalPedido = parseFloat(pedidoEncontrado.valor_total) || 0;
+            const valorTotalPedido = pedidoEncontrado.valor_total;
             console.log(`Valor total do pedido: ${valorTotalPedido}`);
             setValorTotal(valorTotalPedido);
             
@@ -196,7 +207,7 @@ function FaturarPedido() {
             
             // Calcular valor já faturado
             const totalFaturado = faturamentos.reduce(
-                (total, fat) => total + parseFloat(fat.valorFaturado || 0), 
+                (total, fat) => total + fat.valorFaturado, 
                 0
             );
             
@@ -246,6 +257,16 @@ function FaturarPedido() {
             style: 'currency',
             currency: 'BRL'
         }).format(valor);
+    };
+
+    const formatarData = (data) => {
+        if (!data) return '';
+        try {
+            return new Date(data).toLocaleDateString('pt-BR');
+        } catch (e) {
+            console.error('Erro ao formatar data:', e);
+            return '';
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -394,7 +415,7 @@ function FaturarPedido() {
                     {mensagemSucesso && <div className="success-message">{mensagemSucesso}</div>}
                     
                     <form onSubmit={handleSubmit} className="pedido-form">
-                        <div className="form-group" style={{gridColumn: 'span 2'}}>
+                        <div className="form-group full-width">
                             <label>BUSCAR PEDIDO</label>
                             <input 
                                 type="text"
@@ -406,7 +427,7 @@ function FaturarPedido() {
                             />
                         </div>
                         
-                        <div className="form-group" style={{gridColumn: 'span 2'}}>
+                        <div className="form-group full-width">
                             <label>SELECIONE O PEDIDO PARA FATURAR</label>
                             <select 
                                 value={pedidoSelecionado} 
@@ -564,7 +585,7 @@ function FaturarPedido() {
                         )}
 
                         {(metodoPagamento === 'pix' || metodoPagamento === 'ted') && (
-                            <div className="form-group" style={{gridColumn: 'span 2'}}>
+                            <div className="form-group full-width">
                                 <label>DADOS DA CONTA</label>
                                 <input 
                                     type="text" 
