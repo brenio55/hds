@@ -6,7 +6,7 @@ import './ConsultarFaturamentos.css';
 import axios from 'axios';
 // import { toast } from 'react-toastify';
 // import moment from 'moment';
-import { formatCurrency } from '../../utils/formatters';
+// import { formatCurrency } from '../../utils/formatters';
 // import { enviarNotificacaoPedido } from '../../utils/notificacoes';
 
 function ConsultarFaturamentos() {
@@ -214,7 +214,7 @@ function ConsultarFaturamentos() {
             <div className="admin-container">
                 <div className="pedido-containerFaturamentos">
                     <div className="tabs-navigation">
-                        <div className="tab" onClick={() => window.location.href = '/admin/faturar-pedido'}>
+                        <div className="tab" onClick={() => window.location.href = '/admin/faturarPedido'}>
                             Faturar Pedido
                         </div>
                         <div className="tab active">
