@@ -21,13 +21,7 @@ const app = express();
 const allowedOrigins = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
-    'http://82.25.71.53',
-    'http://hdsservico.com.br',
-    'https://hdsservico.com.br',
-    'http://www.hdsservico.com.br',
-    'https://www.hdsservico.com.br',
-    'http://*.hdsservico.com.br',
-    'https://*.hdsservico.com.br'
+    'https://hdsservico.com.br/',
 ];
 
 // Configuração do CORS
@@ -46,6 +40,7 @@ app.use(cors({
             callback(null, true);
         } else {
             callback(new Error('Bloqueado pelo CORS'));
+	    console.log("problemas de cors")
         }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
