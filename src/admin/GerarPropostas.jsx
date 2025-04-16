@@ -89,11 +89,67 @@ function GerarPropostas() {
 
     const handleArrayInputChange = (e, field) => {
         const { value } = e.target;
-        const items = value.split('\n').filter(item => item.trim());
+        // Manter todos os itens, mesmo os vazios, para preservar linhas em branco
+        const items = value.split('\n');
         setFormData(prev => ({
             ...prev,
             [field]: items
         }));
+    };
+
+    // Função para adicionar tags HTML ao texto selecionado
+    const addHtmlTag = (tag) => {
+        const textarea = document.getElementById('especificacoes-html');
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textarea.value.substring(start, end);
+        let newText = '';
+        
+        switch(tag) {
+            case 'bold':
+                newText = `<strong>${selectedText}</strong>`;
+                break;
+            case 'italic':
+                newText = `<em>${selectedText}</em>`;
+                break;
+            case 'ul':
+                // Se não há texto selecionado, inserir template de lista
+                if (start === end) {
+                    newText = '<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>';
+                } else {
+                    // Se há texto, presumir que cada linha é um item
+                    const items = selectedText.split('\n').map(item => `  <li>${item.trim()}</li>`).join('\n');
+                    newText = `<ul>\n${items}\n</ul>`;
+                }
+                break;
+            case 'ol':
+                // Se não há texto selecionado, inserir template de lista
+                if (start === end) {
+                    newText = '<ol>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ol>';
+                } else {
+                    // Se há texto, presumir que cada linha é um item
+                    const items = selectedText.split('\n').map(item => `  <li>${item.trim()}</li>`).join('\n');
+                    newText = `<ol>\n${items}\n</ol>`;
+                }
+                break;
+            default:
+                newText = selectedText;
+        }
+
+        const updatedText = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+        setFormData(prev => ({
+            ...prev,
+            especificacoes_html: updatedText
+        }));
+        
+        // Ajustar posição do cursor para depois do texto inserido
+        setTimeout(() => {
+            textarea.focus();
+            textarea.selectionStart = start + newText.length;
+            textarea.selectionEnd = start + newText.length;
+        }, 0);
     };
 
     const handleSubmit = async (e) => {
@@ -238,12 +294,19 @@ function GerarPropostas() {
                             <div className="form-section">
                                 <div className="section-header">
                                     <h2>Especificações (com suporte para HTML)</h2>
+                                    <div className="html-formatting-buttons">
+                                        <button type="button" onClick={() => addHtmlTag('bold')} title="Negrito">B (negrito)</button>
+                                        <button type="button" onClick={() => addHtmlTag('italic')} title="Itálico">I (itálico)</button>
+                                        <button type="button" onClick={() => addHtmlTag('ul')} title="Lista não ordenada">• Lista</button>
+                                        <button type="button" onClick={() => addHtmlTag('ol')} title="Lista ordenada">1. Lista</button>
+                                    </div>
                                 </div>
                                 <textarea
+                                    id="especificacoes-html"
                                     name="especificacoes_html"
                                     value={formData.especificacoes_html}
                                     onChange={handleInputChange}
-                                    placeholder="Especificações em HTML..."
+                                    placeholder="Digite as especificações do projeto..."
                                     rows="6"
                                     required
                                 />
@@ -326,6 +389,12 @@ function GerarPropostas() {
                                             placeholder="Um item por linha..."
                                             rows="4"
                                             required
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.stopPropagation(); // Prevent form submission
+                                                    // Preserve the default behavior of adding a new line
+                                                }
+                                            }}
                                         />
                                     </div>
                                     <div className="fornecimento-group">
@@ -337,6 +406,12 @@ function GerarPropostas() {
                                                 placeholder="Um item por linha..."
                                                 rows="4"
                                                 required
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.stopPropagation(); // Prevent form submission
+                                                        // Preserve the default behavior of adding a new line
+                                                    }
+                                                }}
                                             />
                                         </div>
                                        
@@ -354,6 +429,12 @@ function GerarPropostas() {
                                     placeholder="Um item por linha..."
                                     rows="4"
                                     required
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.stopPropagation(); // Prevent form submission
+                                            // Preserve the default behavior of adding a new line
+                                        }
+                                    }}
                                 />
                                  {/* <button
                                             type="button"
