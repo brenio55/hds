@@ -274,26 +274,6 @@ function GerarPropostas() {
 
                             <div className="form-section">
                                 <div className="section-header">
-                                    <h2>Documento</h2>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowImageUpload(!showImageUpload)}
-                                        className="icon-button"
-                                    >
-                                        Anexar Arquivos📎
-                                    </button>
-                                </div>
-                                <textarea
-                                    name="documento_text"
-                                    value={formData.documento_text}
-                                    onChange={handleInputChange}
-                                    placeholder="Texto do documento..."
-                                    rows="6"
-                                />
-                            </div>
-
-                            <div className="form-section">
-                                <div className="section-header">
                                     <h2>Especificações (com suporte para HTML)</h2>
                                     <div className="html-formatting-buttons">
                                         <button type="button" onClick={() => addHtmlTag('bold')} title="Negrito">B (negrito)</button>
@@ -310,9 +290,33 @@ function GerarPropostas() {
                                     placeholder="Digite as especificações do projeto..."
                                     rows="6"
                                     required
+                                    
+                                />
+                            </div>
+
+                            <div className="form-section" disabled style={{opacity: '0.5', backgroundColor: 'lightgray'}} title='Esta função está desabilitada no momento, por favor, tente novamente em outro momento, ou contate a equipe de TI.'>
+                                <div className="section-header">
+                                    <h2>Documento</h2>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowImageUpload(!showImageUpload)}
+                                        className="icon-button"
+                                    >
+                                        Anexar Arquivos📎
+                                    </button>
+                                </div>
+                                <textarea
+                                    style={{opacity: '0.5', backgroundColor: 'lightgray', border: '1px solid black'}}
+                                    name="documento_text"
+                                    value={formData.documento_text}
+                                    onChange={handleInputChange}
+                                    placeholder="Texto do documento..."
+                                    rows="6"
+                                    disabled
                                 />
                             </div>
                         </div>
+                        
 
                         {/* Right Column */}
                         <div className="right-column">
@@ -419,6 +423,7 @@ function GerarPropostas() {
                                     </div>
                                 </div>
                             </div>
+                            
 
                             <div className="form-section">
                                 <div className="section-header">
@@ -454,6 +459,8 @@ function GerarPropostas() {
                                             Buscar Itens Cadastrados Previamente 📋
                                 </button>
                             </div>
+
+                            
 
                             <div className="form-section">
                                 <div className="section-header">
