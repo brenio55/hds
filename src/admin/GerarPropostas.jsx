@@ -171,9 +171,9 @@ function GerarPropostas() {
             <div className="proposta-container">
                 <div className="proposta-header">
                     <h1>Nova Proposta</h1>
-                    <button type="button" className="preview-button">
+                    {/* <button type="button" className="preview-button">
                         Visualizar Proposta
-                    </button>
+                    </button> */}
                 </div>
 
                 <form onSubmit={handleSubmit} className="proposta-form">
@@ -185,23 +185,7 @@ function GerarPropostas() {
                                     <h2>Informações Básicas</h2>
                                 </div>
                                 <div className="input-group">
-                                    <div className="search-group">
-                                        <input
-                                            type="text"
-                                            name="client_info.nome"
-                                            value={formData.client_info.nome}
-                                            onChange={handleInputChange}
-                                            placeholder="Nome do cliente..."
-                                            required
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowClientSearch(!showClientSearch)}
-                                            className="icon-button search"
-                                        >
-                                            Buscar Cliente 🔍
-                                        </button>
-                                    </div>
+                                    <label htmlFor="descricao">Descrição</label>
                                     <input
                                         type="text"
                                         name="descricao"
@@ -211,6 +195,7 @@ function GerarPropostas() {
                                         className="full-width"
                                         required
                                     />
+                                    <label htmlFor="data_emissao">Data de Emissão</label>
                                     <input
                                         type="date"
                                         name="data_emissao"
@@ -218,6 +203,7 @@ function GerarPropostas() {
                                         onChange={handleInputChange}
                                         required
                                     />
+                                    <label htmlFor="versao">Versão</label>
                                     <input
                                         type="text"
                                         name="versao"
@@ -251,7 +237,7 @@ function GerarPropostas() {
 
                             <div className="form-section">
                                 <div className="section-header">
-                                    <h2>Especificações HTML</h2>
+                                    <h2>Especificações (com suporte para HTML)</h2>
                                 </div>
                                 <textarea
                                     name="especificacoes_html"
@@ -271,6 +257,35 @@ function GerarPropostas() {
                                     <h2>Informações do Cliente</h2>
                                 </div>
                                 <div className="client-info-grid">
+                                    <div className="flex" style={{justifyContent: 'space-between'}}>
+                                        <input
+                                            type="text"
+                                            name="client_info.nome"
+                                            value={formData.client_info.nome}
+                                            onChange={handleInputChange}
+                                            placeholder="Nome do cliente..."
+                                                required
+                                            />
+                                        <br></br>
+                                        <div className="search-group" style={{width: 'unset'}}>
+                                            {/* <button
+                                                type="button"
+                                                onClick={() => setShowClientSearch(!showClientSearch)}
+                                                className="icon-button search"
+                                            >
+                                                Buscar Cliente 🔍
+                                            </button> */}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    alert("Esta função por este botão está desabilitada no momento, por favor, tente novamente em outro momento, ou contate a equipe de TI.")
+                                                }}
+                                                className="icon-button search"
+                                            >
+                                                Buscar Cliente 🔍
+                                            </button>
+                                        </div>
+                                    </div>
                                     <input
                                         type="text"
                                         name="client_info.cnpj"
@@ -324,13 +339,7 @@ function GerarPropostas() {
                                                 required
                                             />
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPreviousItems(!showPreviousItems)}
-                                            className="icon-button"
-                                        >
-                                            Buscar Itens Cadastrados Previamente 📋
-                                        </button>
+                                       
                                     </div>
                                 </div>
                             </div>
@@ -346,6 +355,22 @@ function GerarPropostas() {
                                     rows="4"
                                     required
                                 />
+                                 {/* <button
+                                            type="button"
+                                            onClick={() => setShowPreviousItems(!showPreviousItems)}
+                                            className="icon-button"
+                                        >
+                                            Buscar Itens Cadastrados Previamente 📋
+                                </button> */}
+                                <button
+                                            type="button"
+                                            onClick={() => {
+                                                alert("Esta função por este botão está desabilitada no momento, por favor, tente novamente em outro momento, ou contate a equipe de TI.")
+                                            }}
+                                            className="icon-button"
+                                        >
+                                            Buscar Itens Cadastrados Previamente 📋
+                                </button>
                             </div>
 
                             <div className="form-section">
