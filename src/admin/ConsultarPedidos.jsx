@@ -265,7 +265,8 @@ function ConsultarPedidos() {
 
     const handleEditarPedido = (id) => {
         // Implementar edição do pedido
-        navigate(`/admin/pedidos/${id}/editar`);
+        // navigate(`/admin/pedidos/${id}/editar`);
+        alert("Esta função por este botão está desabilitada no momento, por favor, tente novamente em outro momento, ou contate a equipe de TI.")
     };
 
     const formatarData = (dataString) => {

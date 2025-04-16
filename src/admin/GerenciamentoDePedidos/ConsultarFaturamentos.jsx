@@ -362,7 +362,9 @@ function ConsultarFaturamentos() {
                                                     
                                                     {faturamento.valorAFaturar > 0 && (
                                                         <button 
-                                                            onClick={() => navegarParaFaturar(faturamento.id)}
+                                                            onClick={() => {
+                                                                alert("Esta função por este botão está desabilitada no momento, por favor, use a tela faturar pedido por agora.")
+                                                            }}
                                                             className="action-button faturar-button"
                                                             title="Faturar pedido"
                                                         >
@@ -491,10 +493,16 @@ function ConsultarFaturamentos() {
                                 
                                 <div className="modal-buttons">
                                     {visualizandoDetalhes.valorAFaturar > 0 && (
+                                        // <button 
+                                        //     onClick={() => {
+                                        //         fecharDetalhes();
+                                        //         navegarParaFaturar(visualizandoDetalhes.id);
+                                        //     }}
+                                        //     className="action-button faturar-button"
+                                        // >
                                         <button 
                                             onClick={() => {
-                                                fecharDetalhes();
-                                                navegarParaFaturar(visualizandoDetalhes.id);
+                                                alert("Esta função por este botão está desabilitada no momento, por favor, use a tela faturar pedido por agora.")
                                             }}
                                             className="action-button faturar-button"
                                         >
