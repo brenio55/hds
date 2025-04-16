@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import HeaderAdmin from '../HeaderAdmin';
 import ApiService from '../../services/ApiService';
 import './ConsultarFaturamentos.css';
+// import './GerenciarPedidos.css';
+import axios from 'axios';
+// import { toast } from 'react-toastify';
+// import moment from 'moment';
+import { formatCurrency } from '../../utils/formatters';
+// import { enviarNotificacaoPedido } from '../../utils/notificacoes';
 
 function ConsultarFaturamentos() {
     const [faturamentos, setFaturamentos] = useState([]);
@@ -16,6 +22,43 @@ function ConsultarFaturamentos() {
     useEffect(() => {
         carregarFaturamentos();
     }, []); 
+
+    // Função para navegar para a tela de faturar com pedido pré-selecionado
+    const navegarParaFaturar = (pedidoId) => {
+        window.location.href = `/admin/faturarPedido?pedido=${pedidoId}`;
+    };
+    
+    // Determina a classe CSS com base na porcentagem faturada
+    const getStatusFaturamentoClass = (pedido) => {
+        if (!pedido || pedido.valorTotal <= 0) return '';
+        
+        let percentual = 0;
+        if (pedido.porcentagemFaturada !== undefined) {
+            percentual = pedido.porcentagemFaturada;
+        } else if (pedido.valorFaturado !== undefined && pedido.valorTotal > 0) {
+            percentual = (pedido.valorFaturado / pedido.valorTotal) * 100;
+        }
+        
+        if (percentual >= 100) return 'faturado-completo';
+        if (percentual > 0) return 'faturado-parcial';
+        return 'nao-faturado';
+    };
+    
+    // Renderiza o status de faturamento como texto
+    const getStatusFaturamentoTexto = (pedido) => {
+        if (!pedido || pedido.valorTotal <= 0) return 'N/D';
+        
+        let percentual = 0;
+        if (pedido.porcentagemFaturada !== undefined) {
+            percentual = pedido.porcentagemFaturada;
+        } else if (pedido.valorFaturado !== undefined && pedido.valorTotal > 0) {
+            percentual = (pedido.valorFaturado / pedido.valorTotal) * 100;
+        }
+        
+        if (percentual >= 100) return '100% Faturado';
+        if (percentual > 0) return `${percentual.toFixed(2)}% Faturado`;
+        return 'Não Faturado';
+    };
 
     const carregarFaturamentos = async (filtrosPersonalizados = null) => {
         try {
@@ -170,6 +213,15 @@ function ConsultarFaturamentos() {
             <HeaderAdmin />
             <div className="admin-container">
                 <div className="pedido-containerFaturamentos">
+                    <div className="tabs-navigation">
+                        <div className="tab" onClick={() => window.location.href = '/admin/faturar-pedido'}>
+                            Faturar Pedido
+                        </div>
+                        <div className="tab active">
+                            Consultar Faturamentos
+                        </div>
+                    </div>
+                    
                     <h1>CONSULTA DE FATURAMENTOS</h1>
                     
                     {error && <div className="error-message">{error}</div>}
@@ -256,6 +308,7 @@ function ConsultarFaturamentos() {
                                             <th>Valor Total do Pedido</th>
                                             <th>Valor Faturado</th>
                                             <th>Valor a Faturar</th>
+                                            <th>Status Faturamento</th>
                                             <th>Status</th>
                                             <th>Data de Criação</th>
                                             <th>Data de Vencimento</th>
@@ -264,13 +317,19 @@ function ConsultarFaturamentos() {
                                     </thead>
                                     <tbody>
                                         {faturamentos.map((faturamento) => (
-                                            <tr key={faturamento.id}>
+                                            <tr 
+                                                key={faturamento.id} 
+                                                className={getStatusFaturamentoClass(faturamento)}
+                                            >
                                                 <td>{faturamento.numero || `${faturamento.tipoPedido.toUpperCase().charAt(0)}${faturamento.tipoPedido === 'compra' ? 'C' : faturamento.tipoPedido === 'locacao' ? 'L' : 'S'}-${faturamento.numeroPedido}`}</td>
                                                 <td>{obterNomeTipoPedido(faturamento.tipoPedido)}</td>
                                                 <td>{faturamento.fornecedor || 'N/D'}</td>
                                                 <td>{formatarValor(faturamento.valorTotal)}</td>
                                                 <td>{formatarValor(faturamento.valorFaturado)}</td>
                                                 <td>{formatarValor(faturamento.valorAFaturar)}</td>
+                                                <td className={`status-cell ${getStatusFaturamentoClass(faturamento)}`}>
+                                                    {getStatusFaturamentoTexto(faturamento)}
+                                                </td>
                                                 <td>{faturamento.status || 'N/D'}</td>
                                                 <td>{formatarData(faturamento.dataFaturamento)}</td>
                                                 <td>{formatarData(faturamento.dataVencimento)}</td>
@@ -282,6 +341,16 @@ function ConsultarFaturamentos() {
                                                     >
                                                         Detalhes
                                                     </button>
+                                                    
+                                                    {faturamento.valorAFaturar > 0 && (
+                                                        <button 
+                                                            onClick={() => navegarParaFaturar(faturamento.id)}
+                                                            className="action-button faturar-button"
+                                                            title="Faturar pedido"
+                                                        >
+                                                            Faturar
+                                                        </button>
+                                                    )}
                                                     
                                                     {faturamento.arquivoNF && (
                                                         <button 
@@ -403,6 +472,18 @@ function ConsultarFaturamentos() {
                                 </div>
                                 
                                 <div className="modal-buttons">
+                                    {visualizandoDetalhes.valorAFaturar > 0 && (
+                                        <button 
+                                            onClick={() => {
+                                                fecharDetalhes();
+                                                navegarParaFaturar(visualizandoDetalhes.id);
+                                            }}
+                                            className="action-button faturar-button"
+                                        >
+                                            Faturar Pedido
+                                        </button>
+                                    )}
+                                    
                                     {visualizandoDetalhes.arquivoNF && (
                                         <button 
                                             onClick={() => window.open(visualizandoDetalhes.arquivoNF, '_blank')}

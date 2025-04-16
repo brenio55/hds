@@ -39,6 +39,17 @@ function FaturarPedido() {
         }
     }, [pedidoSelecionado]);
     
+    // Verificar se há um ID de pedido na URL para pré-selecionar
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const pedidoParam = urlParams.get('pedido');
+        
+        if (pedidoParam) {
+            console.log(`Pedido recebido via URL: ${pedidoParam}`);
+            setPedidoSelecionado(pedidoParam);
+        }
+    }, []);
+    
     // Filtrar pedidos quando o termo de busca mudar
     useEffect(() => {
         filtrarPedidos();
@@ -370,6 +381,13 @@ function FaturarPedido() {
             <HeaderAdmin />
             <div className="admin-container">
                 <div className="pedido-container">
+                    <div className="tabs-navigation">
+                        <div className="tab active">Faturar Pedido</div>
+                        <div className="tab" onClick={() => window.location.href = '/admin/consultarFaturamentos'}>
+                            Consultar Faturamentos
+                        </div>
+                    </div>
+                    
                     <h1>FATURAR PEDIDO</h1>
                     
                     {error && <div className="error-message">{error}</div>}
