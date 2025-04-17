@@ -65,7 +65,7 @@ function EditarFornecedor() {
             
             // Redirecionar para a página de consulta após 2 segundos
             setTimeout(() => {
-                navigate('/consultarFornecedores');
+                navigate('/admin/consultarFornecedores');
             }, 2000);
         } catch (error) {
             console.error('Erro ao atualizar fornecedor:', error);
@@ -264,7 +264,7 @@ function EditarFornecedor() {
                         <button 
                             type="button" 
                             className="cancel-button"
-                            onClick={() => navigate('/consultarFornecedores')}
+                            onClick={() => navigate('/admin/consultarFornecedores')}
                         >
                             Cancelar
                         </button>
