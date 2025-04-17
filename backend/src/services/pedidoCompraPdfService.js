@@ -52,10 +52,62 @@ class PedidoCompraPdfService {
       // Calcular total bruto
       const totalBruto = pedidoData.materiais.reduce((acc, item) => acc + Number(item.valor_total || 0), 0);
 
-      // Ajustar o cálculo do total final usando o helper global
-      const totalFinal = totalBruto + 
-        parseFloat(pedidoData.valor_frete || 0) + 
-        parseFloat(pedidoData.despesas_adicionais || 0);
+      // Calcular IPI total
+      const totalIPI = pedidoData.materiais.reduce((acc, item) => {
+        const valorTotal = Number(item.valor_total || 0);
+        const ipi = Number(item.ipi || 0);
+        return acc + (valorTotal * ipi / 100);
+      }, 0);
+
+      // Valor com IPI
+      const valorComIPI = totalBruto + totalIPI;
+
+      // Calcular desconto total (agora sobre PRODUTOS + IPI)
+      const descontoTotal = pedidoData.materiais.reduce((acc, item) => {
+        const valorTotal = Number(item.valor_total || 0);
+        const ipi = Number(item.ipi || 0);
+        const valorIPI = valorTotal * ipi / 100;
+        const desconto = Number(item.desconto || 0);
+        return acc + ((valorTotal + valorIPI) * desconto / 100);
+      }, 0);
+
+      // Processar cada item para adicionar os campos valor_ipi e valor_desconto
+      const itensProcessados = pedidoData.materiais.map(item => {
+        const valorTotal = Number(item.valor_total || 0);
+        const ipi = Number(item.ipi || 0);
+        const valorIPI = valorTotal * (ipi / 100);
+        const desconto = Number(item.desconto || 0);
+        
+        // Calcular valor do desconto sobre (produto + IPI)
+        const valorComIPI = valorTotal + valorIPI;
+        const valorDesconto = valorComIPI * (desconto / 100);
+        
+        // Adicionar os novos campos ao item
+        return {
+          ...item,
+          valor_ipi: valorIPI,
+          valor_com_ipi: valorComIPI,
+          valor_desconto: valorDesconto,
+          valor_final: valorComIPI - valorDesconto // Adicionando o valor final do item
+        };
+      });
+      
+      // Substituir os itens originais pelos processados
+      pedidoData.materiais = itensProcessados;
+
+      // Frete e despesas adicionais
+      const valorFrete = parseFloat(pedidoData.valor_frete || 0);
+      const despesasAdicionais = parseFloat(pedidoData.despesas_adicionais || 0);
+
+      // Calcular a soma dos valores finais dos itens
+      const somaValoresFinais = itensProcessados.reduce(
+        (sum, item) => sum + (parseFloat(item.valor_final) || 0), 
+        0
+      );
+
+      // Ajustar o cálculo do total final usando a nova fórmula
+      // Soma dos valores finais dos itens + frete + outras despesas
+      const totalFinal = somaValoresFinais + valorFrete + despesasAdicionais;
 
       // Encontrar a data de entrega mais distante
       const dataEntregaMaisDistante = pedidoData.materiais.reduce((maxDate, item) => {

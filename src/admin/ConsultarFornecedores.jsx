@@ -7,17 +7,27 @@ import ApiService from '../services/ApiService';
 function ConsultarFornecedores() {
     const navigate = useNavigate();
     const [fornecedores, setFornecedores] = useState([]);
+    const [fornecedoresFiltrados, setFornecedoresFiltrados] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [filtros, setFiltros] = useState({
-        razaoSocial: '',
+        id: '',
+        razao_social: '',
         cnpj: '',
-        municipio: ''
+        municipio_uf: '',
+        telefone: '',
+        email: '',
+        contato: '',
+        endereco: ''
     });
 
     useEffect(() => {
         buscarTodosFornecedores();
     }, []);
+
+    useEffect(() => {
+        aplicarFiltrosLocais();
+    }, [filtros, fornecedores]);
 
     const buscarTodosFornecedores = async () => {
         setLoading(true);
@@ -30,57 +40,140 @@ function ConsultarFornecedores() {
             if (response && response.fornecedores && Array.isArray(response.fornecedores)) {
                 // Resposta no formato { fornecedores: [...] }
                 setFornecedores(response.fornecedores);
+                setFornecedoresFiltrados(response.fornecedores);
             } else if (Array.isArray(response)) {
                 // Resposta já é um array
                 setFornecedores(response);
+                setFornecedoresFiltrados(response);
             } else {
                 // Formato não esperado - definir como array vazio
                 console.error('Formato de resposta inesperado:', response);
                 setFornecedores([]);
+                setFornecedoresFiltrados([]);
                 setError('Erro ao processar dados de fornecedores. Formato de resposta inválido.');
             }
         } catch (error) {
             console.error('Erro ao buscar fornecedores:', error);
             setFornecedores([]);
+            setFornecedoresFiltrados([]);
             setError('Erro ao carregar fornecedores. Por favor, tente novamente.');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSearch = async (e) => {
-        e.preventDefault();
+    const buscarFornecedorPorId = async (id) => {
+        if (!id || id.trim() === '') {
+            // Se o ID estiver vazio, buscar todos os fornecedores
+            await buscarTodosFornecedores();
+            return;
+        }
+
         setLoading(true);
         setError(null);
-
-        // Filtrar apenas os campos preenchidos
-        const filtrosPreenchidos = Object.entries(filtros)
-            .filter(([_, value]) => value.trim() !== '')
-            .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
-
         try {
-            const response = await ApiService.buscarFornecedores(filtrosPreenchidos);
-            console.log("Resposta da busca filtrada:", response);
+            const fornecedor = await ApiService.buscarFornecedorPorId(id);
+            console.log("Fornecedor encontrado por ID:", fornecedor);
             
-            // Verificar e processar a resposta para extrair o array de fornecedores
-            if (response && response.fornecedores && Array.isArray(response.fornecedores)) {
-                // Resposta no formato { fornecedores: [...] }
-                setFornecedores(response.fornecedores);
-            } else if (Array.isArray(response)) {
-                // Resposta já é um array
-                setFornecedores(response);
+            if (fornecedor && fornecedor.id) {
+                // Se encontrou um fornecedor, mostrar apenas ele
+                setFornecedoresFiltrados([fornecedor]);
             } else {
-                // Formato não esperado - definir como array vazio
-                console.error('Formato de resposta inesperado:', response);
-                setFornecedores([]);
-                setError('Erro ao processar dados de fornecedores. Formato de resposta inválido.');
+                // Se não encontrou, mostrar mensagem
+                setFornecedoresFiltrados([]);
+                setError('Fornecedor não encontrado com o ID informado.');
             }
         } catch (error) {
-            console.error('Erro ao buscar fornecedores:', error);
-            setFornecedores([]);
-            setError('Erro ao buscar fornecedores. Por favor, tente novamente.');
+            console.error('Erro ao buscar fornecedor por ID:', error);
+            setFornecedoresFiltrados([]);
+            setError(`Erro ao buscar fornecedor: ${error.message}`);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Função para normalizar strings para comparação
+    const normalizar = (texto) => {
+        // Se for null ou undefined, retornar string vazia
+        if (texto == null) return '';
+        
+        // Converter para string se não for
+        texto = String(texto);
+        
+        // Remover acentos, converter para minúsculas
+        return texto.normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+            .toLowerCase();
+    };
+
+    // Função para normalizar números (remover pontos, traços, parênteses, espaços)
+    const normalizarNumero = (texto) => {
+        if (texto == null) return '';
+        return String(texto).replace(/[^0-9]/g, '');
+    };
+
+    const aplicarFiltrosLocais = () => {
+        // Pular se o filtro de ID estiver ativo, pois ele usa requisição específica
+        if (filtros.id.trim() !== '') return;
+
+        // Normalizar os filtros uma vez antes de aplicar
+        const filtrosNormalizados = {
+            razao_social: normalizar(filtros.razao_social),
+            cnpj: normalizarNumero(filtros.cnpj),
+            municipio_uf: normalizar(filtros.municipio_uf),
+            telefone: normalizarNumero(filtros.telefone),
+            email: normalizar(filtros.email),
+            contato: normalizar(filtros.contato),
+            endereco: normalizar(filtros.endereco)
+        };
+
+        // Aplicar filtros nos campos
+        const resultado = fornecedores.filter(fornecedor => {
+            // Para cada campo de filtro
+            return Object.entries(filtrosNormalizados).every(([campo, valorFiltro]) => {
+                // Ignorar campos vazios
+                if (!valorFiltro) return true;
+
+                let valorCampo;
+                
+                // Campos numéricos - normalizar removendo caracteres não numéricos
+                if (campo === 'cnpj') {
+                    valorCampo = normalizarNumero(fornecedor[campo]);
+                } 
+                // Tratamento especial para telefone
+                else if (campo === 'telefone') {
+                    const telefone = normalizarNumero(fornecedor.telefone || '');
+                    const celular = normalizarNumero(fornecedor.celular || '');
+                    // Buscar em ambos os campos
+                    return telefone.includes(valorFiltro) || celular.includes(valorFiltro);
+                }
+                // Campo município_uf - tratar de forma especial para busca parcial
+                else if (campo === 'municipio_uf') {
+                    valorCampo = normalizar(fornecedor.municipio_uf);
+                    // Buscar por qualquer parte do texto (pode ser cidade ou UF)
+                    return valorCampo.includes(valorFiltro);
+                }
+                // Campos de texto normais - normalizar e buscar por inclusão
+                else {
+                    valorCampo = normalizar(fornecedor[campo]);
+                }
+
+                // Verificar se o valor normalizado do campo contém o valor normalizado do filtro
+                return valorCampo.includes(valorFiltro);
+            });
+        });
+        
+        setFornecedoresFiltrados(resultado);
+    };
+
+    const handleSearch = async (e) => {
+        e.preventDefault();
+        // Se o ID estiver preenchido, busca específica por ID
+        if (filtros.id.trim() !== '') {
+            await buscarFornecedorPorId(filtros.id);
+        } else {
+            // Se não, aplica filtros locais
+            aplicarFiltrosLocais();
         }
     };
 
@@ -90,6 +183,20 @@ function ConsultarFornecedores() {
             ...prev,
             [name]: value
         }));
+
+        // Limpar outros filtros se estiver preenchendo o ID
+        if (name === 'id' && value.trim() !== '') {
+            setFiltros(prev => ({
+                ...prev,
+                razao_social: '',
+                cnpj: '',
+                municipio_uf: '',
+                telefone: '',
+                email: '',
+                contato: '',
+                endereco: ''
+            }));
+        }
     };
 
     const handleEditarFornecedor = (id) => {
@@ -100,6 +207,20 @@ function ConsultarFornecedores() {
         navigate(`/admin/visualizarFornecedor/${id}`);
     };
 
+    const limparFiltros = () => {
+        setFiltros({
+            id: '',
+            razao_social: '',
+            cnpj: '',
+            municipio_uf: '',
+            telefone: '',
+            email: '',
+            contato: '',
+            endereco: ''
+        });
+        buscarTodosFornecedores();
+    };
+
     return (
         <>
             <HeaderAdmin />
@@ -107,42 +228,96 @@ function ConsultarFornecedores() {
                 <h2>Consultar Fornecedores</h2>
                 
                 <form onSubmit={handleSearch} className="search-form">
-                    <div className="form-group">
-                        <label htmlFor="razaoSocial">Razão Social</label>
-                        <input
-                            type="text"
-                            id="razaoSocial"
-                            name="razaoSocial"
-                            placeholder="Razão Social"
-                            value={filtros.razaoSocial}
-                            onChange={handleInputChange}
-                        />
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="id">ID</label>
+                            <input
+                                type="text"
+                                id="id"
+                                name="id"
+                                placeholder="Buscar por ID"
+                                value={filtros.id}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="razao_social">Razão Social</label>
+                            <input
+                                type="text"
+                                id="razao_social"
+                                name="razao_social"
+                                placeholder="Razão Social"
+                                value={filtros.razao_social}
+                                onChange={handleInputChange}
+                                disabled={filtros.id.trim() !== ''}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="cnpj">CNPJ</label>
+                            <input
+                                type="text"
+                                id="cnpj"
+                                name="cnpj"
+                                placeholder="CNPJ"
+                                value={filtros.cnpj}
+                                onChange={handleInputChange}
+                                disabled={filtros.id.trim() !== ''}
+                            />
+                        </div>
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="cnpj">CNPJ</label>
-                        <input
-                            type="text"
-                            id="cnpj"
-                            name="cnpj"
-                            placeholder="CNPJ"
-                            value={filtros.cnpj}
-                            onChange={handleInputChange}
-                        />
+                    
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="municipio_uf">Município/UF</label>
+                            <input
+                                type="text"
+                                id="municipio_uf"
+                                name="municipio_uf"
+                                placeholder="Município/UF"
+                                value={filtros.municipio_uf}
+                                onChange={handleInputChange}
+                                disabled={filtros.id.trim() !== ''}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="telefone">Telefone</label>
+                            <input
+                                type="text"
+                                id="telefone"
+                                name="telefone"
+                                placeholder="Telefone ou Celular"
+                                value={filtros.telefone}
+                                onChange={handleInputChange}
+                                disabled={filtros.id.trim() !== ''}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="email">Email</label>
+                            <input
+                                type="text"
+                                id="email"
+                                name="email"
+                                placeholder="Email"
+                                value={filtros.email}
+                                onChange={handleInputChange}
+                                disabled={filtros.id.trim() !== ''}
+                            />
+                        </div>
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="municipio">Município</label>
-                        <input
-                            type="text"
-                            id="municipio"
-                            name="municipio"
-                            placeholder="Município"
-                            value={filtros.municipio}
-                            onChange={handleInputChange}
-                        />
+                    
+                    <div className="">
+                        <button 
+                            type="button" 
+                            className="clear-button"
+                            onClick={limparFiltros}
+                        >
+                            Limpar Filtros
+                        </button>
+                        <button type="submit" className="search-button" disabled={loading}>
+                            {loading ? 'Buscando...' : 'Buscar'}
+                        </button>
                     </div>
-                    <button type="submit" className="search-button" disabled={loading}>
-                        {loading ? 'Buscando...' : 'Buscar'}
-                    </button>
+                  
                 </form>
 
                 {error && (
@@ -168,19 +343,19 @@ function ConsultarFornecedores() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {!Array.isArray(fornecedores) || fornecedores.length === 0 ? (
+                                {!Array.isArray(fornecedoresFiltrados) || fornecedoresFiltrados.length === 0 ? (
                                     <tr>
                                         <td colSpan="7" className="no-data">
                                             Nenhum fornecedor encontrado
                                         </td>
                                     </tr>
                                 ) : (
-                                    fornecedores.map((fornecedor) => (
+                                    fornecedoresFiltrados.map((fornecedor) => (
                                         <tr key={fornecedor.id}>
                                             <td>{fornecedor.id}</td>
                                             <td>{fornecedor.razao_social}</td>
                                             <td>{fornecedor.cnpj}</td>
-                                            <td>{fornecedor.telefone}</td>
+                                            <td>{fornecedor.telefone || fornecedor.celular}</td>
                                             <td>{fornecedor.municipio_uf}</td>
                                             <td>{fornecedor.email}</td>
                                             <td className="actions-column">

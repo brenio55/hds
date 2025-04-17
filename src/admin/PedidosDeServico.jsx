@@ -336,8 +336,11 @@ function PedidosDeServico() {
         let total = 0;
         itens.forEach(item => {
             const valorTotal = parseFloat(item.valorTotal.toString().replace(',', '.')) || 0;
+            const ipi = parseFloat(item.ipi.toString().replace(',', '.')) || 0;
+            const valorIPI = valorTotal * (ipi / 100);
             const desconto = parseFloat(item.desconto.toString().replace(',', '.')) || 0;
-            const descontoValor = valorTotal * (desconto / 100);
+            // Calcular desconto sobre (PRODUTOS + IPI)
+            const descontoValor = (valorTotal + valorIPI) * (desconto / 100);
             total += descontoValor;
         });
         return total.toFixed(2).replace('.', ',');
@@ -350,7 +353,8 @@ function PedidosDeServico() {
         const valorFrete = parseFloat(dadosPedido.valorFrete.replace(',', '.')) || 0;
         const outrasDespesas = parseFloat(dadosPedido.outrasDespesas.replace(',', '.')) || 0;
 
-        const total = totalBruto + totalIPI - totalDescontos + valorFrete + outrasDespesas;
+        // (PRODUTOS + IPI) + OUTRAS DESPESAS + FRETE - DESCONTO
+        const total = (totalBruto + totalIPI) + outrasDespesas + valorFrete - totalDescontos;
         return total.toFixed(2).replace('.', ',');
     };
 
@@ -546,18 +550,27 @@ function PedidosDeServico() {
             
             // Adicionar cada item do pedido como uma propriedade numerada no objeto itens
             itens.forEach((item, index) => {
+                const valorTotal = formatarValorNumerico(item.valorTotal);
+                const ipi = formatarValorNumerico(item.ipi);
+                const valorIPI = valorTotal * (ipi / 100);
+                const desconto = formatarValorNumerico(item.desconto);
+                // Cálculo do valor final com a fórmula correta: valor_total + ipi - desconto
+                const descontoValor = (valorTotal + valorIPI) * (desconto / 100);
+                const valorFinalItem = valorTotal + valorIPI - descontoValor;
+                
                 itensObj[index] = {
                     descricao: item.descricao || '',
                     unidade: item.unidade || 'hora',
                     quantidade: formatarValorNumerico(item.quantidade),
-                    valor_total: formatarValorNumerico(item.valorTotal),
-                    desconto: formatarValorNumerico(item.desconto),
+                    valor_total: valorTotal,
+                    desconto: desconto,
                     valor_unitario: formatarValorNumerico(item.valorUnitario),
-                    ipi: formatarValorNumerico(item.ipi),
+                    ipi: ipi,
                     unidades: formatarValorNumerico(item.quantidade),
                     data_entrega: item.previsaoEntrega || new Date().toISOString().split('T')[0],
                     valor_frete: valorFrete,
                     outras_despesas: outrasDespesas,
+                    valor_final: valorFinalItem, // Adicionado valor_final já calculado
                     informacao_importante: dadosPedido.informacoesImportantes || '',
                     condicao_pagamento: dadosPedido.condPagto || '30 dias',
                     prazo_maximo: dadosPedido.prazoEntrega || new Date().toISOString().split('T')[0],
@@ -929,7 +942,7 @@ function PedidosDeServico() {
                     <div className="totals-section">
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Total Bruto:</label>
+                                <label>Total Produtos:</label>
                                 <input type="text" value={calcularTotalBruto()} readOnly />
                             </div>
                             <div className="form-group">
@@ -937,7 +950,7 @@ function PedidosDeServico() {
                                 <input type="text" value={calcularTotalIPI()} readOnly />
                             </div>
                             <div className="form-group">
-                                <label>Total Descontos:</label>
+                                <label>Total Descontos (sobre Produtos + IPI):</label>
                                 <input type="text" value={calcularTotalDescontos()} readOnly />
                             </div>
                         </div>
@@ -962,7 +975,7 @@ function PedidosDeServico() {
                             </div>
                             <div className="form-group">
                                 <label>Total Final:</label>
-                                <input type="text" value={calcularTotalFinal()} readOnly />
+                                <input type="text" value={calcularTotalFinal()} readOnly title="(Produtos + IPI) + Frete + Outras Despesas - Descontos" />
                             </div>
                         </div>
                     </div>

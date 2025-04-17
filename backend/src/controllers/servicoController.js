@@ -28,25 +28,6 @@ class ServicoController {
         return res.status(404).json({ error: 'Serviço não encontrado' });
       }
       
-      // Calcular valor total a partir dos itens
-      let valorTotal = 0;
-      if (servico.itens) {
-        if (typeof servico.itens === 'string') {
-          try {
-            const itens = JSON.parse(servico.itens);
-            if (Array.isArray(itens)) {
-              valorTotal = itens.reduce((sum, item) => 
-                sum + (parseFloat(item.valor_total) || 0), 0);
-            }
-          } catch (e) {
-            console.error(`Erro ao parsear itens para serviço ID=${servico.id}:`, e);
-          }
-        } else if (Array.isArray(servico.itens)) {
-          valorTotal = servico.itens.reduce((sum, item) => 
-            sum + (parseFloat(item.valor_total) || 0), 0);
-        }
-      }
-      
       // Buscar informações de faturamento, se disponíveis
       const faturamentos = await db.query(
         'SELECT * FROM faturamento WHERE id_type = $1 AND id_number = $2 ORDER BY created_at DESC LIMIT 1',
@@ -54,18 +35,18 @@ class ServicoController {
       );
       
       let valorFaturado = 0;
-      let valorAFaturar = valorTotal;
+      let valorAFaturar = servico.total || 0;
       
       if (faturamentos.rows.length > 0) {
         const faturamento = faturamentos.rows[0];
         valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-        valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+        valorAFaturar = Math.max(0, parseFloat(servico.total || 0) - valorFaturado);
       }
       
       // Retornar serviço com campos adicionais
       const servicoEnriquecido = {
         ...servico,
-        valor_total: valorTotal,
+        valor_total: servico.total || 0,
         valor_faturado: valorFaturado,
         valor_a_faturar: valorAFaturar
       };
@@ -91,25 +72,6 @@ class ServicoController {
       // Buscar informações de faturamento para cada serviço
       const servicosEnriquecidos = await Promise.all(servicos.map(async (servico) => {
         try {
-          // Calcular valor total a partir dos itens
-          let valorTotal = 0;
-          if (servico.itens) {
-            if (typeof servico.itens === 'string') {
-              try {
-                const itens = JSON.parse(servico.itens);
-                if (Array.isArray(itens)) {
-                  valorTotal = itens.reduce((sum, item) => 
-                    sum + (parseFloat(item.valor_total) || 0), 0);
-                }
-              } catch (e) {
-                console.error(`Erro ao parsear itens para serviço ID=${servico.id}:`, e);
-              }
-            } else if (Array.isArray(servico.itens)) {
-              valorTotal = servico.itens.reduce((sum, item) => 
-                sum + (parseFloat(item.valor_total) || 0), 0);
-            }
-          }
-          
           // Buscar informações de faturamento, se disponíveis
           const faturamentos = await db.query(
             'SELECT * FROM faturamento WHERE id_type = $1 AND id_number = $2 ORDER BY created_at DESC LIMIT 1',
@@ -117,18 +79,18 @@ class ServicoController {
           );
           
           let valorFaturado = 0;
-          let valorAFaturar = valorTotal;
+          let valorAFaturar = servico.total || 0;
           
           if (faturamentos.rows.length > 0) {
             const faturamento = faturamentos.rows[0];
             valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-            valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+            valorAFaturar = Math.max(0, parseFloat(servico.total || 0) - valorFaturado);
           }
           
           // Retornar serviço com campos adicionais
           return {
             ...servico,
-            valor_total: valorTotal,
+            valor_total: servico.total || 0,
             valor_faturado: valorFaturado,
             valor_a_faturar: valorAFaturar
           };

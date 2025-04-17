@@ -463,6 +463,50 @@ class ApiService {
         return this._visualizarPdf(`${API_URL}/api/propostas/${id}/pdf/download?version=${version}`);
     }
 
+    // Método para download do PDF de proposta
+    static async downloadPropostaPdf(id, version) {
+        try {
+            const response = await fetch(
+                `${API_URL}/api/propostas/${id}/pdf/download?version=${version}`,
+                {
+                    headers: createAuthHeaders()
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Erro ao baixar PDF da proposta');
+            }
+
+            // Obtém o nome do arquivo do header Content-Disposition
+            const contentDisposition = response.headers.get('content-disposition');
+            let filename = `proposta_${id}_v${version}.pdf`;
+            
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, '');
+                }
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            
+            // Cria um link temporário para download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Limpa após o download
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Erro ao baixar PDF da proposta:', error);
+            throw error;
+        }
+    }
+
     // Método para download do PDF de pedido de compra
     static async downloadPedidoPdf(id) {
         try {
@@ -821,79 +865,43 @@ class ApiService {
      */
     static async buscarPedidosConsolidados(filtros = {}) {
         try {
-            console.log("ApiService: Buscando pedidos consolidados");
+            console.log("ApiService: Buscando pedidos consolidados com filtros:", filtros);
             
-            // Adicionar token de autorização ao cabeçalho
-            const authHeaders = createAuthHeaders();
+            // Construir query string para filtros
+            const queryParams = new URLSearchParams();
+            if (filtros.tipo && filtros.tipo !== 'todos') {
+                queryParams.append('tipo', filtros.tipo);
+            }
+            if (filtros.numeroPedido) {
+                queryParams.append('id', filtros.numeroPedido);
+            }
+            if (filtros.status) {
+                queryParams.append('status', filtros.status);
+            }
+            if (filtros.proposta_id) {
+                queryParams.append('proposta_id', filtros.proposta_id);
+            }
             
-            // Construir URL com parâmetros de consulta
-            const queryParams = new URLSearchParams(filtros).toString();
-            const url = `${API_URL}/api/pedidos-consolidados${queryParams ? `?${queryParams}` : ''}`;
+            const url = `${API_URL}/api/pedidos-consolidados${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            console.log('URL para busca de pedidos consolidados:', url);
             
-            console.log(`ApiService: URL da requisição: ${url}`);
-
             const response = await fetch(url, {
-                headers: authHeaders,
-                method: 'GET'
+                headers: createAuthHeaders()
             });
 
             if (!response.ok) {
-                console.error(`ApiService: Erro na resposta (status ${response.status}): ${response.statusText}`);
+                const errorText = await response.text();
+                console.error(`ApiService: Erro ao buscar pedidos consolidados (${response.status}):`, errorText);
                 throw new Error(`Erro ao buscar pedidos consolidados: ${response.statusText}`);
             }
 
-            console.log(`ApiService: Resposta recebida (status ${response.status})`);
+            const data = await response.json();
+            console.log("ApiService: Pedidos consolidados recebidos:", data);
             
-            try {
-                const data = await response.json();
-                console.log(`ApiService: JSON parseado com sucesso. Total: ${data.total || 0}`);
-                
-                // Garantir que o formato dos dados está correto
-                if (!data.pedidos || !Array.isArray(data.pedidos)) {
-                    console.warn('ApiService: Resposta da API não contém um array de pedidos');
-                    data.pedidos = [];
-                }
-                
-                // Garantir que cada pedido tenha as propriedades necessárias
-                const pedidosFormatados = data.pedidos.map(pedido => {
-                    // Adicionar valores padrão para campos importantes
-                    if (!pedido.cliente) {
-                        pedido.cliente = { id: 0, nome: 'Cliente não especificado' };
-                    }
-                    if (!pedido.fornecedor) {
-                        pedido.fornecedor = { id: 0, nome: 'Fornecedor não especificado' };
-                    }
-                    if (!pedido.proposta) {
-                        pedido.proposta = { id: 0, descricao: 'Proposta não especificada' };
-                    }
-                    
-                    // Garantir que os valores financeiros existam
-                    pedido.valor_total = pedido.valor_total || 0;
-                    pedido.valor_faturado = pedido.valor_faturado || 0;
-                    pedido.valor_a_faturar = pedido.valor_a_faturar || 0;
-                    
-                    return pedido;
-                });
-                
-                return {
-                    total: data.total || pedidosFormatados.length,
-                    pedidos: pedidosFormatados
-                };
-                
-                } catch (jsonError) {
-                console.error('ApiService: Erro ao processar JSON da resposta:', jsonError);
-                    throw new Error('Erro ao processar resposta do servidor');
-            }
+            return data;
         } catch (error) {
-            console.error('ApiService: Erro geral ao buscar pedidos consolidados:', error);
-            
-            // Retornar um objeto vazio em caso de erro para não quebrar a UI
-            return { 
-                total: 0, 
-                pedidos: [], 
-                erro: true,
-                mensagem: error.message 
-            };
+            console.error('ApiService: Erro ao buscar pedidos consolidados:', error);
+            throw error;
         }
     }
 
@@ -913,6 +921,101 @@ class ApiService {
             return await response.json();
         } catch (error) {
             console.error('Erro ao criar faturamento:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Registra o faturamento de um pedido
+     * @param {FormData} formData - Dados do faturamento incluindo arquivos 
+     * @returns {Promise<Object>} - Dados do faturamento criado
+     */
+    static async faturarPedidoCompra(formData) {
+        try {
+            console.log("ApiService: Iniciando faturamento de pedido...");
+            
+            // Log dos dados enviados (sem expor arquivos binários)
+            const dadosParaLog = {};
+            for (const pair of formData.entries()) {
+                if (pair[0] !== 'arquivoNF' && pair[0] !== 'arquivoBoleto') {
+                    dadosParaLog[pair[0]] = pair[1];
+                } else {
+                    dadosParaLog[pair[0]] = pair[1] ? '[Arquivo binário]' : null;
+                }
+            }
+            console.log("ApiService: Dados do faturamento:", dadosParaLog);
+            
+            // Preparar o payload no formato esperado pelo backend
+            const dadosFaturamento = {
+                id_number: formData.get('pedidoId'),
+                id_type: formData.get('tipoPedido').toLowerCase(),
+                // Convertendo para números com ponto como separador decimal
+                valor_total_pedido: parseFloat(formData.get('valorFaturamento').replace(',', '.')),
+                valor_faturado: parseFloat(formData.get('valorFaturamento').replace(',', '.')),
+                valor_a_faturar: 0, // Após faturar, não sobra nada a faturar
+                data_vencimento: formData.get('dataVencimento'),
+                nf: formData.get('numeroNF'),
+                pagamento: formData.get('metodoPagamento')
+            };
+            
+            // Processar arquivos se existirem
+            if (formData.get('arquivoNF')) {
+                const arquivoNF = formData.get('arquivoNF');
+                try {
+                    // Converter arquivo para base64
+                    const base64NF = await this.fileToBase64(arquivoNF);
+                    dadosFaturamento.nf_anexo = base64NF;
+                } catch (e) {
+                    console.error("Erro ao converter arquivo NF para base64:", e);
+                }
+            }
+            
+            // Adicionar dados específicos do método de pagamento
+            if (formData.get('metodoPagamento') === 'boleto') {
+                dadosFaturamento.numero_boleto = formData.get('numeroBoleto');
+                
+                if (formData.get('arquivoBoleto')) {
+                    try {
+                        const base64Boleto = await this.fileToBase64(formData.get('arquivoBoleto'));
+                        dadosFaturamento.boleto_anexo = base64Boleto;
+                    } catch (e) {
+                        console.error("Erro ao converter arquivo do boleto para base64:", e);
+                    }
+                }
+            } else if (['pix', 'ted'].includes(formData.get('metodoPagamento'))) {
+                dadosFaturamento.dados_conta = formData.get('dadosConta');
+            }
+            
+            console.log("ApiService: Enviando JSON para a API:", {...dadosFaturamento, nf_anexo: dadosFaturamento.nf_anexo ? '[base64]' : null });
+            
+            // Enviar como JSON em vez de FormData
+            const response = await fetch(`${API_URL}/api/faturamentos`, {
+                method: 'POST',
+                headers: {
+                    ...createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dadosFaturamento)
+            });
+
+            if (!response.ok) {
+                let errorMsg = `Erro ao faturar pedido: ${response.statusText}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.error || errorMsg;
+                } catch {
+                    const errorText = await response.text();
+                    if (errorText) errorMsg = errorText;
+                }
+                console.error(`ApiService: ${errorMsg}`);
+                throw new Error(errorMsg);
+            }
+
+            const resultado = await response.json();
+            console.log("ApiService: Faturamento registrado com sucesso:", resultado);
+            return resultado;
+        } catch (error) {
+            console.error('ApiService: Erro ao faturar pedido:', error);
             throw error;
         }
     }
@@ -1324,20 +1427,20 @@ class ApiService {
                 try {
                     // Mapear as propriedades do objeto retornado pelo backend para o formato esperado pelo frontend
                     const valorTotalPedido = parseFloat(fat.valor_total_pedido || 0);
-                    const valorAFaturar = parseFloat(fat.valor_a_faturar || 0);
+                    const valorFaturado = parseFloat(fat.valor_faturado || 0);
                     
                     // Obter valor faturado em valor monetário a partir da porcentagem
                     const porcentagemFaturada = parseFloat(fat.valor_faturado || 0); // 0-100
-                    const valorFaturadoCalculado = (porcentagemFaturada / 100) * valorTotalPedido;
+                    const valorFaturadoCalculado = valorFaturado;
                     
                     faturamentosDetalhados.push({
                         id: fat.id,
                         numeroPedido: fat.id_number,
                         tipoPedido: fat.id_type,
                         valorTotal: valorTotalPedido,
-                        valorFaturado: valorAFaturar, // Usar valor monetário, não porcentagem
+                        valorFaturado: valorFaturado,
                         valorTotalFaturado: valorFaturadoCalculado,
-                        valorAFaturar: Math.max(0, valorTotalPedido - valorFaturadoCalculado),
+                        valorAFaturar: Math.max(0, valorTotalPedido - valorFaturado),
                         dataFaturamento: fat.created_at,
                         dataVencimento: fat.data_vencimento,
                         numeroNF: fat.nf,
@@ -1355,8 +1458,8 @@ class ApiService {
                         numeroPedido: fat.id_number,
                         tipoPedido: fat.id_type,
                         valorTotal: parseFloat(fat.valor_total_pedido || 0),
-                        valorFaturado: parseFloat(fat.valor_a_faturar || 0),
-                        valorAFaturar: 0,
+                        valorFaturado: parseFloat(fat.valor_faturado || 0),
+                        valorAFaturar: Math.max(0, parseFloat(fat.valor_total_pedido || 0) - parseFloat(fat.valor_faturado || 0)),
                         dataFaturamento: fat.created_at,
                         dataVencimento: fat.data_vencimento,
                         numeroNF: fat.nf,
@@ -1485,6 +1588,88 @@ class ApiService {
             };
         } catch (error) {
             console.error(`ApiService: Erro ao buscar fornecedor ${id}:`, error);
+            throw error;
+        }
+    }
+
+    static async buscarFornecedorPorCNPJ(cnpj) {
+        try {
+            console.log(`ApiService: Buscando fornecedor com CNPJ ${cnpj}`);
+            
+            if (!cnpj) {
+                console.error("ApiService: CNPJ do fornecedor não fornecido");
+                throw new Error('CNPJ do fornecedor é obrigatório');
+            }
+            
+            // Removendo caracteres especiais para garantir o formato correto
+            const cnpjLimpo = cnpj.replace(/[^\d]/g, '');
+            
+            const url = `${API_URL}/api/fornecedores/cnpj/${cnpjLimpo}`;
+            console.log(`ApiService: URL para busca do fornecedor por CNPJ: ${url}`);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`ApiService: Erro na resposta (${response.status}): ${errorText}`);
+                throw new Error(`Erro ao buscar fornecedor por CNPJ: ${response.status} ${response.statusText}`);
+            }
+            
+            const fornecedor = await response.json();
+            console.log(`ApiService: Fornecedor com CNPJ ${cnpj} encontrado:`, fornecedor);
+            
+            // Verificar se o fornecedor tem ID
+            if (!fornecedor || !fornecedor.id) {
+                console.warn(`ApiService: Resposta não contém dados válidos do fornecedor com CNPJ ${cnpj}`);
+                throw new Error('Fornecedor não encontrado ou dados incompletos');
+            }
+            
+            // Garantir que todas as propriedades importantes estejam presentes
+            return {
+                ...fornecedor,
+                razao_social: fornecedor.razao_social || fornecedor.nome || 'Sem nome',
+                endereco: fornecedor.endereco || '',
+                cnpj: fornecedor.cnpj || '',
+                telefone: fornecedor.telefone || fornecedor.celular || '',
+                email: fornecedor.email || '',
+                contato: fornecedor.contato || ''
+            };
+        } catch (error) {
+            console.error(`ApiService: Erro ao buscar fornecedor com CNPJ ${cnpj}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Cria um novo fornecedor
+     * @param {Object} formData - Dados do fornecedor a ser criado
+     * @returns {Promise<Object>} - Dados do fornecedor criado
+     */
+    static async criarFornecedor(formData) {
+        try {
+            console.log('ApiService: Criando novo fornecedor:', formData);
+            
+            const response = await fetch(`${API_URL}/api/fornecedores`, {
+                method: 'POST',
+                headers: {
+                    ...createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao cadastrar fornecedor');
+            }
+
+            const data = await response.json();
+            console.log('ApiService: Fornecedor criado com sucesso:', data);
+            return data;
+        } catch (error) {
+            console.error('ApiService: Erro ao criar fornecedor:', error);
             throw error;
         }
     }
@@ -1793,6 +1978,56 @@ class ApiService {
         } catch (error) {
             console.error(`Erro ao excluir aluguel com ID ${id}:`, error);
             throw error;
+        }
+    }
+
+    /**
+     * Busca dados de centro de custo por ID da proposta
+     * @param {number} id - ID da proposta/centro de custo
+     * @returns {Promise<Object>} - Dados do centro de custo e seus pedidos
+     */
+    static async buscarCentroCusto(id) {
+        try {
+            console.log(`ApiService: Buscando centro de custo ID ${id}`);
+            
+            const url = `${API_URL}/api/pedidos-consolidados/${id}`;
+            console.log(`ApiService: URL da requisição: ${url}`);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders(),
+                method: 'GET'
+            });
+
+            if (!response.ok) {
+                console.error(`ApiService: Erro na resposta (status ${response.status}): ${response.statusText}`);
+                throw new Error(`Erro ao buscar centro de custo: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log(`ApiService: Dados do centro de custo obtidos com sucesso.`);
+            
+            return data;
+        } catch (error) {
+            console.error(`ApiService: Erro ao buscar centro de custo ID ${id}:`, error);
+            
+            // Retornar objeto estruturado mesmo em caso de erro
+            return {
+                proposta_id: id,
+                valor_proposta: "0.00",
+                valor_somado: 0,
+                valor_pedidos: {
+                    compra: 0,
+                    locacao: 0,
+                    servico: 0
+                },
+                pedidos: {
+                    compra: [],
+                    locacao: [],
+                    servico: []
+                },
+                erro: true,
+                mensagem: error.message
+            };
         }
     }
 }

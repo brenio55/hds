@@ -117,7 +117,7 @@ class PedidoLocacaoController {
           if (faturamentos.rows.length > 0) {
             const faturamento = faturamentos.rows[0];
             valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-            valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+            valorAFaturar = Math.max(0, valorTotal - valorFaturado);
           }
           
           // Retornar pedido com campos adicionais
@@ -162,7 +162,7 @@ class PedidoLocacaoController {
       if (faturamentos.rows.length > 0) {
         const faturamento = faturamentos.rows[0];
         valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-        valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+        valorAFaturar = Math.max(0, valorTotal - valorFaturado);
       }
       
       // Retornar pedido com campos adicionais

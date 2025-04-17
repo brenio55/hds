@@ -318,52 +318,7 @@
             </tr>
         </table>
 
-        <div class="flex-container">
-            <div style="width: 60%;">
-                <h2>TOTAIS</h2>
-                <table>
-                    <tr>
-                        <th>IPI:</th>
-                        <td class="valor-celula">{{formatPercent (sumNumericObjects itens 'ipi')}}</td>
-                    </tr>
-                    <tr>
-                        <th>Frete:</th>
-                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_frete')}}</td>
-                    </tr>
-                    <tr>
-                        <th>Outras Despesas:</th>
-                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'outras_despesas')}}</td>
-                    </tr>
-                    <tr>
-                        <th>Desconto:</th>
-                        <td class="valor-celula">{{formatPercent (sumNumericObjects itens 'desconto')}}</td>
-                    </tr>
-                    <tr>
-                        <th>Total Bruto:</th>
-                        <td class="valor-celula"><strong>{{formatMoney (sumNumericObjects itens 'valor_total')}}</strong></td>
-                    </tr>
-                    <tr>
-                        <th>Total Final</th>
-                        <td>{{formatMoney (total_final 
-                            (sumNumericObjects itens 'valor_total')
-                            (avgNumericObjects itens 'ipi')
-                            (avgNumericObjects itens 'desconto')
-                            itens.valor_frete 
-                            itens.despesas_adicionais)}}</td>
-                    </tr>
-                </table>
-            </div>
-            <div style="width: 35%;">
-                <h2>DATA FINAL DE ENTREGA</h2>
-                <table>
-                    <tr>
-                        <td>{{formatDate itens.[0].data_entrega}}</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-
-        <h2>DESCRIÇÃO DOS SERVIÇOS</h2>
+        <h2>LISTA DE ITENS</h2>
         <table class="materials-table">
             <tr>
                 <th>#</th>
@@ -390,6 +345,54 @@
             </tr>
             {{/eachNumeric}}
         </table>
+
+        <div class="flex-container">
+            <div style="width: 60%;">
+                <h2>TOTAIS</h2>
+                <table>
+                    <!-- <tr>
+                        <th>Total de Produtos:</th>
+                        <td class="valor-celula"><strong>{{formatMoney (sumNumericObjects itens 'valor_total')}}</strong></td>
+                    </tr> -->
+                    <tr>
+                        <th>Total IPI</th>
+                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_ipi')}}</td>
+                    </tr>
+                    <!-- <tr>
+                        <th>Total com IPI:</th>
+                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_com_ipi')}}</td>
+                    </tr> -->
+                    <tr>
+                        <th>Descontos</th>
+                        <td class="valor-celula">{{formatMoney (sumNumericObjects itens 'valor_desconto')}}</td>
+                    </tr>
+                    <tr>
+                        <th>Frete</th>
+                        <td class="valor-celula">{{formatMoney (getFirstNonZeroValue itens 'valor_frete')}}</td>
+                    </tr>
+                    <tr>
+                        <th>Outras Despesas</th>
+                        <td class="valor-celula">{{formatMoney (getFirstNonZeroValue itens 'outras_despesas')}}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Bruto</th>
+                        <td class="valor-celula"><strong>{{formatMoney (sumNumericObjects itens 'valor_total')}}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Total Final</th>
+                        <td class="valor-celula"><strong>{{formatMoney total}}</strong></td>
+                    </tr>
+                </table>
+            </div>
+            <div style="width: 35%;">
+                <h2>DATA FINAL DE ENTREGA</h2>
+                <table>
+                    <tr>
+                        <td>{{formatDate itens.[0].data_entrega}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
 
         <h2>ESCOPO DO SERVIÇO</h2>
         <table class="dados-adicionais-table">
@@ -460,8 +463,6 @@
                 <tr>
                     <td>As medições serão feitas mensalmente conforme descrito:
                     <ul>
-                        <li style="list-style-type: none; margin: 0 0 8px -20px;">- Medições após a finalização do serviço pagamento 20DDL</li>
-                        <li style="list-style-type: none; margin: 0 0 8px -20px;">- Pagamento de 20% do contrato no ato de aprovação desse pedido</li>
                         <li style="list-style-type: none; margin: 0 0 8px -20px;">- Boletim de Medição deverão ser enviados ao(s) e-mail(s) indicados abaixo:</li>  
                         <li>erick.santos@hdsservico.com.br</li>
                         <li>contato@hdsservico.com.br</li>

@@ -282,7 +282,7 @@ function RCReembolso() {
         <>
             <HeaderAdmin />
             <div className="admin-container">
-                <div className="pedido-container">
+                <div className="pedido-container-reembolso">
                     <h1>REGISTRO E CONSULTA - REEMBOLSO DE FUNCIONÁRIO</h1>
 
                     {error && <div className="error-message">{error}</div>}
@@ -536,7 +536,7 @@ function RCReembolso() {
                                                 <th>Data de Vencimento</th>
                                                 <th>Centro de Custo</th>
                                                 <th>Dados Bancários</th>
-                                                <th>Ações</th>
+                                                {/* <th>Ações</th> */}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -565,7 +565,7 @@ function RCReembolso() {
                                                         <td>{formatarData(reembolso.dataVencimento)}</td>
                                                         <td>{nomeCentroCusto}</td>
                                                         <td>{reembolso.contaBancaria}</td>
-                                                        <td className="acoes-cell">
+                                                        {/* <td className="acoes-cell">
                                                             {reembolso.comprovante && (
                                                                 <button 
                                                                     onClick={() => window.open(reembolso.comprovante, '_blank')}
@@ -589,7 +589,7 @@ function RCReembolso() {
                                                             >
                                                                 Excluir
                                                             </button>
-                                                        </td>
+                                                        </td> */}
                                                     </tr>
                                                 );
                                             })}

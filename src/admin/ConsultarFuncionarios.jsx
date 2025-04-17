@@ -137,12 +137,12 @@ function ConsultarFuncionarios() {
                                                     >
                                                         Detalhes
                                                     </button>
-                                                    <button 
+                                                    {/* <button 
                                                         className="edit-button"
                                                         onClick={() => handleEditar(funcionario.id)}
                                                     >
                                                         Editar
-                                                    </button>
+                                                    </button> */}
                                                     <button 
                                                         className="delete-button"
                                                         onClick={() => handleExcluir(funcionario.id)}

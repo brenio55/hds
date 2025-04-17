@@ -22,36 +22,38 @@ class FaturamentoModel {
     return result.rows.length > 0;
   }
 
-  static async create(data) {
-    // Valida se o pedido existe
-    const pedidoExists = await this.validatePedido(data.id_type, data.id_number);
-    if (!pedidoExists) {
-      throw new Error(`Pedido do tipo ${data.id_type} com ID ${data.id_number} não encontrado`);
+  static async create(dados) {
+    try {
+      // Garantir que temos todos os campos obrigatórios
+      if (!dados.valor_total_pedido) {
+        throw new Error('O campo valor_total_pedido é obrigatório');
+      }
+      
+      // Calcular valor_a_faturar como (valor_total - (valor_faturado/100 * valor_total))
+      const valorTotalPedido = parseFloat(dados.valor_total_pedido);
+      const percentualFaturado = parseFloat(dados.valor_faturado);
+      const valorAFaturar = Math.max(0, valorTotalPedido - (percentualFaturado / 100 * valorTotalPedido));
+      
+      const result = await db.query(
+        'INSERT INTO faturamento (id_number, id_type, valor_total_pedido, valor_faturado, valor_a_faturar, data_vencimento, nf, nf_anexo, pagamento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
+        [
+          dados.id_number, 
+          dados.id_type, 
+          valorTotalPedido,
+          percentualFaturado, 
+          valorAFaturar,
+          dados.data_vencimento, 
+          dados.nf, 
+          dados.nf_anexo, 
+          dados.pagamento
+        ]
+      );
+      
+      const id = result.rows[0].id;
+      return { id, ...dados, valor_a_faturar: valorAFaturar };
+    } catch (error) {
+      throw new Error(`Erro ao criar faturamento: ${error.message}`);
     }
-
-    const query = `
-      INSERT INTO faturamento (
-        id_number, id_type, valor_total_pedido, valor_faturado,
-        valor_a_faturar, data_vencimento, nf, nf_anexo, pagamento
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING *
-    `;
-
-    const values = [
-      data.id_number,
-      data.id_type,
-      data.valor_total_pedido,
-      data.valor_faturado,
-      data.valor_a_faturar,
-      data.data_vencimento,
-      data.nf,
-      data.nf_anexo,
-      data.pagamento
-    ];
-
-    const result = await db.query(query, values);
-    return result.rows[0];
   }
 
   static async findById(id) {
@@ -66,45 +68,24 @@ class FaturamentoModel {
     return result.rows;
   }
 
-  static async update(id, data) {
-    if (data.id_type && data.id_number) {
-      const pedidoExists = await this.validatePedido(data.id_type, data.id_number);
-      if (!pedidoExists) {
-        throw new Error(`Pedido do tipo ${data.id_type} com ID ${data.id_number} não encontrado`);
-      }
+  static async update(id, dados) {
+    try {
+      const count = await db('faturamento')
+        .where({ id })
+        .update({
+          id_number: dados.id_number,
+          id_type: dados.id_type,
+          valor_faturado: dados.valor_faturado,
+          data_vencimento: dados.data_vencimento,
+          nf: dados.nf,
+          nf_anexo: dados.nf_anexo,
+          pagamento: dados.pagamento
+        });
+      if (count === 0) return null;
+      return { id, ...dados };
+    } catch (error) {
+      throw new Error(`Erro ao atualizar faturamento: ${error.message}`);
     }
-
-    const query = `
-      UPDATE faturamento
-      SET 
-        id_number = $1,
-        id_type = $2,
-        valor_total_pedido = $3,
-        valor_faturado = $4,
-        valor_a_faturar = $5,
-        data_vencimento = $6,
-        nf = $7,
-        nf_anexo = $8,
-        pagamento = $9
-      WHERE id = $10
-      RETURNING *
-    `;
-
-    const values = [
-      data.id_number,
-      data.id_type,
-      data.valor_total_pedido,
-      data.valor_faturado,
-      data.valor_a_faturar,
-      data.data_vencimento,
-      data.nf,
-      data.nf_anexo,
-      data.pagamento,
-      id
-    ];
-
-    const result = await db.query(query, values);
-    return result.rows[0];
   }
 
   static async delete(id) {

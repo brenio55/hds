@@ -76,11 +76,14 @@ function registerPdfHelpers() {
     // Calcula o valor do IPI
     const valorIPI = valorBruto * (ipi / 100);
     
-    // Calcula o valor do desconto
-    const valorDesconto = valorBruto * (desconto / 100);
+    // Soma produtos + IPI
+    const valorComIPI = valorBruto + valorIPI;
     
-    // Soma todos os valores (incluindo IPI e subtraindo desconto)
-    const total = valorBruto + valorIPI - valorDesconto + valorFrete + valorDespesas;
+    // Calcula o valor do desconto sobre (PRODUTOS + IPI)
+    const valorDesconto = valorComIPI * (desconto / 100);
+    
+    // (PRODUTOS + IPI) - DESCONTO + OUTRAS DESPESAS + FRETE
+    const total = (valorComIPI - valorDesconto) + valorDespesas + valorFrete;
     
     return total;
   });
@@ -94,6 +97,79 @@ function registerPdfHelpers() {
       // Converte para número e soma, tratando valores nulos/undefined como 0
       return total + (Number(num) || 0);
     }, 0);
+  });
+
+  // Helper para verificar igualdade
+  handlebars.registerHelper('eq', function(a, b) {
+    return a === b;
+  });
+
+  // Helper para obter o valor de uma propriedade do primeiro item
+  handlebars.registerHelper('getFirstValue', function(obj, field) {
+    if (!obj) return 0;
+    
+    // Se for um array
+    if (Array.isArray(obj) && obj.length > 0) {
+      return Number(obj[0][field]) || 0;
+    }
+    
+    // Se for um objeto com chaves numéricas
+    const numericKeys = Object.keys(obj).filter(key => !isNaN(key));
+    if (numericKeys.length > 0) {
+      const firstKey = numericKeys.sort((a, b) => Number(a) - Number(b))[0];
+      return Number(obj[firstKey][field]) || 0;
+    }
+    
+    return 0;
+  });
+
+  // Helper para obter o primeiro valor não zero de uma propriedade
+  handlebars.registerHelper('getFirstNonZeroValue', function(obj, field) {
+    if (!obj) return 0;
+    
+    // Se for um array
+    if (Array.isArray(obj)) {
+      for (const item of obj) {
+        const value = Number(item[field]) || 0;
+        if (value > 0) return value;
+      }
+    }
+    
+    // Se for um objeto com chaves numéricas
+    const numericKeys = Object.keys(obj).filter(key => !isNaN(key));
+    for (const key of numericKeys.sort((a, b) => Number(a) - Number(b))) {
+      const value = Number(obj[key][field]) || 0;
+      if (value > 0) return value;
+    }
+    
+    return 0;
+  });
+
+  // Helper para calcular o valor total do IPI em R$
+  handlebars.registerHelper('calculateTotalValue', function(total_bruto, ipi_percent) {
+    // Converte todos os valores para número, tratando nulos como 0
+    const valorBruto = Number(total_bruto) || 0;
+    const ipi = Number(ipi_percent) || 0;
+    
+    // Calcula o valor do IPI em reais
+    return valorBruto * (ipi / 100);
+  });
+
+  // Helper para calcular o valor total do desconto em R$
+  handlebars.registerHelper('calculateDiscountValue', function(total_bruto, ipi_percent, desconto_percent) {
+    // Converte todos os valores para número, tratando nulos como 0
+    const valorBruto = Number(total_bruto) || 0;
+    const ipi = Number(ipi_percent) || 0;
+    const desconto = Number(desconto_percent) || 0;
+    
+    // Calcula o valor do IPI
+    const valorIPI = valorBruto * (ipi / 100);
+    
+    // Soma produtos + IPI
+    const valorComIPI = valorBruto + valorIPI;
+    
+    // Calcula o valor do desconto sobre (PRODUTOS + IPI) em reais
+    return valorComIPI * (desconto / 100);
   });
 }
 

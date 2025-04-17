@@ -33,8 +33,8 @@ function Dashboard(){
                             <div className="serviceButton working" onClick={() => handleNavigation('/admin/pedidosDeMaterial')}>Gerar Pedido de Compra de Material</div>
                             <div className="serviceButton working" onClick={() => handleNavigation('/admin/pedidosDeLocacao')}>Gerar Pedido de Locação</div>
                             <div className="serviceButton working" onClick={() => handleNavigation('/admin/pedidosDeServico')}>Gerar Pedido de Serviço</div>
-                            <div className="serviceButton" onClick={() => handleNavigation('/admin/faturarPedido')}>Faturar Pedido de Compra</div>
-                            <div className="serviceButton" onClick={() => handleNavigation('/admin/consultarFaturamentos')}>Consultar Faturamentos</div>
+                            <div className="serviceButton working" onClick={() => handleNavigation('/admin/faturarPedido')}>Faturar Pedido de Compra</div>
+                            <div className="serviceButton working" onClick={() => handleNavigation('/admin/consultarFaturamentos')}>Consultar Faturamentos</div>
                             <div className="serviceButton working" onClick={() => handleNavigation('/admin/consultarPedidos')}>Consultar Pedidos C-L-S</div>
                             {/* <div className="serviceButton">HH</div> */}
                         </div>
@@ -43,7 +43,7 @@ function Dashboard(){
                         <h2>Financeiro - Registro e Consulta</h2>
                         <div className="service-buttons"> 
                             <div className="serviceButton">Relatório Geral de Centros de Custo</div>
-                            <div className="serviceButton">Consultar Custo de Obra de Centro de Custo</div>
+                            <div className="serviceButton working" onClick={() => handleNavigation('/admin/consultarCentroCusto')}>Consultar Custo de Obra de Centro de Custo</div>
                             <div className="serviceButton working" onClick={() => handleNavigation('/admin/rcAluguel')}>RC - Aluguel de Casas</div>
                             <div className="serviceButton working" onClick={() => handleNavigation('/admin/rcReembolso')}>RC - Reembolso Funcionário</div>
                         

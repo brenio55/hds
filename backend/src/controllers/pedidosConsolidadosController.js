@@ -70,7 +70,7 @@ class PedidosConsolidadosController {
                   // Usar o último faturamento registrado
                   const ultimoFaturamento = faturamentos.rows[0];
                   valorFaturado = parseFloat(ultimoFaturamento.valor_faturado) || 0;
-                  valorAFaturar = parseFloat(ultimoFaturamento.valor_a_faturar) || valorTotal;
+                  valorAFaturar = Math.max(0, valorTotal - valorFaturado);
                 }
                 
                 pedido = {
@@ -113,7 +113,7 @@ class PedidosConsolidadosController {
                   // Usar o último faturamento registrado
                   const ultimoFaturamento = faturamentos.rows[0];
                   valorFaturado = parseFloat(ultimoFaturamento.valor_faturado) || 0;
-                  valorAFaturar = parseFloat(ultimoFaturamento.valor_a_faturar) || valorTotal;
+                  valorAFaturar = Math.max(0, valorTotal - valorFaturado);
                 }
                 
                 pedido = {
@@ -138,25 +138,6 @@ class PedidosConsolidadosController {
                 const proposta = pedido.proposta_id ? 
                   await PropostaModel.findById(pedido.proposta_id) : null;
                 
-                // Calcular valor total a partir dos itens
-                let valorTotal = 0;
-                if (pedido.itens) {
-                  if (typeof pedido.itens === 'string') {
-                    try {
-                      const itens = JSON.parse(pedido.itens);
-                      if (Array.isArray(itens)) {
-                        valorTotal = itens.reduce((sum, item) => 
-                          sum + (parseFloat(item.valor_total) || 0), 0);
-                      }
-                    } catch (e) {
-                      console.error('Erro ao parsear itens:', e);
-                    }
-                  } else if (Array.isArray(pedido.itens)) {
-                    valorTotal = pedido.itens.reduce((sum, item) => 
-                      sum + (parseFloat(item.valor_total) || 0), 0);
-                  }
-                }
-                
                 // Buscar informações de faturamento, se disponíveis
                 const faturamentos = await db.query(
                   'SELECT * FROM faturamento WHERE id_type = $1 AND id_number = $2',
@@ -164,13 +145,13 @@ class PedidosConsolidadosController {
                 );
                 
                 let valorFaturado = 0;
-                let valorAFaturar = valorTotal;
+                let valorAFaturar = pedido.total || 0;
                 
                 if (faturamentos.rows.length > 0) {
                   // Usar o último faturamento registrado
                   const ultimoFaturamento = faturamentos.rows[0];
                   valorFaturado = parseFloat(ultimoFaturamento.valor_faturado) || 0;
-                  valorAFaturar = parseFloat(ultimoFaturamento.valor_a_faturar) || valorTotal;
+                  valorAFaturar = Math.max(0, parseFloat(pedido.total || 0) - valorFaturado);
                 }
                 
                 pedido = {
@@ -178,7 +159,7 @@ class PedidosConsolidadosController {
                   tipo: 'servico',
                   fornecedor: fornecedor,
                   proposta: proposta,
-                  valor_total: valorTotal,
+                  valor_total: pedido.total || 0,
                   valor_faturado: valorFaturado,
                   valor_a_faturar: valorAFaturar
                 };
@@ -421,22 +402,66 @@ class PedidosConsolidadosController {
           .filter(pedido => pedido && pedido.id)
           .map(pedido => {
             try {
-              // Calcular valor total do pedido
+              // Calcular valor total do pedido considerando IPI e desconto
               let valorTotal = 0;
               if (pedido.materiais) {
                 if (typeof pedido.materiais === 'string') {
                   try {
                     const materiais = JSON.parse(pedido.materiais);
                     if (Array.isArray(materiais)) {
-                      valorTotal = materiais.reduce((sum, item) => 
-                        sum + (parseFloat(item.valor_total) || 0), 0);
+                      valorTotal = materiais.reduce((sum, item) => {
+                        const valorItemBruto = parseFloat(item.valor_total) || 0;
+                        const ipi = parseFloat(item.ipi) || 0;
+                        const desconto = parseFloat(item.desconto) || 0;
+                        
+                        // Calcular valor do IPI
+                        const valorIPI = valorItemBruto * (ipi / 100);
+                        
+                        // Calcular valor com IPI
+                        const valorComIPI = valorItemBruto + valorIPI;
+                        
+                        // Calcular desconto sobre (PRODUTOS + IPI)
+                        const valorDesconto = valorComIPI * (desconto / 100);
+                        
+                        // Valor final do item: (PRODUTOS + IPI) - DESCONTO
+                        const valorFinalItem = valorComIPI - valorDesconto;
+                        
+                        return sum + valorFinalItem;
+                      }, 0);
                     }
                   } catch (e) {
                     console.error(`Erro ao parsear materiais para pedido ID=${pedido.id}:`, e);
                   }
                 } else if (Array.isArray(pedido.materiais)) {
-                  valorTotal = pedido.materiais.reduce((sum, item) => 
-                    sum + (parseFloat(item.valor_total) || 0), 0);
+                  valorTotal = pedido.materiais.reduce((sum, item) => {
+                    const valorItemBruto = parseFloat(item.valor_total) || 0;
+                    const ipi = parseFloat(item.ipi) || 0;
+                    const desconto = parseFloat(item.desconto) || 0;
+                    
+                    // Calcular valor do IPI
+                    const valorIPI = valorItemBruto * (ipi / 100);
+                    
+                    // Calcular valor com IPI
+                    const valorComIPI = valorItemBruto + valorIPI;
+                    
+                    // Calcular desconto sobre (PRODUTOS + IPI)
+                    const valorDesconto = valorComIPI * (desconto / 100);
+                    
+                    // Valor final do item: (PRODUTOS + IPI) - DESCONTO
+                    const valorFinalItem = valorComIPI - valorDesconto;
+                    
+                    return sum + valorFinalItem;
+                  }, 0);
+                }
+                
+                // Adicionar valor do frete, se existir
+                if (parseFloat(pedido.valor_frete) > 0) {
+                  valorTotal += parseFloat(pedido.valor_frete);
+                }
+                
+                // Adicionar despesas adicionais, se existirem
+                if (parseFloat(pedido.despesas_adicionais) > 0) {
+                  valorTotal += parseFloat(pedido.despesas_adicionais);
                 }
               }
               
@@ -449,7 +474,7 @@ class PedidosConsolidadosController {
               
               if (faturamento) {
                 valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-                valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+                valorAFaturar = Math.max(0, valorTotal - valorFaturado);
               }
               
               const fornecedor = fornecedorMap.get(pedido.fornecedores_id);
@@ -520,7 +545,7 @@ class PedidosConsolidadosController {
               
               if (faturamento) {
                 valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-                valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+                valorAFaturar = Math.max(0, valorTotal - valorFaturado);
               }
               
               const fornecedor = fornecedorMap.get(pedido.fornecedor_id);
@@ -578,35 +603,16 @@ class PedidosConsolidadosController {
           .filter(servico => servico && servico.id)
           .map(servico => {
             try {
-              // Calcular valor total a partir dos itens
-              let valorTotal = 0;
-              if (servico.itens) {
-                if (typeof servico.itens === 'string') {
-                  try {
-                    const itens = JSON.parse(servico.itens);
-                    if (Array.isArray(itens)) {
-                      valorTotal = itens.reduce((sum, item) => 
-                        sum + (parseFloat(item.valor_total) || 0), 0);
-                    }
-                  } catch (e) {
-                    console.error(`Erro ao parsear itens para serviço ID=${servico.id}:`, e);
-                  }
-                } else if (Array.isArray(servico.itens)) {
-                  valorTotal = servico.itens.reduce((sum, item) => 
-                    sum + (parseFloat(item.valor_total) || 0), 0);
-                }
-              }
-              
               // Buscar informações de faturamento, se disponíveis
               const faturamentoKey = `servico-${servico.id}`;
               const faturamento = faturamentoMap[faturamentoKey];
               
               let valorFaturado = 0;
-              let valorAFaturar = valorTotal;
+              let valorAFaturar = servico.total || 0;
               
               if (faturamento) {
                 valorFaturado = parseFloat(faturamento.valor_faturado) || 0;
-                valorAFaturar = parseFloat(faturamento.valor_a_faturar) || valorTotal;
+                valorAFaturar = Math.max(0, parseFloat(servico.total || 0) - valorFaturado);
               }
               
               const fornecedor = fornecedorMap.get(servico.fornecedor_id);
@@ -631,7 +637,7 @@ class PedidosConsolidadosController {
                     'Sem descrição'
                 } : null,
                 data_vencimento: servico.data_vencimento,
-                valor_total: valorTotal,
+                valor_total: servico.total || 0,
                 valor_faturado: valorFaturado,
                 valor_a_faturar: valorAFaturar
               };
@@ -935,11 +941,7 @@ class PedidosConsolidadosController {
 
       // Calcular valores dos pedidos de serviço
       const valorServico = servicoResult.rows.reduce((sum, pedido) => {
-        const itens = Array.isArray(pedido.itens) ? pedido.itens :
-          (typeof pedido.itens === 'string' ? JSON.parse(pedido.itens) : []);
-        
-        return sum + itens.reduce((itemSum, item) => 
-          itemSum + parseFloat(item.valor_total || 0), 0);
+        return sum + (parseFloat(pedido.total) || 0);
       }, 0);
 
       const response = {

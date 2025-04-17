@@ -39,6 +39,17 @@ function FaturarPedido() {
         }
     }, [pedidoSelecionado]);
     
+    // Verificar se há um ID de pedido na URL para pré-selecionar
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const pedidoParam = urlParams.get('pedido');
+        
+        if (pedidoParam) {
+            console.log(`Pedido recebido via URL: ${pedidoParam}`);
+            setPedidoSelecionado(pedidoParam);
+        }
+    }, []);
+    
     // Filtrar pedidos quando o termo de busca mudar
     useEffect(() => {
         filtrarPedidos();
@@ -99,6 +110,11 @@ function FaturarPedido() {
                         default: prefixo = 'P'; break;
                     }
                     
+                    // Converter valores para números onde necessário
+                    const valorTotal = typeof pedido.valor_total === 'string'
+                        ? parseFloat(pedido.valor_total)
+                        : parseFloat(pedido.valor_total || 0);
+                    
                     // Criar descrição significativa com os dados disponíveis
                     let descricao = '';
                     if (pedido.proposta && pedido.proposta.descricao) {
@@ -122,7 +138,13 @@ function FaturarPedido() {
                         numero: `${prefixo}-${pedido.id}`,
                         descricao: `${descricao}${dataFormatada}`,
                         tipo: pedido.tipo,
-                        valor_total: pedido.valor_total || 0,
+                        valor_total: valorTotal,
+                        valor_faturado: typeof pedido.valor_faturado === 'string'
+                            ? parseFloat(pedido.valor_faturado)
+                            : parseFloat(pedido.valor_faturado || 0),
+                        valor_a_faturar: typeof pedido.valor_a_faturar === 'string'
+                            ? parseFloat(pedido.valor_a_faturar)
+                            : parseFloat(pedido.valor_a_faturar || 0),
                         status: pedido.status,
                         fornecedor: fornecedorNome,
                         data: pedido.data,
@@ -154,112 +176,60 @@ function FaturarPedido() {
             setLoading(true);
             console.log(`Carregando detalhes do pedido ${pedidoId}...`);
             
-            // Buscar detalhes do pedido para obter valor total
-            const pedido = await ApiService.buscarPedidoCompraPorId(pedidoId);
-            console.log("Detalhes do pedido:", pedido);
+            // Encontrar o pedido nos pedidos já carregados
+            const pedidoEncontrado = pedidosAtivos.find(p => p.id.toString() === pedidoId.toString());
             
-            if (pedido) {
-                // Calcular valor total considerando o formato do pedido recebido da API
-                let valorTotalPedido = 0;
-                
-                // Somar valores dos materiais
-                if (pedido.materiais && Array.isArray(pedido.materiais)) {
-                    valorTotalPedido = pedido.materiais.reduce(
-                        (total, material) => total + parseFloat(material.valor_total || 0), 
-                        0
-                    );
-                    console.log(`Valor total de materiais: ${valorTotalPedido}`);
-                }
-                
-                // Adicionar frete, se existir
-                if (pedido.valor_frete) {
-                    const valorFrete = parseFloat(pedido.valor_frete);
-                    if (!isNaN(valorFrete)) {
-                        valorTotalPedido += valorFrete;
-                        console.log(`Adicionando frete: ${valorFrete}`);
-                    }
-                } else if (pedido.frete && typeof pedido.frete === 'object' && pedido.frete.valor) {
-                    const valorFrete = parseFloat(pedido.frete.valor);
-                    if (!isNaN(valorFrete)) {
-                        valorTotalPedido += valorFrete;
-                        console.log(`Adicionando frete (objeto): ${valorFrete}`);
-                    }
-                }
-                
-                // Adicionar despesas adicionais, se existirem
-                if (pedido.despesas_adicionais) {
-                    const despesasAdicionais = parseFloat(pedido.despesas_adicionais);
-                    if (!isNaN(despesasAdicionais)) {
-                        valorTotalPedido += despesasAdicionais;
-                        console.log(`Adicionando despesas adicionais: ${despesasAdicionais}`);
-                    }
-                }
-                
-                // Subtrair descontos, se existirem
-                if (pedido.desconto) {
-                    const valorDesconto = parseFloat(pedido.desconto);
-                    if (!isNaN(valorDesconto)) {
-                        valorTotalPedido -= valorDesconto;
-                        console.log(`Subtraindo desconto: ${valorDesconto}`);
-                    }
-                }
-                
-                // Usar valor da proposta se valor calculado for zero
-                if (valorTotalPedido <= 0 && pedido.proposta && pedido.proposta.valor_final) {
-                    valorTotalPedido = parseFloat(pedido.proposta.valor_final);
-                    console.log(`Usando valor da proposta: ${valorTotalPedido}`);
-                }
-                
-                // Verificar se existe um valor_total direto no pedido
-                if (valorTotalPedido <= 0 && pedido.valor_total) {
-                    valorTotalPedido = parseFloat(pedido.valor_total);
-                    console.log(`Usando valor_total direto do pedido: ${valorTotalPedido}`);
-                }
-                
-                console.log(`Valor total calculado do pedido: ${valorTotalPedido}`);
-                setValorTotal(valorTotalPedido);
-                
-                // Buscar faturamentos existentes para este pedido
-                const faturamentos = await ApiService.consultarFaturamentos({ 
-                    tipo: pedido.tipo || 'compra',
-                    numeroPedido: pedidoId 
-                });
-                
-                console.log("Faturamentos para este pedido:", faturamentos);
-                
-                // Calcular valor já faturado
-                const totalFaturado = faturamentos.reduce(
-                    (total, fat) => total + parseFloat(fat.valorFaturado || 0), 
-                    0
-                );
-                
-                setValorFaturado(totalFaturado);
-                
-                // Calcular porcentagem faturada
-                if (valorTotalPedido > 0) {
-                    const porcentagem = (totalFaturado / valorTotalPedido) * 100;
-                    setPorcentagemFaturada(Math.min(porcentagem, 100).toFixed(2));
-                } else {
-                    setPorcentagemFaturada(0);
-                }
-                
-                // Sugerir valor restante para faturamento
-                const valorRestante = valorTotalPedido - totalFaturado;
-                if (valorRestante > 0) {
-                    setNovoValorFaturamento(valorRestante.toFixed(2));
-                } else {
-                    setNovoValorFaturamento('');
-                }
-                
-                setError(null);
-            } else {
-                console.error("Pedido não encontrado");
+            if (!pedidoEncontrado) {
+                console.error("Pedido não encontrado nos pedidos ativos");
                 setError("Pedido não encontrado ou indisponível");
                 setValorTotal(0);
                 setValorFaturado(0);
                 setPorcentagemFaturada(0);
                 setNovoValorFaturamento('');
+                setLoading(false);
+                return;
             }
+            
+            console.log("Usando dados do pedido já carregado:", pedidoEncontrado);
+            
+            // Usar o valor total já disponível no pedido
+            const valorTotalPedido = pedidoEncontrado.valor_total;
+            console.log(`Valor total do pedido: ${valorTotalPedido}`);
+            setValorTotal(valorTotalPedido);
+            
+            // Buscar faturamentos existentes para este pedido
+            const faturamentos = await ApiService.consultarFaturamentos({ 
+                tipo: pedidoEncontrado.tipo || 'compra',
+                numeroPedido: pedidoId 
+            });
+            
+            console.log("Faturamentos para este pedido:", faturamentos);
+            
+            // Calcular valor já faturado
+            const totalFaturado = faturamentos.reduce(
+                (total, fat) => total + fat.valorFaturado, 
+                0
+            );
+            
+            setValorFaturado(totalFaturado);
+            
+            // Calcular porcentagem faturada
+            if (valorTotalPedido > 0) {
+                const porcentagem = (totalFaturado / valorTotalPedido) * 100;
+                setPorcentagemFaturada(Math.min(porcentagem, 100).toFixed(2));
+            } else {
+                setPorcentagemFaturada(0);
+            }
+            
+            // Sugerir valor restante para faturamento
+            const valorRestante = valorTotalPedido - totalFaturado;
+            if (valorRestante > 0) {
+                setNovoValorFaturamento(valorRestante.toFixed(2));
+            } else {
+                setNovoValorFaturamento('');
+            }
+            
+            setError(null);
         } catch (error) {
             console.error('Erro ao carregar detalhes do pedido:', error);
             setError("Erro ao carregar detalhes do pedido");
@@ -274,7 +244,7 @@ function FaturarPedido() {
 
     const formatarNF = (valor) => {
         // Formato padrão NF: 999.999.999
-        return valor.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})/, '$1.$2.$3');
+        return valor.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})/, '$1$2$3');
     };
 
     const formatarBoleto = (valor) => {
@@ -287,6 +257,16 @@ function FaturarPedido() {
             style: 'currency',
             currency: 'BRL'
         }).format(valor);
+    };
+
+    const formatarData = (data) => {
+        if (!data) return '';
+        try {
+            return new Date(data).toLocaleDateString('pt-BR');
+        } catch (e) {
+            console.error('Erro ao formatar data:', e);
+            return '';
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -305,9 +285,18 @@ function FaturarPedido() {
         }
 
         // Verificar se o valor de faturamento é válido
-        const valorFaturamentoNumerico = parseFloat(novoValorFaturamento.replace(',', '.'));
-        if (isNaN(valorFaturamentoNumerico) || valorFaturamentoNumerico <= 0) {
-            setError('Informe um valor de faturamento válido');
+        let valorFaturamentoNumerico = 0;
+        
+        try {
+            // Normalizar o valor (substituir vírgulas por pontos para parsing)
+            valorFaturamentoNumerico = parseFloat(novoValorFaturamento.replace(',', '.'));
+            
+            if (isNaN(valorFaturamentoNumerico) || valorFaturamentoNumerico <= 0) {
+                setError('Informe um valor de faturamento válido');
+                return;
+            }
+        } catch (e) {
+            setError('Formato de valor inválido');
             return;
         }
 
@@ -356,10 +345,12 @@ function FaturarPedido() {
             setError(null);
             setMensagemSucesso('');
             
+            // Preparar os dados do faturamento
             const formData = new FormData();
             formData.append('pedidoId', pedidoSelecionado);
             formData.append('tipoPedido', pedido.tipo);
-            formData.append('valorFaturamento', novoValorFaturamento);
+            // Garantir que o valor seja enviado no formato correto (com ponto como separador decimal)
+            formData.append('valorFaturamento', valorFaturamentoNumerico.toString());
             formData.append('dataVencimento', dataVencimento);
             formData.append('numeroNF', numeroNF);
             formData.append('metodoPagamento', metodoPagamento);
@@ -374,9 +365,11 @@ function FaturarPedido() {
             if (arquivoNF) formData.append('arquivoNF', arquivoNF);
     
             console.log(`Enviando dados de faturamento para pedido ${pedido.numero} (tipo: ${pedido.tipo})...`);
-            await ApiService.faturarPedidoCompra(formData);
+            console.log(`Valor a faturar: ${valorFaturamentoNumerico}`);
             
-            console.log("Faturamento registrado com sucesso!");
+            const resultado = await ApiService.faturarPedidoCompra(formData);
+            
+            console.log("Faturamento registrado com sucesso:", resultado);
             setMensagemSucesso('Faturamento registrado com sucesso!');
             
             // Limpar formulário
@@ -394,7 +387,11 @@ function FaturarPedido() {
             carregarPedidosAtivos();
         } catch (error) {
             console.error('Erro ao registrar faturamento:', error);
-            setError('Erro ao registrar faturamento: ' + (error.message || 'Tente novamente.'));
+            // Extrair a mensagem de erro mais específica
+            let mensagemErro = error.message || 'Tente novamente.';
+            // Remover prefixos técnicos para mensagem mais limpa
+            mensagemErro = mensagemErro.replace('Error: Erro ao faturar pedido: ', '');
+            setError('Erro ao registrar faturamento: ' + mensagemErro);
         } finally {
             setLoading(false);
         }
@@ -405,13 +402,20 @@ function FaturarPedido() {
             <HeaderAdmin />
             <div className="admin-container">
                 <div className="pedido-container">
+                    <div className="tabs-navigation">
+                        <div className="tab active">Faturar Pedido</div>
+                        <div className="tab" onClick={() => window.location.href = '/admin/consultarFaturamentos'}>
+                            Consultar Faturamentos
+                        </div>
+                    </div>
+                    
                     <h1>FATURAR PEDIDO</h1>
                     
                     {error && <div className="error-message">{error}</div>}
                     {mensagemSucesso && <div className="success-message">{mensagemSucesso}</div>}
                     
                     <form onSubmit={handleSubmit} className="pedido-form">
-                        <div className="form-group" style={{gridColumn: 'span 2'}}>
+                        <div className="form-group full-width">
                             <label>BUSCAR PEDIDO</label>
                             <input 
                                 type="text"
@@ -423,7 +427,7 @@ function FaturarPedido() {
                             />
                         </div>
                         
-                        <div className="form-group" style={{gridColumn: 'span 2'}}>
+                        <div className="form-group full-width">
                             <label>SELECIONE O PEDIDO PARA FATURAR</label>
                             <select 
                                 value={pedidoSelecionado} 
@@ -581,7 +585,7 @@ function FaturarPedido() {
                         )}
 
                         {(metodoPagamento === 'pix' || metodoPagamento === 'ted') && (
-                            <div className="form-group" style={{gridColumn: 'span 2'}}>
+                            <div className="form-group full-width">
                                 <label>DADOS DA CONTA</label>
                                 <input 
                                     type="text" 

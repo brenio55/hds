@@ -11,7 +11,7 @@ const SuccessPopup = ({ onClose, propostaData }) => {
     const handleDownloadPDF = async () => {
         try {
             setDownloading(true);
-            await ApiService.downloadPdf(propostaData.id, propostaData.versao);
+            await ApiService.downloadPropostaPdf(propostaData.id, propostaData.versao);
         } catch (error) {
             console.error('Erro ao baixar PDF:', error);
             alert('Erro ao baixar PDF. Por favor, tente novamente.');
@@ -33,9 +33,10 @@ const SuccessPopup = ({ onClose, propostaData }) => {
                     <button onClick={onClose} className="btn-ok">OK</button>
                     <button 
                         onClick={handleDownloadPDF} 
-                        className="btn-view-pdf"
+                        className={`btn-view-pdf ${downloading ? 'loading' : ''}`}
                         disabled={downloading}
                     >
+                        {downloading && <span className="spinner"></span>}
                         {downloading ? 'Baixando...' : 'Download do PDF Gerado'}
                     </button>
                 </div>
@@ -89,11 +90,67 @@ function GerarPropostas() {
 
     const handleArrayInputChange = (e, field) => {
         const { value } = e.target;
-        const items = value.split('\n').filter(item => item.trim());
+        // Manter todos os itens, mesmo os vazios, para preservar linhas em branco
+        const items = value.split('\n');
         setFormData(prev => ({
             ...prev,
             [field]: items
         }));
+    };
+
+    // Função para adicionar tags HTML ao texto selecionado
+    const addHtmlTag = (tag) => {
+        const textarea = document.getElementById('especificacoes-html');
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textarea.value.substring(start, end);
+        let newText = '';
+        
+        switch(tag) {
+            case 'bold':
+                newText = `<strong>${selectedText}</strong>`;
+                break;
+            case 'italic':
+                newText = `<em>${selectedText}</em>`;
+                break;
+            case 'ul':
+                // Se não há texto selecionado, inserir template de lista
+                if (start === end) {
+                    newText = '<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>';
+                } else {
+                    // Se há texto, presumir que cada linha é um item
+                    const items = selectedText.split('\n').map(item => `  <li>${item.trim()}</li>`).join('\n');
+                    newText = `<ul>\n${items}\n</ul>`;
+                }
+                break;
+            case 'ol':
+                // Se não há texto selecionado, inserir template de lista
+                if (start === end) {
+                    newText = '<ol>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ol>';
+                } else {
+                    // Se há texto, presumir que cada linha é um item
+                    const items = selectedText.split('\n').map(item => `  <li>${item.trim()}</li>`).join('\n');
+                    newText = `<ol>\n${items}\n</ol>`;
+                }
+                break;
+            default:
+                newText = selectedText;
+        }
+
+        const updatedText = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+        setFormData(prev => ({
+            ...prev,
+            especificacoes_html: updatedText
+        }));
+        
+        // Ajustar posição do cursor para depois do texto inserido
+        setTimeout(() => {
+            textarea.focus();
+            textarea.selectionStart = start + newText.length;
+            textarea.selectionEnd = start + newText.length;
+        }, 0);
     };
 
     const handleSubmit = async (e) => {
@@ -171,9 +228,9 @@ function GerarPropostas() {
             <div className="proposta-container">
                 <div className="proposta-header">
                     <h1>Nova Proposta</h1>
-                    <button type="button" className="preview-button">
+                    {/* <button type="button" className="preview-button">
                         Visualizar Proposta
-                    </button>
+                    </button> */}
                 </div>
 
                 <form onSubmit={handleSubmit} className="proposta-form">
@@ -185,23 +242,7 @@ function GerarPropostas() {
                                     <h2>Informações Básicas</h2>
                                 </div>
                                 <div className="input-group">
-                                    <div className="search-group">
-                                        <input
-                                            type="text"
-                                            name="client_info.nome"
-                                            value={formData.client_info.nome}
-                                            onChange={handleInputChange}
-                                            placeholder="Nome do cliente..."
-                                            required
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowClientSearch(!showClientSearch)}
-                                            className="icon-button search"
-                                        >
-                                            Buscar Cliente 🔍
-                                        </button>
-                                    </div>
+                                    <label htmlFor="descricao">Descrição</label>
                                     <input
                                         type="text"
                                         name="descricao"
@@ -211,6 +252,7 @@ function GerarPropostas() {
                                         className="full-width"
                                         required
                                     />
+                                    <label htmlFor="data_emissao">Data de Emissão</label>
                                     <input
                                         type="date"
                                         name="data_emissao"
@@ -218,6 +260,7 @@ function GerarPropostas() {
                                         onChange={handleInputChange}
                                         required
                                     />
+                                    <label htmlFor="versao">Versão</label>
                                     <input
                                         type="text"
                                         name="versao"
@@ -231,6 +274,28 @@ function GerarPropostas() {
 
                             <div className="form-section">
                                 <div className="section-header">
+                                    <h2>Especificações (com suporte para HTML)</h2>
+                                    <div className="html-formatting-buttons">
+                                        <button type="button" onClick={() => addHtmlTag('bold')} title="Negrito">B (negrito)</button>
+                                        <button type="button" onClick={() => addHtmlTag('italic')} title="Itálico">I (itálico)</button>
+                                        <button type="button" onClick={() => addHtmlTag('ul')} title="Lista não ordenada">• Lista</button>
+                                        <button type="button" onClick={() => addHtmlTag('ol')} title="Lista ordenada">1. Lista</button>
+                                    </div>
+                                </div>
+                                <textarea
+                                    id="especificacoes-html"
+                                    name="especificacoes_html"
+                                    value={formData.especificacoes_html}
+                                    onChange={handleInputChange}
+                                    placeholder="Digite as especificações do projeto..."
+                                    rows="6"
+                                    required
+                                    
+                                />
+                            </div>
+
+                            <div className="form-section" disabled style={{opacity: '0.5', backgroundColor: 'lightgray'}} title='Esta função está desabilitada no momento, por favor, tente novamente em outro momento, ou contate a equipe de TI.'>
+                                <div className="section-header">
                                     <h2>Documento</h2>
                                     <button
                                         type="button"
@@ -241,28 +306,17 @@ function GerarPropostas() {
                                     </button>
                                 </div>
                                 <textarea
+                                    style={{opacity: '0.5', backgroundColor: 'lightgray', border: '1px solid black'}}
                                     name="documento_text"
                                     value={formData.documento_text}
                                     onChange={handleInputChange}
                                     placeholder="Texto do documento..."
                                     rows="6"
-                                />
-                            </div>
-
-                            <div className="form-section">
-                                <div className="section-header">
-                                    <h2>Especificações HTML</h2>
-                                </div>
-                                <textarea
-                                    name="especificacoes_html"
-                                    value={formData.especificacoes_html}
-                                    onChange={handleInputChange}
-                                    placeholder="Especificações em HTML..."
-                                    rows="6"
-                                    required
+                                    disabled
                                 />
                             </div>
                         </div>
+                        
 
                         {/* Right Column */}
                         <div className="right-column">
@@ -271,6 +325,35 @@ function GerarPropostas() {
                                     <h2>Informações do Cliente</h2>
                                 </div>
                                 <div className="client-info-grid">
+                                    <div className="flex" style={{justifyContent: 'space-between'}}>
+                                        <input
+                                            type="text"
+                                            name="client_info.nome"
+                                            value={formData.client_info.nome}
+                                            onChange={handleInputChange}
+                                            placeholder="Nome do cliente..."
+                                                required
+                                            />
+                                        <br></br>
+                                        <div className="search-group" style={{width: 'unset'}}>
+                                            {/* <button
+                                                type="button"
+                                                onClick={() => setShowClientSearch(!showClientSearch)}
+                                                className="icon-button search"
+                                            >
+                                                Buscar Cliente 🔍
+                                            </button> */}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    alert("Esta função por este botão está desabilitada no momento, por favor, tente novamente em outro momento, ou contate a equipe de TI.")
+                                                }}
+                                                className="icon-button search"
+                                            >
+                                                Buscar Cliente 🔍
+                                            </button>
+                                        </div>
+                                    </div>
                                     <input
                                         type="text"
                                         name="client_info.cnpj"
@@ -311,6 +394,12 @@ function GerarPropostas() {
                                             placeholder="Um item por linha..."
                                             rows="4"
                                             required
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.stopPropagation(); // Prevent form submission
+                                                    // Preserve the default behavior of adding a new line
+                                                }
+                                            }}
                                         />
                                     </div>
                                     <div className="fornecimento-group">
@@ -322,18 +411,19 @@ function GerarPropostas() {
                                                 placeholder="Um item por linha..."
                                                 rows="4"
                                                 required
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.stopPropagation(); // Prevent form submission
+                                                        // Preserve the default behavior of adding a new line
+                                                    }
+                                                }}
                                             />
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPreviousItems(!showPreviousItems)}
-                                            className="icon-button"
-                                        >
-                                            Buscar Itens Cadastrados Previamente 📋
-                                        </button>
+                                       
                                     </div>
                                 </div>
                             </div>
+                            
 
                             <div className="form-section">
                                 <div className="section-header">
@@ -345,8 +435,32 @@ function GerarPropostas() {
                                     placeholder="Um item por linha..."
                                     rows="4"
                                     required
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.stopPropagation(); // Prevent form submission
+                                            // Preserve the default behavior of adding a new line
+                                        }
+                                    }}
                                 />
+                                 {/* <button
+                                            type="button"
+                                            onClick={() => setShowPreviousItems(!showPreviousItems)}
+                                            className="icon-button"
+                                        >
+                                            Buscar Itens Cadastrados Previamente 📋
+                                </button> */}
+                                <button
+                                            type="button"
+                                            onClick={() => {
+                                                alert("Esta função por este botão está desabilitada no momento, por favor, tente novamente em outro momento, ou contate a equipe de TI.")
+                                            }}
+                                            className="icon-button"
+                                        >
+                                            Buscar Itens Cadastrados Previamente 📋
+                                </button>
                             </div>
+
+                            
 
                             <div className="form-section">
                                 <div className="section-header">
