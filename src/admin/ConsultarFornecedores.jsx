@@ -16,7 +16,6 @@ function ConsultarFornecedores() {
         cnpj: '',
         municipio_uf: '',
         telefone: '',
-        celular: '',
         email: '',
         contato: '',
         endereco: ''
@@ -123,7 +122,6 @@ function ConsultarFornecedores() {
             cnpj: normalizarNumero(filtros.cnpj),
             municipio_uf: normalizar(filtros.municipio_uf),
             telefone: normalizarNumero(filtros.telefone),
-            celular: normalizarNumero(filtros.celular),
             email: normalizar(filtros.email),
             contato: normalizar(filtros.contato),
             endereco: normalizar(filtros.endereco)
@@ -142,14 +140,8 @@ function ConsultarFornecedores() {
                 if (campo === 'cnpj') {
                     valorCampo = normalizarNumero(fornecedor[campo]);
                 } 
-                // Tratamento especial para telefone e celular
+                // Tratamento especial para telefone
                 else if (campo === 'telefone') {
-                    const telefone = normalizarNumero(fornecedor.telefone || '');
-                    const celular = normalizarNumero(fornecedor.celular || '');
-                    // Buscar em ambos os campos
-                    return telefone.includes(valorFiltro) || celular.includes(valorFiltro);
-                }
-                else if (campo === 'celular') {
                     const telefone = normalizarNumero(fornecedor.telefone || '');
                     const celular = normalizarNumero(fornecedor.celular || '');
                     // Buscar em ambos os campos
@@ -200,7 +192,6 @@ function ConsultarFornecedores() {
                 cnpj: '',
                 municipio_uf: '',
                 telefone: '',
-                celular: '',
                 email: '',
                 contato: '',
                 endereco: ''
@@ -223,7 +214,6 @@ function ConsultarFornecedores() {
             cnpj: '',
             municipio_uf: '',
             telefone: '',
-            celular: '',
             email: '',
             contato: '',
             endereco: ''
@@ -295,27 +285,12 @@ function ConsultarFornecedores() {
                                 type="text"
                                 id="telefone"
                                 name="telefone"
-                                placeholder="Telefone"
+                                placeholder="Telefone ou Celular"
                                 value={filtros.telefone}
                                 onChange={handleInputChange}
                                 disabled={filtros.id.trim() !== ''}
                             />
                         </div>
-                        <div className="form-group">
-                            <label htmlFor="celular">Celular</label>
-                            <input
-                                type="text"
-                                id="celular"
-                                name="celular"
-                                placeholder="Celular"
-                                value={filtros.celular}
-                                onChange={handleInputChange}
-                                disabled={filtros.id.trim() !== ''}
-                            />
-                        </div>
-                    </div>
-                    
-                    <div className="form-row">
                         <div className="form-group">
                             <label htmlFor="email">Email</label>
                             <input
@@ -328,30 +303,6 @@ function ConsultarFornecedores() {
                                 disabled={filtros.id.trim() !== ''}
                             />
                         </div>
-                        {/* <div className="form-group">
-                            <label htmlFor="contato">Contato</label>
-                            <input
-                                type="text"
-                                id="contato"
-                                name="contato"
-                                placeholder="Contato"
-                                value={filtros.contato}
-                                onChange={handleInputChange}
-                                disabled={filtros.id.trim() !== ''}
-                            />
-                        </div> */}
-                        {/* <div className="form-group">
-                            <label htmlFor="endereco">Endereço</label>
-                            <input
-                                type="text"
-                                id="endereco"
-                                name="endereco"
-                                placeholder="Endereço"
-                                value={filtros.endereco}
-                                onChange={handleInputChange}
-                                disabled={filtros.id.trim() !== ''}
-                            />
-                        </div> */}
                     </div>
                     
                     <div className="">
