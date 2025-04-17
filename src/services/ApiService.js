@@ -1592,6 +1592,38 @@ class ApiService {
         }
     }
 
+    /**
+     * Cria um novo fornecedor
+     * @param {Object} formData - Dados do fornecedor a ser criado
+     * @returns {Promise<Object>} - Dados do fornecedor criado
+     */
+    static async criarFornecedor(formData) {
+        try {
+            console.log('ApiService: Criando novo fornecedor:', formData);
+            
+            const response = await fetch(`${API_URL}/api/fornecedores`, {
+                method: 'POST',
+                headers: {
+                    ...createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao cadastrar fornecedor');
+            }
+
+            const data = await response.json();
+            console.log('ApiService: Fornecedor criado com sucesso:', data);
+            return data;
+        } catch (error) {
+            console.error('ApiService: Erro ao criar fornecedor:', error);
+            throw error;
+        }
+    }
+
     static async downloadPedidoLocacaoPdf(id) {
         try {
             const response = await fetch(`${API_URL}/api/pedidos-locacao/${id}/pdf/download`, {
