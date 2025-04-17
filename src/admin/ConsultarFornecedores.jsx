@@ -139,9 +139,22 @@ function ConsultarFornecedores() {
                 let valorCampo;
                 
                 // Campos numéricos - normalizar removendo caracteres não numéricos
-                if (['cnpj', 'telefone', 'celular'].includes(campo)) {
+                if (campo === 'cnpj') {
                     valorCampo = normalizarNumero(fornecedor[campo]);
                 } 
+                // Tratamento especial para telefone e celular
+                else if (campo === 'telefone') {
+                    const telefone = normalizarNumero(fornecedor.telefone || '');
+                    const celular = normalizarNumero(fornecedor.celular || '');
+                    // Buscar em ambos os campos
+                    return telefone.includes(valorFiltro) || celular.includes(valorFiltro);
+                }
+                else if (campo === 'celular') {
+                    const telefone = normalizarNumero(fornecedor.telefone || '');
+                    const celular = normalizarNumero(fornecedor.celular || '');
+                    // Buscar em ambos os campos
+                    return telefone.includes(valorFiltro) || celular.includes(valorFiltro);
+                }
                 // Campo município_uf - tratar de forma especial para busca parcial
                 else if (campo === 'municipio_uf') {
                     valorCampo = normalizar(fornecedor.municipio_uf);
