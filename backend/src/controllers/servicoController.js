@@ -194,29 +194,41 @@ class ServicoController {
       
       console.log("Serviço encontrado:", JSON.stringify(servico, null, 2));
 
-      // Se não houver PDF, gera um novo
-      if (!servico.pdf_uid) {
-        console.log("PDF UID não encontrado. Gerando novo PDF...");
-        const pdfUid = await ServicoPdfService.generatePdf(servico);
+      let pdfUid = servico.pdf_uid;
+      let needToGeneratePdf = false;
+
+      // Verificar se o PDF existe no servidor
+      if (pdfUid) {
+        const pdfPath = path.join(__dirname, `../../uploads/pdfs/${pdfUid}.pdf`);
+        try {
+          console.log("Verificando se o arquivo PDF existe no servidor");
+          await fs.access(pdfPath);
+          console.log("Arquivo PDF encontrado no servidor");
+        } catch (error) {
+          console.log("Arquivo PDF não encontrado no servidor, será gerado um novo PDF");
+          needToGeneratePdf = true;
+        }
+      } else {
+        console.log("PDF UID não encontrado. Será gerado um novo PDF");
+        needToGeneratePdf = true;
+      }
+
+      // Gerar um novo PDF se necessário
+      if (needToGeneratePdf) {
+        console.log("Gerando novo PDF...");
+        pdfUid = await ServicoPdfService.generatePdf(servico);
         console.log(`Novo PDF gerado. UID: ${pdfUid}`);
         
         console.log("Atualizando registro do serviço com o novo PDF UID");
         await ServicoModel.update(id, { ...servico, pdf_uid: pdfUid });
         console.log("Registro atualizado com sucesso");
-        
-        servico.pdf_uid = pdfUid;
-      } else {
-        console.log(`PDF UID encontrado: ${servico.pdf_uid}`);
       }
 
-      const pdfPath = path.join(__dirname, `../../uploads/pdfs/${servico.pdf_uid}.pdf`);
+      const pdfPath = path.join(__dirname, `../../uploads/pdfs/${pdfUid}.pdf`);
       console.log(`Caminho do arquivo PDF: ${pdfPath}`);
       
       try {
-        console.log("Verificando se o arquivo existe");
-        await fs.access(pdfPath);
-        console.log("Arquivo encontrado, lendo conteúdo");
-        
+        console.log("Lendo conteúdo do arquivo PDF");
         const fileBuffer = await fs.readFile(pdfPath);
         console.log(`Arquivo lido com sucesso. Tamanho: ${fileBuffer.length} bytes`);
         
@@ -228,9 +240,9 @@ class ServicoController {
         console.log("========== FIM - CONTROLLER DOWNLOAD PDF ==========");
         res.send(fileBuffer);
       } catch (error) {
-        console.error('Erro ao acessar arquivo PDF:', error);
+        console.error('Erro ao ler arquivo PDF:', error);
         console.error('Stack trace:', error.stack);
-        res.status(404).json({ error: 'Arquivo PDF não encontrado' });
+        res.status(500).json({ error: 'Erro ao ler arquivo PDF' });
       }
     } catch (error) {
       console.error('Erro ao baixar PDF no controller:', error);
