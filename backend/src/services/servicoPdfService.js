@@ -62,11 +62,24 @@ class ServicoPdfService {
 
       handlebars.registerHelper('formatMoney', function(value) {
         console.log(`[formatMoney helper] Formatando valor: ${value}`);
-        if (!value) return 'R$ 0,00';
-        return value.toLocaleString('pt-BR', { 
-          style: 'currency', 
-          currency: 'BRL' 
-        });
+        
+        if (!value && value !== 0) return 'R$ 0,00';
+        
+        // Garantir que o valor é um número e arredondar para 2 casas decimais
+        const numValue = Number(parseFloat(value).toFixed(2));
+        
+        try {
+          return numValue.toLocaleString('pt-BR', { 
+            style: 'currency', 
+            currency: 'BRL',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+        } catch (error) {
+          console.error(`[formatMoney helper] Erro ao formatar valor: ${error}`);
+          // Fallback caso o toLocaleString falhe
+          return `R$ ${numValue.toFixed(2).replace('.', ',')}`;
+        }
       });
 
       // Adicionar novo helper para formatar porcentagem
