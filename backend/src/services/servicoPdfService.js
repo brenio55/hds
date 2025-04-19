@@ -69,6 +69,26 @@ class ServicoPdfService {
         });
       });
 
+      // Helper para obter o primeiro valor não zero de uma lista de valores
+      handlebars.registerHelper('getFirstNonZeroValue', function(...args) {
+        // Remove o último argumento que é o objeto de opções do Handlebars
+        const options = args.pop();
+        
+        for (const value of args) {
+          // Verifica se o valor é um número e não é zero
+          if (typeof value === 'number' && value !== 0) {
+            return value;
+          }
+          // Se for uma string numérica e não for zero
+          if (typeof value === 'string' && !isNaN(parseFloat(value)) && parseFloat(value) !== 0) {
+            return parseFloat(value);
+          }
+        }
+        
+        // Se não encontrar nenhum valor não zero, retorna 0
+        return 0;
+      });
+
       // Adicionar novo helper para formatar porcentagem
       handlebars.registerHelper('formatPercent', function(value) {
         if (!value && value !== 0) return '';

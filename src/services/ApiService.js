@@ -1592,6 +1592,88 @@ class ApiService {
         }
     }
 
+    static async buscarFornecedorPorCNPJ(cnpj) {
+        try {
+            console.log(`ApiService: Buscando fornecedor com CNPJ ${cnpj}`);
+            
+            if (!cnpj) {
+                console.error("ApiService: CNPJ do fornecedor não fornecido");
+                throw new Error('CNPJ do fornecedor é obrigatório');
+            }
+            
+            // Removendo caracteres especiais para garantir o formato correto
+            const cnpjLimpo = cnpj.replace(/[^\d]/g, '');
+            
+            const url = `${API_URL}/api/fornecedores/cnpj/${cnpjLimpo}`;
+            console.log(`ApiService: URL para busca do fornecedor por CNPJ: ${url}`);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`ApiService: Erro na resposta (${response.status}): ${errorText}`);
+                throw new Error(`Erro ao buscar fornecedor por CNPJ: ${response.status} ${response.statusText}`);
+            }
+            
+            const fornecedor = await response.json();
+            console.log(`ApiService: Fornecedor com CNPJ ${cnpj} encontrado:`, fornecedor);
+            
+            // Verificar se o fornecedor tem ID
+            if (!fornecedor || !fornecedor.id) {
+                console.warn(`ApiService: Resposta não contém dados válidos do fornecedor com CNPJ ${cnpj}`);
+                throw new Error('Fornecedor não encontrado ou dados incompletos');
+            }
+            
+            // Garantir que todas as propriedades importantes estejam presentes
+            return {
+                ...fornecedor,
+                razao_social: fornecedor.razao_social || fornecedor.nome || 'Sem nome',
+                endereco: fornecedor.endereco || '',
+                cnpj: fornecedor.cnpj || '',
+                telefone: fornecedor.telefone || fornecedor.celular || '',
+                email: fornecedor.email || '',
+                contato: fornecedor.contato || ''
+            };
+        } catch (error) {
+            console.error(`ApiService: Erro ao buscar fornecedor com CNPJ ${cnpj}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Cria um novo fornecedor
+     * @param {Object} formData - Dados do fornecedor a ser criado
+     * @returns {Promise<Object>} - Dados do fornecedor criado
+     */
+    static async criarFornecedor(formData) {
+        try {
+            console.log('ApiService: Criando novo fornecedor:', formData);
+            
+            const response = await fetch(`${API_URL}/api/fornecedores`, {
+                method: 'POST',
+                headers: {
+                    ...createAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao cadastrar fornecedor');
+            }
+
+            const data = await response.json();
+            console.log('ApiService: Fornecedor criado com sucesso:', data);
+            return data;
+        } catch (error) {
+            console.error('ApiService: Erro ao criar fornecedor:', error);
+            throw error;
+        }
+    }
+
     static async downloadPedidoLocacaoPdf(id) {
         try {
             const response = await fetch(`${API_URL}/api/pedidos-locacao/${id}/pdf/download`, {

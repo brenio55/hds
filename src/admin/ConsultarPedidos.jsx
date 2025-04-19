@@ -7,6 +7,7 @@ import ApiService from '../services/ApiService';
 function ConsultarPedidos() {
     const navigate = useNavigate();
     const [pedidos, setPedidos] = useState([]);
+    const [pedidosFiltrados, setPedidosFiltrados] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [downloadingId, setDownloadingId] = useState(null);
@@ -14,7 +15,9 @@ function ConsultarPedidos() {
     const [filtros, setFiltros] = useState({
         id: '',
         tipo: '',
-        centroCusto: '',
+        fornecedor: '',
+        data_vencimento: '',
+        valor_total: '',
         dataDecrescente: true
     });
 
@@ -22,10 +25,14 @@ function ConsultarPedidos() {
         buscarTodosPedidos();
     }, []);
 
+    useEffect(() => {
+        aplicarFiltrosLocais();
+    }, [filtros, pedidos]);
+
     const ordenarPedidosPorData = (pedidos) => {
         return [...pedidos].sort((a, b) => {
-            const dataA = new Date(a.created_at || a.data_criacao);
-            const dataB = new Date(b.created_at || b.data_criacao);
+            const dataA = new Date(a.created_at || a.data_criacao || a.data);
+            const dataB = new Date(b.created_at || b.data_criacao || b.data);
             return dataB - dataA; // Ordem decrescente (mais recente primeiro)
         });
     };
@@ -63,6 +70,7 @@ function ConsultarPedidos() {
             const pedidosProcessados = processarPedidos(pedidosData);
             const pedidosOrdenados = ordenarPedidosPorData(pedidosProcessados);
             setPedidos(pedidosOrdenados);
+            setPedidosFiltrados(pedidosOrdenados);
         } catch (error) {
             setError('Erro ao carregar pedidos. Por favor, tente novamente.');
             console.error('Erro ao buscar pedidos:', error);
@@ -129,77 +137,130 @@ function ConsultarPedidos() {
         return tiposBackend[tipoFrontend] || tipoFrontend;
     };
 
-    const handleSearch = async (e) => {
-        e.preventDefault();
+    // Função para normalizar strings para comparação
+    const normalizar = (texto) => {
+        if (texto == null) return '';
+        texto = String(texto);
+        return texto.normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase();
+    };
+
+    // Função para normalizar números (remover pontos, traços, parênteses, espaços)
+    const normalizarNumero = (texto) => {
+        if (texto == null) return '';
+        return String(texto).replace(/[^0-9.,]/g, '');
+    };
+
+    const aplicarFiltrosLocais = () => {
+        // Pular se o filtro de ID estiver ativo, pois ele usa requisição específica
+        if (filtros.id.trim() !== '') {
+            // Implementaremos a filtragem por ID depois
+            return;
+        }
+
+        // Normalizar os filtros uma vez antes de aplicar
+        const filtrosNormalizados = {
+            tipo: normalizar(filtros.tipo),
+            fornecedor: normalizar(filtros.fornecedor),
+            data_vencimento: filtros.data_vencimento, // Datas são tratadas separadamente
+            valor_total: normalizarNumero(filtros.valor_total)
+        };
+
+        // Aplicar filtros nos campos
+        let resultado = pedidos.filter(pedido => {
+            // Para cada campo de filtro
+            return Object.entries(filtrosNormalizados).every(([campo, valorFiltro]) => {
+                // Ignorar campos vazios
+                if (!valorFiltro) return true;
+
+                let valorCampo;
+                
+                // Tratamento especial para tipo de pedido
+                if (campo === 'tipo') {
+                    const tipoPedido = normalizar(getTipoPedido(pedido.tipo));
+                    return tipoPedido.includes(valorFiltro);
+                }
+                // Tratamento especial para fornecedor
+                else if (campo === 'fornecedor') {
+                    const nomeFornecedor = normalizar(pedido.fornecedor_nome || '');
+                    const idFornecedor = normalizar(String(pedido.fornecedor_id || pedido.fornecedores_id || ''));
+                    // Buscar tanto no nome quanto no ID do fornecedor
+                    return nomeFornecedor.includes(valorFiltro) || idFornecedor.includes(valorFiltro);
+                }
+                // Tratamento para data de vencimento
+                else if (campo === 'data_vencimento') {
+                    // Verificar se a data do pedido contém a data do filtro (formato YYYY-MM-DD)
+                    const dataPedidoFormatada = pedido.data_vencimento ? pedido.data_vencimento.split('T')[0] : '';
+                    return dataPedidoFormatada === valorFiltro;
+                }
+                // Tratamento para valor
+                else if (campo === 'valor_total') {
+                    // Normalizar valor do pedido para comparação
+                    const valorPedidoNormalizado = normalizarNumero(String(pedido.valor_total || '0'));
+                    return valorPedidoNormalizado.includes(valorFiltro);
+                }
+                // Campos de texto normais - normalizar e buscar por inclusão
+                else {
+                    valorCampo = normalizar(pedido[campo]);
+                    return valorCampo.includes(valorFiltro);
+                }
+            });
+        });
+        
+        // Aplicar ordenação por data se necessário
+        if (filtros.dataDecrescente) {
+            resultado = ordenarPedidosPorData(resultado);
+        }
+        
+        setPedidosFiltrados(resultado);
+    };
+
+    const buscarPedidoPorId = async (id) => {
+        if (!id || id.trim() === '') {
+            await buscarTodosPedidos();
+            return;
+        }
+
         setLoading(true);
         setError(null);
-        
         try {
-            // Criar uma cópia dos filtros para modificação
-            const filtrosAjustados = { ...filtros };
-            
-            // Converter o tipo para o formato esperado pelo backend
-            if (filtrosAjustados.tipo) {
-                filtrosAjustados.tipo = getTipoBackend(filtrosAjustados.tipo);
-                console.log(`Tipo ajustado para backend: ${filtrosAjustados.tipo}`);
-            }
-            
-            const filtrosValidos = Object.fromEntries(
-                Object.entries(filtrosAjustados).filter(([key, value]) => value !== '' && key !== 'dataDecrescente')
-            );
-            
-            console.log("Buscando pedidos com filtros:", filtrosValidos);
+            // Buscamos todos os pedidos e depois filtramos pelo ID
             let data;
             try {
-                // Usar o método de pedidos consolidados que retorna todos os tipos
-                data = await ApiService.buscarPedidosConsolidados(filtrosValidos);
-                console.log("Resposta da API com filtros:", data);
+                data = await ApiService.buscarPedidosConsolidados();
             } catch (apiError) {
-                console.error('Erro ao buscar pedidos consolidados com filtros:', apiError);
-                
-                try {
-                    console.log("Tentando fallback para buscarPedidosCompra...");
-                    data = await ApiService.buscarPedidosCompra(filtrosValidos);
-                } catch (fallbackError) {
-                    console.error('Erro no fallback para pedidos de compra:', fallbackError);
-                    console.warn('Usando dados de exemplo como último recurso');
-                    data = await ApiService.carregarDadosExemplo();
-                    
-                    // Aplicar filtros manualmente aos dados de exemplo
-                    if (Object.keys(filtrosValidos).length > 0) {
-                        data = data.filter(pedido => {
-                            let match = true;
-                            if (filtrosValidos.id && pedido.id.toString() !== filtrosValidos.id.toString()) {
-                                match = false;
-                            }
-                            if (filtrosValidos.tipo && pedido.tipo !== filtrosValidos.tipo) {
-                                match = false;
-                            }
-                            if (filtrosValidos.centroCusto && pedido.proposta_id?.toString() !== filtrosValidos.centroCusto.toString()) {
-                                match = false;
-                            }
-                            return match;
-                        });
-                    }
-                }
+                console.error('Erro ao buscar pedidos consolidados:', apiError);
+                data = await ApiService.buscarPedidosCompra();
             }
             
             const pedidosData = Array.isArray(data) ? data : (data.pedidos || []);
-            console.log(`Pedidos filtrados encontrados: ${pedidosData.length}`);
-            
             const pedidosProcessados = processarPedidos(pedidosData);
             
-            let pedidosOrdenados = pedidosProcessados;
-            if (filtros.dataDecrescente) {
-                pedidosOrdenados = ordenarPedidosPorData(pedidosProcessados);
-            }
+            const pedidoEncontrado = pedidosProcessados.find(p => p.id.toString() === id.toString());
             
-            setPedidos(pedidosOrdenados);
+            if (pedidoEncontrado) {
+                setPedidosFiltrados([pedidoEncontrado]);
+            } else {
+                setPedidosFiltrados([]);
+                setError('Pedido não encontrado com o ID informado.');
+            }
         } catch (error) {
-            setError('Erro ao buscar pedidos. Por favor, tente novamente.');
-            console.error('Erro na busca:', error);
+            setError(`Erro ao buscar pedido: ${error.message}`);
+            setPedidosFiltrados([]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSearch = async (e) => {
+        e.preventDefault();
+        // Se o ID estiver preenchido, busca específica por ID
+        if (filtros.id.trim() !== '') {
+            await buscarPedidoPorId(filtros.id);
+        } else {
+            // Se não, aplica filtros locais
+            aplicarFiltrosLocais();
         }
     };
 
@@ -209,6 +270,17 @@ function ConsultarPedidos() {
             ...prev,
             [name]: value
         }));
+
+        // Limpar outros filtros se estiver preenchendo o ID
+        if (name === 'id' && value.trim() !== '') {
+            setFiltros(prev => ({
+                ...prev,
+                tipo: '',
+                fornecedor: '',
+                data_vencimento: '',
+                valor_total: ''
+            }));
+        }
     };
 
     const handleCheckboxChange = (e) => {
@@ -217,6 +289,18 @@ function ConsultarPedidos() {
             ...prev,
             [name]: checked
         }));
+    };
+
+    const limparFiltros = () => {
+        setFiltros({
+            id: '',
+            tipo: '',
+            fornecedor: '',
+            data_vencimento: '',
+            valor_total: '',
+            dataDecrescente: true
+        });
+        buscarTodosPedidos();
     };
 
     const handleVisualizarPedido = async (id, tipo) => {
@@ -290,56 +374,94 @@ function ConsultarPedidos() {
                 <h2>Consultar Pedidos C-L-S</h2>
                 
                 <form onSubmit={handleSearch} className="search-form">
-                    <div className="form-group">
-                        <label htmlFor="tipo">Tipo de Pedido</label>
-                        <select
-                            id="tipo"
-                            name="tipo"
-                            value={filtros.tipo}
-                            onChange={handleInputChange}
-                        >
-                            <option value="">Todos</option>
-                            <option value="material">Compra de Material</option>
-                            <option value="servico">Serviço</option>
-                            <option value="locacao">Locação</option>
-                        </select>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="id">ID do Pedido</label>
-                        <input
-                            type="text"
-                            id="id"
-                            name="id"
-                            placeholder="ID do Pedido"
-                            value={filtros.id}
-                            onChange={handleInputChange}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="centroCusto">Centro de Custo</label>
-                        <input
-                            type="text"
-                            id="centroCusto"
-                            name="centroCusto"
-                            placeholder="Centro de Custo"
-                            value={filtros.centroCusto}
-                            onChange={handleInputChange}
-                        />
-                    </div>
-                    <div className="form-group checkbox-group">
-                        <label>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="id">ID do Pedido</label>
                             <input
-                                type="checkbox"
-                                name="dataDecrescente"
-                                checked={filtros.dataDecrescente}
-                                onChange={handleCheckboxChange}
+                                type="text"
+                                id="id"
+                                name="id"
+                                placeholder="ID do Pedido"
+                                value={filtros.id}
+                                onChange={handleInputChange}
                             />
-                            Data Decrescente
-                        </label>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="tipo">Tipo de Pedido</label>
+                            <select
+                                id="tipo"
+                                name="tipo"
+                                value={filtros.tipo}
+                                onChange={handleInputChange}
+                                disabled={filtros.id.trim() !== ''}
+                            >
+                                <option value="">Todos</option>
+                                <option value="material">Compra de Material</option>
+                                <option value="servico">Serviço</option>
+                                <option value="locacao">Locação</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="fornecedor">Fornecedor</label>
+                            <input
+                                type="text"
+                                id="fornecedor"
+                                name="fornecedor"
+                                placeholder="Nome ou ID do Fornecedor"
+                                value={filtros.fornecedor}
+                                onChange={handleInputChange}
+                                disabled={filtros.id.trim() !== ''}
+                            />
+                        </div>
                     </div>
-                    <button type="submit" className="search-button" disabled={loading}>
-                        {loading ? 'Buscando...' : 'Buscar'}
-                    </button>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="data_vencimento">Data de Vencimento</label>
+                            <input
+                                type="date"
+                                id="data_vencimento"
+                                name="data_vencimento"
+                                value={filtros.data_vencimento}
+                                onChange={handleInputChange}
+                                disabled={filtros.id.trim() !== ''}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="valor_total">Valor Total</label>
+                            <input
+                                type="text"
+                                id="valor_total"
+                                name="valor_total"
+                                placeholder="Valor Total"
+                                value={filtros.valor_total}
+                                onChange={handleInputChange}
+                                disabled={filtros.id.trim() !== ''}
+                            />
+                        </div>
+                        <div className="form-group checkbox-group">
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    name="dataDecrescente"
+                                    checked={filtros.dataDecrescente}
+                                    onChange={handleCheckboxChange}
+                                />
+                                Data Decrescente
+                            </label>
+                        </div>
+                    </div>
+                    <div className="">
+                        <button 
+                            type="button" 
+                            className="clear-button"
+                            onClick={limparFiltros}
+                        >
+                            Limpar Filtros
+                        </button>
+                        <button type="submit" className="search-button" disabled={loading}>
+                            {loading ? 'Buscando...' : 'Buscar'}
+                        </button>
+                    </div>
                 </form>
 
                 {error && (
@@ -366,14 +488,14 @@ function ConsultarPedidos() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {pedidos.length === 0 ? (
+                                {pedidosFiltrados.length === 0 ? (
                                     <tr>
                                         <td colSpan="8" className="no-data">
                                             Nenhum pedido encontrado
                                         </td>
                                     </tr>
                                 ) : (
-                                    pedidos.map((pedido) => (
+                                    pedidosFiltrados.map((pedido) => (
                                         <tr key={pedido.id}>
                                             <td>{pedido.id}</td>
                                             <td>{getTipoPedido(pedido.tipo)}</td>

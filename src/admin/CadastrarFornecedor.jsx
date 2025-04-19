@@ -60,7 +60,7 @@ function CadastrarFornecedor() {
             
             // Redirecionar para a página de consulta após 2 segundos
             setTimeout(() => {
-                navigate('/consultarFornecedores');
+                navigate('/admin/consultarFornecedores');
             }, 2000);
         } catch (error) {
             console.error('Erro ao cadastrar fornecedor:', error);
