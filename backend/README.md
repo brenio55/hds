@@ -776,10 +776,10 @@ Content-Type: application/json
 ```json
 {
   "valor": 1500.50,
+  "proposta_id": 1,
   "detalhes": {
     "data_vencimento": "2024-04-15",
     "pagamento": "pix",
-    "obra_id": 1,
     "observacoes": "Aluguel referente ao mês de abril"
   }
 }
@@ -790,10 +790,11 @@ Content-Type: application/json
 {
   "id": 1,
   "valor": "1500.50",
+  "proposta_id": 1,
+  "proposta_descricao": "Proposta de construção residencial",
   "detalhes": {
     "data_vencimento": "2024-04-15",
     "pagamento": "pix",
-    "obra_id": 1,
     "observacoes": "Aluguel referente ao mês de abril"
   },
   "created_at": "2024-03-21T10:00:00Z"
@@ -815,10 +816,10 @@ Content-Type: application/json
 ```json
 {
   "valor": 1600.00,
+  "proposta_id": 1,
   "detalhes": {
     "data_vencimento": "2024-05-15",
     "pagamento": "ted",
-    "obra_id": 1,
     "observacoes": "Aluguel referente ao mês de maio - atualizado"
   }
 }
@@ -842,10 +843,10 @@ curl -X PUT http://localhost:3000/api/alugueis/1 \
   -H "Content-Type: application/json" \
   -d '{
     "valor": 1600.00,
+    "proposta_id": 1,
     "detalhes": {
       "data_vencimento": "2024-05-15",
       "pagamento": "ted",
-      "obra_id": 1,
       "observacoes": "Aluguel referente ao mês de maio - atualizado"
     }
   }'
@@ -874,7 +875,7 @@ Authorization: Bearer seu_token
 
 **Parâmetros de Consulta:**
 - `campo`: Campo para filtrar (opcional)
-  - Valores permitidos: `id`, `valor`, `detalhes`, `created_at`
+  - Valores permitidos: `id`, `valor`, `proposta_id`, `detalhes`, `created_at`
 - `valor`: Valor para filtrar (opcional)
 
 **Resposta de Sucesso:**
@@ -883,10 +884,11 @@ Authorization: Bearer seu_token
   {
     "id": 1,
     "valor": "1600.00",
+    "proposta_id": 1,
+    "proposta_descricao": "Proposta de construção residencial",
     "detalhes": {
       "data_vencimento": "2024-05-15",
       "pagamento": "ted",
-      "obra_id": 1,
       "observacoes": "Aluguel referente ao mês de maio"
     },
     "created_at": "2024-03-21T10:00:00Z"
@@ -902,16 +904,20 @@ curl -X POST http://localhost:3000/api/alugueis \
   -H "Content-Type: application/json" \
   -d '{
     "valor": 1500.50,
+    "proposta_id": 1,
     "detalhes": {
       "data_vencimento": "2024-04-15",
       "pagamento": "pix",
-      "obra_id": 1,
       "observacoes": "Aluguel referente ao mês de abril"
     }
   }'
 
 # Buscar por valor específico
 curl "http://localhost:3000/api/alugueis?campo=valor&valor=1500.50" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por proposta_id
+curl "http://localhost:3000/api/alugueis?campo=proposta_id&valor=1" \
   -H "Authorization: Bearer seu_token"
 
 # Buscar por texto nas observações
@@ -922,11 +928,11 @@ curl "http://localhost:3000/api/alugueis?campo=detalhes&valor=abril" \
 **Observações:**
 - O campo `detalhes` deve seguir a estrutura exata definida acima
 - O campo `pagamento` aceita apenas os valores "pix" ou "ted"
-- `obra_id` deve ser um ID válido existente na tabela de obras
+- `proposta_id` deve ser um ID válido existente na tabela de propostas
 - `data_vencimento` deve estar no formato YYYY-MM-DD
 - Valores monetários são armazenados com 2 casas decimais
 - Buscas em `detalhes` são case-insensitive e parciais
-- Buscas por `valor` são exatas
+- Buscas por `valor` e `proposta_id` são exatas
 - Datas são retornadas no formato ISO 8601
 
 ### Serviços
