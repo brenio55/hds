@@ -776,10 +776,10 @@ Content-Type: application/json
 ```json
 {
   "valor": 1500.50,
+  "proposta_id": 1,
   "detalhes": {
     "data_vencimento": "2024-04-15",
     "pagamento": "pix",
-    "obra_id": 1,
     "observacoes": "Aluguel referente ao mês de abril"
   }
 }
@@ -790,10 +790,11 @@ Content-Type: application/json
 {
   "id": 1,
   "valor": "1500.50",
+  "proposta_id": 1,
+  "proposta_descricao": "Proposta de construção residencial",
   "detalhes": {
     "data_vencimento": "2024-04-15",
     "pagamento": "pix",
-    "obra_id": 1,
     "observacoes": "Aluguel referente ao mês de abril"
   },
   "created_at": "2024-03-21T10:00:00Z"
@@ -815,10 +816,10 @@ Content-Type: application/json
 ```json
 {
   "valor": 1600.00,
+  "proposta_id": 1,
   "detalhes": {
     "data_vencimento": "2024-05-15",
     "pagamento": "ted",
-    "obra_id": 1,
     "observacoes": "Aluguel referente ao mês de maio - atualizado"
   }
 }
@@ -842,10 +843,10 @@ curl -X PUT http://localhost:3000/api/alugueis/1 \
   -H "Content-Type: application/json" \
   -d '{
     "valor": 1600.00,
+    "proposta_id": 1,
     "detalhes": {
       "data_vencimento": "2024-05-15",
       "pagamento": "ted",
-      "obra_id": 1,
       "observacoes": "Aluguel referente ao mês de maio - atualizado"
     }
   }'
@@ -874,7 +875,7 @@ Authorization: Bearer seu_token
 
 **Parâmetros de Consulta:**
 - `campo`: Campo para filtrar (opcional)
-  - Valores permitidos: `id`, `valor`, `detalhes`, `created_at`
+  - Valores permitidos: `id`, `valor`, `proposta_id`, `detalhes`, `created_at`
 - `valor`: Valor para filtrar (opcional)
 
 **Resposta de Sucesso:**
@@ -883,10 +884,11 @@ Authorization: Bearer seu_token
   {
     "id": 1,
     "valor": "1600.00",
+    "proposta_id": 1,
+    "proposta_descricao": "Proposta de construção residencial",
     "detalhes": {
       "data_vencimento": "2024-05-15",
       "pagamento": "ted",
-      "obra_id": 1,
       "observacoes": "Aluguel referente ao mês de maio"
     },
     "created_at": "2024-03-21T10:00:00Z"
@@ -902,16 +904,20 @@ curl -X POST http://localhost:3000/api/alugueis \
   -H "Content-Type: application/json" \
   -d '{
     "valor": 1500.50,
+    "proposta_id": 1,
     "detalhes": {
       "data_vencimento": "2024-04-15",
       "pagamento": "pix",
-      "obra_id": 1,
       "observacoes": "Aluguel referente ao mês de abril"
     }
   }'
 
 # Buscar por valor específico
 curl "http://localhost:3000/api/alugueis?campo=valor&valor=1500.50" \
+  -H "Authorization: Bearer seu_token"
+
+# Buscar por proposta_id
+curl "http://localhost:3000/api/alugueis?campo=proposta_id&valor=1" \
   -H "Authorization: Bearer seu_token"
 
 # Buscar por texto nas observações
@@ -922,11 +928,11 @@ curl "http://localhost:3000/api/alugueis?campo=detalhes&valor=abril" \
 **Observações:**
 - O campo `detalhes` deve seguir a estrutura exata definida acima
 - O campo `pagamento` aceita apenas os valores "pix" ou "ted"
-- `obra_id` deve ser um ID válido existente na tabela de obras
+- `proposta_id` deve ser um ID válido existente na tabela de propostas
 - `data_vencimento` deve estar no formato YYYY-MM-DD
 - Valores monetários são armazenados com 2 casas decimais
 - Buscas em `detalhes` são case-insensitive e parciais
-- Buscas por `valor` são exatas
+- Buscas por `valor` e `proposta_id` são exatas
 - Datas são retornadas no formato ISO 8601
 
 ### Serviços
@@ -1312,11 +1318,82 @@ O endpoint retorna:
 - `pedidos`: Lista de pedidos de cada tipo (locação, compra e serviço) associados à proposta
 - `valor_pedidos`: Soma dos valores de cada tipo de pedido
 - `valor_somado`: Soma total de todos os pedidos
+
+## Faturamento
+
+### Criar Faturamento
+
+**Endpoint**: `POST /api/faturamentos`
+
+**Headers**:
+- `Authorization`: Bearer {token}
+- `Content-Type`: application/json
+
+**Corpo da Requisição**:
+
+Para pagamento via Boleto:
+```json
+{
+  "id_number": "81",
+  "id_type": "compra",
+  "valor_total_pedido": 1000.00,
+  "valor_faturado": 30,
+  "data_vencimento": "2025-04-17",
+  "nf": "66468496846846",
+  "pagamento": "boleto",
+  "numero_boleto": "61651.65165.65165.165565.65165",
+  "recebimento_anexo": "data:application/pdf;base64,JVBERi0xLjQKJdPr6eEKMSAwIG9..."
+}
 ```
-Esta documentação deve ser adicionada ao final do arquivo README.md existente, mantendo todo o conteúdo anterior. A documentação segue o mesmo padrão das outras APIs do projeto, incluindo:
-1. Lista de endpoints disponíveis
-2. Exemplo da estrutura de dados
-3. Descrição detalhada dos campos
-4. Exemplos práticos de uso com curl
 
+Para pagamento via PIX ou TED:
+```json
+{
+  "id_number": "81",
+  "id_type": "compra",
+  "valor_total_pedido": 1000.00,
+  "valor_faturado": 30,
+  "data_vencimento": "2025-04-17",
+  "nf": "66468496846846",
+  "pagamento": "pix",
+  "dados_conta": "{\"banco\":\"Itaú\",\"agencia\":\"1234\",\"conta\":\"12345-6\",\"nome\":\"Empresa LTDA\",\"cnpj\":\"12.345.678/0001-00\"}",
+  "recebimento_anexo": "data:application/pdf;base64,JVBERi0xLjQKJdPr6eEKMSAwIG9..."
+}
+```
 
+**Resposta de Sucesso**:
+```json
+{
+  "id": 1,
+  "id_number": "81",
+  "id_type": "compra",
+  "valor_total_pedido": 1000.00,
+  "valor_faturado": 30,
+  "valor_a_faturar": 700.00,
+  "data_vencimento": "2025-04-17",
+  "nf": "66468496846846",
+  "pagamento": "boleto",
+  "detalhes_pagamento": {
+    "numero_boleto": "61651.65165.65165.165565.65165",
+    "anexo_id": "anexo_123e4567-e89b-12d3-a456-426614174000.pdf"
+  }
+}
+```
+
+**Observações**:
+- Campo `valor_faturado`: indica o percentual do valor total a ser faturado (0-100)
+- Campo `valor_a_faturar`: é calculado automaticamente pelo sistema
+- Campo `detalhes_pagamento`: é gerado automaticamente com base no tipo de pagamento
+  - Para `boleto`: armazena o número do boleto
+  - Para `pix`/`ted`: armazena os dados da conta
+- Campo `recebimento_anexo`: deve ser enviado em formato base64 com o prefixo `data:application/pdf;base64,`
+- O arquivo anexo será salvo com um prefixo UUID (`anexo_{uuid}.pdf`)
+
+### Obter Anexo de Faturamento
+
+**Endpoint**: `GET /api/faturamentos/:id/anexo`
+
+**Headers**:
+- `Authorization`: Bearer {token}
+
+**Resposta de Sucesso**: Arquivo do anexo (normalmente um PDF)
