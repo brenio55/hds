@@ -76,7 +76,7 @@ function ConsultarFuncionarios() {
                 <h2>Consultar Funcionários</h2>
                 
                 <div className="header-actions">
-                    <button className="new-button" onClick={() => navigate('/cadastrarFuncionario')}>
+                    <button className="new-button" onClick={() => navigate('/admin/cadastrarFuncionario')}>
                         Novo Funcionário
                     </button>
                     <button className="refresh-button" onClick={carregarFuncionarios} disabled={loading}>
