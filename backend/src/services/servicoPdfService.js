@@ -87,12 +87,12 @@ class ServicoPdfService {
         
         // Se for um array, usa o comportamento padrão do each
         if (Array.isArray(context)) {
-          return context.map((item, index) => options.fn({ ...item, index })).join('');
+          return context.map((item, index) => options.fn({ ...item, index: index + 1 })).join('');
         }
         
         // Se for um objeto com chaves numéricas
         const numericKeys = Object.keys(context).filter(key => !isNaN(key));
-        return numericKeys.map(key => options.fn({ ...context[key], index: key })).join('');
+        return numericKeys.map((key, index) => options.fn({ ...context[key], index: index + 1 })).join('');
       });
 
       // Modificar o helper sumNumericObjects para somar valores específicos
@@ -122,6 +122,29 @@ class ServicoPdfService {
         }, 0);
         
         return sum / numericKeys.length;
+      });
+
+      // Helper para obter o primeiro valor não-zero de um campo em uma coleção
+      handlebars.registerHelper('getFirstNonZeroValue', function(obj, field) {
+        if (!obj) return 0;
+        
+        // Se for um array, procurar o primeiro item com o valor não-zero
+        if (Array.isArray(obj)) {
+          for (const item of obj) {
+            const value = Number(item[field] || 0);
+            if (value > 0) return value;
+          }
+          return 0;
+        }
+        
+        // Se for um objeto com chaves numéricas
+        const numericKeys = Object.keys(obj).filter(key => !isNaN(key));
+        for (const key of numericKeys) {
+          const value = Number(obj[key][field] || 0);
+          if (value > 0) return value;
+        }
+        
+        return 0;
       });
 
       // Adicionar helper para calcular o total final
