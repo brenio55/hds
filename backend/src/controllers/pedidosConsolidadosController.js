@@ -918,12 +918,20 @@ class PedidosConsolidadosController {
         FROM servico 
         WHERE proposta_id = $1
       `;
+      
+      // Buscar aluguéis relacionados à proposta
+      const alugueisQuery = `
+        SELECT *
+        FROM aluguel
+        WHERE proposta_id = $1
+      `;
 
-      const [propostaResult, locacaoResult, compraResult, servicoResult] = await Promise.all([
+      const [propostaResult, locacaoResult, compraResult, servicoResult, alugueisResult] = await Promise.all([
         db.query(propostaQuery, [proposta_id]),
         db.query(locacaoQuery, [proposta_id]),
         db.query(compraQuery, [proposta_id]),
-        db.query(servicoQuery, [proposta_id])
+        db.query(servicoQuery, [proposta_id]),
+        db.query(alugueisQuery, [proposta_id])
       ]);
 
       // Calcular valores dos pedidos de locação
@@ -957,7 +965,8 @@ class PedidosConsolidadosController {
           compra: valorCompra,
           servico: valorServico
         },
-        valor_somado: valorLocacao + valorCompra + valorServico
+        valor_somado: valorLocacao + valorCompra + valorServico,
+        alugueis: alugueisResult.rows
       };
 
       res.json(response);
