@@ -70,7 +70,6 @@ function PedidosDeLocacao() {
     const [cnpj, setCnpj] = useState('');
     const [cep, setCep] = useState('');
     const [contato, setContato] = useState('');
-    const [devMode, setDevMode] = useState(false);
     const [fornecedorId, setFornecedorId] = useState('');
     const [fornecedorNome, setFornecedorNome] = useState('');
     const [endereco, setEndereco] = useState('');
@@ -93,55 +92,6 @@ function PedidosDeLocacao() {
     // Novos estados para controlar o carregamento dos botões
     const [loadingGerarPedido, setLoadingGerarPedido] = useState(false);
     const [loadingVisualizarPdf, setLoadingVisualizarPdf] = useState(false);
-
-    const dadosTeste = {
-        codigo: '001',
-        fornecedor: 'Empresa Teste LTDA',
-        cnpj: '12.345.678/0001-90',
-        endereco: 'Rua Teste, 123',
-        cep: '12345-678',
-        contato: '(11) 9 9999-9999',
-        pedido: '0123456789',
-        dataVencto: new Date().toISOString().split('T')[0],
-        condPagto: '30DDL',
-        centroCusto: 'TESTE'
-    };
-
-    const itemTeste = {
-        item: '1001',
-        descricao: 'Material de Teste',
-        unidade: 'UN',
-        quantidade: '10',
-        ipi: '10',
-        valorUnitario: '100',
-        valorTotal: '1000',
-        desconto: '5',
-        previsaoEntrega: new Date().toISOString().split('T')[0]
-    };
-
-    useEffect(() => {
-        if (devMode) {
-            setCnpj(dadosTeste.cnpj);
-            setCep(dadosTeste.cep);
-            setContato(dadosTeste.contato);
-            setItemAtual(itemTeste);
-        } else {
-            setCnpj('');
-            setCep('');
-            setContato('');
-            setItemAtual({
-                item: '',
-                descricao: '',
-                unidade: '',
-                quantidade: '',
-                ipi: '',
-                valorUnitario: '',
-                valorTotal: '',
-                desconto: '',
-                previsaoEntrega: '',
-            });
-        }
-    }, [devMode]);
 
     useEffect(() => {
         const today = new Date();
@@ -233,10 +183,6 @@ function PedidosDeLocacao() {
     };
 
     const handleInputChange = (e) => {
-        if (devMode) {
-            return;
-        }
-        
         const { name, value } = e.target;
         const updatedItem = { ...itemAtual };
 
@@ -257,17 +203,8 @@ function PedidosDeLocacao() {
     };
 
     const handleAddItem = () => {
-        if (devMode) {
-            const novoItem = { ...itemTeste };
-            const quantidade = parseFloat(novoItem.quantidade.toString().replace(',', '.')) || 0;
-            const valorUnitario = parseFloat(novoItem.valorUnitario.toString().replace(',', '.')) || 0;
-            novoItem.valorTotal = (quantidade * valorUnitario).toFixed(2).toString();
-            novoItem.item = (itens.length + 1).toString();
-            setItens(prev => [...prev, novoItem]);
-        } else {
-            const novoItem = { ...itemAtual, item: (itens.length + 1).toString() };
-            setItens(prev => [...prev, novoItem]);
-        }
+        const novoItem = { ...itemAtual, item: (itens.length + 1).toString() };
+        setItens(prev => [...prev, novoItem]);
         
         setItemAtual({
             item: '',
@@ -352,19 +289,16 @@ function PedidosDeLocacao() {
     };
 
     const handleCNPJChange = (e) => {
-        if (devMode) return;
         const formatted = formatCNPJ(e.target.value);
         setCnpj(formatted);
     };
 
     const handleCEPChange = (e) => {
-        if (devMode) return;
         const formatted = formatCEP(e.target.value);
         setCep(formatted);
     };
 
     const handleContatoChange = (e) => {
-        if (devMode) return;
         const formatted = formatTelefone(e.target.value);
         setContato(formatted);
     };
@@ -633,14 +567,6 @@ function PedidosDeLocacao() {
     return (
         <>
             <HeaderAdmin />
-            <div className="dev-mode-toggle">
-                <button 
-                    onClick={() => setDevMode(!devMode)}
-                    className={`dev-mode-button ${devMode ? 'active' : ''}`}
-                >
-                    Dev Mode: {devMode ? 'ON' : 'OFF'}
-                </button>
-            </div>
             <div className="pedidos-container">
                 <h2>Gerar Pedido de Locação</h2>
                 <form onSubmit={handleSubmit}>
@@ -736,7 +662,6 @@ function PedidosDeLocacao() {
                                 type="date"
                                 name="dataVencto"
                                 min={minDate}
-                                defaultValue={devMode ? dadosTeste.dataVencto : ''}
                             />
                         </div>
                         <div className="form-group">
@@ -792,17 +717,6 @@ function PedidosDeLocacao() {
                             </select>
                         </div>
                     </div>
-
-                    {/* <div className="form-group">
-                                <label>Frete:</label>
-                                <input
-                                    type="text"
-                                    name="frete"
-                                    value={dadosPedido.frete}
-                                    onChange={handleDadosPedidoChange}
-                                    placeholder="Digite o valor do frete"
-                                />
-                    </div> */}
 
                     <div className="form-group">
                                 <label>Valor Frete:</label>
