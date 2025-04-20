@@ -62,11 +62,24 @@ class ServicoPdfService {
 
       handlebars.registerHelper('formatMoney', function(value) {
         console.log(`[formatMoney helper] Formatando valor: ${value}`);
-        if (!value) return 'R$ 0,00';
-        return value.toLocaleString('pt-BR', { 
-          style: 'currency', 
-          currency: 'BRL' 
-        });
+        
+        if (!value && value !== 0) return 'R$ 0,00';
+        
+        // Garantir que o valor é um número e arredondar para 2 casas decimais
+        const numValue = Number(parseFloat(value).toFixed(2));
+        
+        try {
+          return numValue.toLocaleString('pt-BR', { 
+            style: 'currency', 
+            currency: 'BRL',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+        } catch (error) {
+          console.error(`[formatMoney helper] Erro ao formatar valor: ${error}`);
+          // Fallback caso o toLocaleString falhe
+          return `R$ ${numValue.toFixed(2).replace('.', ',')}`;
+        }
       });
 
       // Helper para obter o primeiro valor não zero de uma lista de valores
@@ -107,12 +120,12 @@ class ServicoPdfService {
         
         // Se for um array, usa o comportamento padrão do each
         if (Array.isArray(context)) {
-          return context.map((item, index) => options.fn({ ...item, index })).join('');
+          return context.map((item, index) => options.fn({ ...item, index: index + 1 })).join('');
         }
         
         // Se for um objeto com chaves numéricas
         const numericKeys = Object.keys(context).filter(key => !isNaN(key));
-        return numericKeys.map(key => options.fn({ ...context[key], index: key })).join('');
+        return numericKeys.map((key, index) => options.fn({ ...context[key], index: index + 1 })).join('');
       });
 
       // Modificar o helper sumNumericObjects para somar valores específicos
@@ -142,6 +155,29 @@ class ServicoPdfService {
         }, 0);
         
         return sum / numericKeys.length;
+      });
+
+      // Helper para obter o primeiro valor não-zero de um campo em uma coleção
+      handlebars.registerHelper('getFirstNonZeroValue', function(obj, field) {
+        if (!obj) return 0;
+        
+        // Se for um array, procurar o primeiro item com o valor não-zero
+        if (Array.isArray(obj)) {
+          for (const item of obj) {
+            const value = Number(item[field] || 0);
+            if (value > 0) return value;
+          }
+          return 0;
+        }
+        
+        // Se for um objeto com chaves numéricas
+        const numericKeys = Object.keys(obj).filter(key => !isNaN(key));
+        for (const key of numericKeys) {
+          const value = Number(obj[key][field] || 0);
+          if (value > 0) return value;
+        }
+        
+        return 0;
       });
 
       // Adicionar helper para calcular o total final

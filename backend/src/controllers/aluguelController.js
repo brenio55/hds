@@ -9,6 +9,13 @@ class AluguelController {
         return res.status(400).json({ errors: errors.array() });
       }
 
+      // Verificar se há obra_id no campo detalhes e avisar sobre a migração para proposta_id
+      if (req.body.detalhes && req.body.detalhes.obra_id && !req.body.proposta_id) {
+        console.warn('Atenção: usando obra_id no campo detalhes. Prefira usar o campo proposta_id diretamente.');
+        // Se não tiver proposta_id, mas tiver obra_id nos detalhes, pode-se opcionalmente migrar
+        // req.body.proposta_id = req.body.detalhes.obra_id;
+      }
+
       const aluguel = await AluguelModel.create(req.body);
       res.status(201).json(aluguel);
     } catch (error) {
@@ -27,6 +34,7 @@ class AluguelController {
         const camposPermitidos = [
           'id',
           'valor',
+          'proposta_id',
           'obra_id',
           'dia_vencimento',
           'pagamento',
@@ -36,7 +44,7 @@ class AluguelController {
         if (campo && !camposPermitidos.includes(campo)) {
           return res.status(400).json({
             error: `Campo de busca inválido. Campos permitidos: ${camposPermitidos.join(', ')}`,
-            exemplo: 'Use /api/alugueis?campo=obra_id&valor=1 ou /api/alugueis?data_inicial=2024-01-01'
+            exemplo: 'Use /api/alugueis?campo=proposta_id&valor=1 ou /api/alugueis?data_inicial=2024-01-01'
           });
         }
 
@@ -44,7 +52,7 @@ class AluguelController {
         if ((campo && !valor) || (!campo && valor)) {
           return res.status(400).json({
             error: 'Para realizar uma busca, informe tanto o campo quanto o valor',
-            exemplo: 'Use /api/alugueis?campo=obra_id&valor=1'
+            exemplo: 'Use /api/alugueis?campo=proposta_id&valor=1'
           });
         }
 
@@ -90,6 +98,14 @@ class AluguelController {
   static async update(req, res) {
     try {
       const { id } = req.params;
+      
+      // Verificar se há obra_id no campo detalhes e avisar sobre a migração para proposta_id
+      if (req.body.detalhes && req.body.detalhes.obra_id && !req.body.proposta_id) {
+        console.warn('Atenção: usando obra_id no campo detalhes. Prefira usar o campo proposta_id diretamente.');
+        // Se não tiver proposta_id, mas tiver obra_id nos detalhes, pode-se opcionalmente migrar
+        // req.body.proposta_id = req.body.detalhes.obra_id;
+      }
+      
       const aluguel = await AluguelModel.update(id, req.body);
       
       if (!aluguel) {

@@ -5,15 +5,17 @@ class AluguelModel {
     const query = `
       INSERT INTO aluguel (
         valor,
-        detalhes
+        detalhes,
+        proposta_id
       )
-      VALUES ($1, $2)
+      VALUES ($1, $2, $3)
       RETURNING *
     `;
 
     const values = [
       data.valor,
-      data.detalhes
+      data.detalhes,
+      data.proposta_id
     ];
 
     try {
@@ -27,9 +29,10 @@ class AluguelModel {
 
   static async findById(id) {
     const query = `
-      SELECT a.*, c.descricao as obra_descricao
+      SELECT a.*, c.descricao as obra_descricao, p.descricao as proposta_descricao
       FROM aluguel a
       LEFT JOIN custoobra c ON (a.detalhes->>'obra_id')::integer = c.id
+      LEFT JOIN propostas p ON a.proposta_id = p.id
       WHERE a.id = $1
     `;
     
@@ -38,7 +41,12 @@ class AluguelModel {
   }
 
   static async findAll() {
-    const query = 'SELECT * FROM aluguel ORDER BY created_at DESC';
+    const query = `
+      SELECT a.*, p.descricao as proposta_descricao
+      FROM aluguel a
+      LEFT JOIN propostas p ON a.proposta_id = p.id
+      ORDER BY a.created_at DESC
+    `;
     const result = await db.query(query);
     return result.rows;
   }
@@ -47,14 +55,16 @@ class AluguelModel {
     const query = `
       UPDATE aluguel
       SET valor = $1,
-          detalhes = $2
-      WHERE id = $3
+          detalhes = $2,
+          proposta_id = $3
+      WHERE id = $4
       RETURNING *
     `;
 
     const values = [
       data.valor,
       data.detalhes,
+      data.proposta_id,
       id
     ];
 
@@ -71,8 +81,9 @@ class AluguelModel {
   static async findByParams(params) {
     try {
       let query = `
-        SELECT a.*
+        SELECT a.*, p.descricao as proposta_descricao
         FROM aluguel a
+        LEFT JOIN propostas p ON a.proposta_id = p.id
         WHERE 1=1
       `;
       
@@ -97,8 +108,13 @@ class AluguelModel {
             query += ` AND a.valor::text LIKE $${paramCount}`;
             values.push(`%${params.valor}%`);
             break;
+          case 'proposta_id':
+            // Busca diretamente na coluna proposta_id em vez do campo JSONB
+            query += ` AND a.proposta_id = $${paramCount}`;
+            values.push(params.valor);
+            break;
           case 'obra_id':
-            // Busca específica no campo JSONB
+            // Mantendo busca no JSONB para compatibilidade com registros antigos
             query += ` AND (a.detalhes->>'obra_id')::integer = $${paramCount}`;
             values.push(params.valor);
             break;

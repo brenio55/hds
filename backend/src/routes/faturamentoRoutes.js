@@ -9,5 +9,6 @@ router.get('/', authMiddleware, FaturamentoController.findAll);
 router.get('/:id', authMiddleware, FaturamentoController.findById);
 router.put('/:id', authMiddleware, FaturamentoController.update);
 router.delete('/:id', authMiddleware, FaturamentoController.delete);
+router.get('/:id/anexo', authMiddleware, FaturamentoController.getAnexo);
 
 module.exports = router; 
