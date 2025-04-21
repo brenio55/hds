@@ -367,7 +367,9 @@ function ConsultarFaturamentos() {
                                                     
                                                     {faturamento.valorAFaturar > 0 && (
                                                         <button 
-                                                            onClick={() => navegarParaFaturar(faturamento.numeroPedido)}
+                                                            onClick={() => {
+                                                                alert("Esta função por este botão está desabilitada no momento, por favor, use a tela faturar pedido por agora.")
+                                                            }}
                                                             className="action-button faturar-button"
                                                             title="Faturar pedido"
                                                         >
@@ -498,8 +500,7 @@ function ConsultarFaturamentos() {
                                     {visualizandoDetalhes.valorAFaturar > 0 && (
                                         <button 
                                             onClick={() => {
-                                                fecharDetalhes();
-                                                navegarParaFaturar(visualizandoDetalhes.numeroPedido);
+                                                alert("Esta função por este botão está desabilitada no momento, por favor, use a tela faturar pedido por agora.")
                                             }}
                                             className="action-button faturar-button"
                                         >

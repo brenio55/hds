@@ -22,6 +22,13 @@ function FaturarPedido() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [mensagemSucesso, setMensagemSucesso] = useState('');
+    // Novos estados para a modal de resultado
+    const [mostrarModalResultado, setMostrarModalResultado] = useState(false);
+    const [resultadoFaturamento, setResultadoFaturamento] = useState({
+        sucesso: false,
+        pedidoInfo: null,
+        mensagem: ''
+    });
 
     useEffect(() => {
         carregarPedidosAtivos();
@@ -258,6 +265,16 @@ function FaturarPedido() {
         }
     };
 
+    // Função para fechar a modal de resultado
+    const fecharModalResultado = () => {
+        setMostrarModalResultado(false);
+    };
+
+    // Função para navegar para a tela de consulta de faturamentos
+    const navegarParaConsultarFaturamentos = () => {
+        window.location.href = '/admin/consultarFaturamentos';
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -368,6 +385,24 @@ function FaturarPedido() {
             const resultado = await ApiService.faturarPedidoCompra(formData);
             
             console.log("Faturamento registrado com sucesso:", resultado);
+            
+            // Configurar os dados de sucesso para a modal
+            setResultadoFaturamento({
+                sucesso: true,
+                pedidoInfo: {
+                    id: pedido.id,
+                    numero: pedido.numero,
+                    tipo: pedido.tipo,
+                    fornecedor: pedido.fornecedor,
+                    valorFaturado: valorFaturamentoNumerico
+                },
+                mensagem: 'Faturamento registrado com sucesso!'
+            });
+            
+            // Exibir a modal
+            setMostrarModalResultado(true);
+            
+            // Manter a mensagem de sucesso para backup
             setMensagemSucesso('Faturamento registrado com sucesso!');
             
             // Limpar formulário
@@ -389,6 +424,23 @@ function FaturarPedido() {
             let mensagemErro = error.message || 'Tente novamente.';
             // Remover prefixos técnicos para mensagem mais limpa
             mensagemErro = mensagemErro.replace('Error: Erro ao faturar pedido: ', '');
+            
+            // Configurar os dados de erro para a modal
+            setResultadoFaturamento({
+                sucesso: false,
+                pedidoInfo: pedido ? {
+                    id: pedido.id,
+                    numero: pedido.numero,
+                    tipo: pedido.tipo,
+                    fornecedor: pedido.fornecedor
+                } : null,
+                mensagem: 'Erro ao registrar faturamento: ' + mensagemErro
+            });
+            
+            // Exibir a modal
+            setMostrarModalResultado(true);
+            
+            // Manter mensagem de erro para backup
             setError('Erro ao registrar faturamento: ' + mensagemErro);
         } finally {
             setLoading(false);
@@ -606,6 +658,57 @@ function FaturarPedido() {
                     </form>
                 </div>
             </div>
+
+            {/* Modal de Resultado do Faturamento */}
+            {mostrarModalResultado && (
+                <div className="modal-overlay">
+                    <div className={`modal-resultado ${resultadoFaturamento.sucesso ? 'sucesso' : 'erro'}`}>
+                        <div className="modal-header">
+                            <h3>{resultadoFaturamento.sucesso ? 'Faturamento Concluído' : 'Erro no Faturamento'}</h3>
+                        </div>
+                        
+                        <div className="modal-body">
+                            {resultadoFaturamento.pedidoInfo && (
+                                <div className="pedido-info">
+                                    <p><strong>Pedido:</strong> {resultadoFaturamento.pedidoInfo.numero}</p>
+                                    <p><strong>Tipo:</strong> {resultadoFaturamento.pedidoInfo.tipo === 'compra' 
+                                        ? 'Pedido de Compra' 
+                                        : resultadoFaturamento.pedidoInfo.tipo === 'locacao' 
+                                            ? 'Pedido de Locação' 
+                                            : 'Pedido de Serviço'}</p>
+                                    <p><strong>Fornecedor:</strong> {resultadoFaturamento.pedidoInfo.fornecedor}</p>
+                                    {resultadoFaturamento.sucesso && resultadoFaturamento.pedidoInfo.valorFaturado && (
+                                        <p><strong>Valor Faturado:</strong> {new Intl.NumberFormat('pt-BR', {
+                                            style: 'currency',
+                                            currency: 'BRL'
+                                        }).format(resultadoFaturamento.pedidoInfo.valorFaturado)}</p>
+                                    )}
+                                </div>
+                            )}
+                            
+                            <div className="mensagem">
+                                <p>{resultadoFaturamento.mensagem}</p>
+                            </div>
+                        </div>
+                        
+                        <div className="modal-footer">
+                            <button 
+                                onClick={fecharModalResultado}
+                                className="btn-fechar"
+                            >
+                                FECHAR
+                            </button>
+                            
+                            <button 
+                                onClick={navegarParaConsultarFaturamentos}
+                                className="btn-consultar"
+                            >
+                                CONSULTAR FATURAMENTOS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
