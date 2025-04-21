@@ -6,6 +6,25 @@ const path = require('path');
 class PropostaService {
   static async create(propostaData) {
     try {
+      // Processar proposta_itens se existir
+      if (propostaData.proposta_itens) {
+        // Garantir que seja um array
+        if (!Array.isArray(propostaData.proposta_itens)) {
+          propostaData.proposta_itens = [];
+        }
+        
+        // Recalcular valores totais se necessário
+        propostaData.proposta_itens = propostaData.proposta_itens.map(item => {
+          // Se valor_total não estiver definido, calcular a partir do valor unitário * quantidade
+          if (!item.valor_total && item.valor_unitario && item.qtdUnidades) {
+            const valorUnitario = parseFloat(item.valor_unitario) || 0;
+            const quantidade = parseFloat(item.qtdUnidades) || 0;
+            item.valor_total = valorUnitario * quantidade;
+          }
+          return item;
+        });
+      }
+
       // Cria a proposta
       const proposta = await PropostaModel.create(propostaData);
 
@@ -29,7 +48,7 @@ class PropostaService {
     try {
       const allowedFields = [
         'id', 'descricao', 'client_info', 'documento_text',
-        'especificacoes_html', 'valor_final'
+        'especificacoes_html', 'valor_final', 'proposta_itens'
       ];
 
       if (!allowedFields.includes(field)) {
@@ -80,9 +99,55 @@ class PropostaService {
 
   static async searchByParams(params) {
     try {
-      return await PropostaModel.findByParams(params);
+      // Suporte para busca em proposta_itens
+      const transformedParams = { ...params };
+      
+      // Verificar se estamos buscando por algum campo dentro dos itens
+      for (const key of Object.keys(params)) {
+        // Se a busca é por um campo dentro de um item específico, formatar corretamente
+        if (key.startsWith('item.')) {
+          const itemField = key.replace('item.', '');
+          transformedParams[`proposta_itens.${itemField}`] = params[key];
+          delete transformedParams[key]; // Remove o parâmetro original
+        }
+      }
+      
+      return await PropostaModel.findByParams(transformedParams);
     } catch (error) {
       throw new Error('Erro ao buscar propostas: ' + error.message);
+    }
+  }
+  
+  static async update(id, propostaData) {
+    try {
+      // Processar proposta_itens se existir
+      if (propostaData.proposta_itens) {
+        // Garantir que seja um array
+        if (!Array.isArray(propostaData.proposta_itens)) {
+          propostaData.proposta_itens = [];
+        }
+        
+        // Recalcular valores totais se necessário
+        propostaData.proposta_itens = propostaData.proposta_itens.map(item => {
+          // Se valor_total não estiver definido, calcular a partir do valor unitário * quantidade
+          if (!item.valor_total && item.valor_unitario && item.qtdUnidades) {
+            const valorUnitario = parseFloat(item.valor_unitario) || 0;
+            const quantidade = parseFloat(item.qtdUnidades) || 0;
+            item.valor_total = valorUnitario * quantidade;
+          }
+          return item;
+        });
+      }
+      
+      // Atualiza a proposta
+      const proposta = await PropostaModel.update(id, propostaData);
+      if (!proposta) {
+        throw new Error('Proposta não encontrada');
+      }
+      
+      return proposta;
+    } catch (error) {
+      throw new Error('Erro ao atualizar proposta: ' + error.message);
     }
   }
 }

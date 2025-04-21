@@ -12,6 +12,25 @@ class PdfService {
       const templatePath = path.join(__dirname, '../templates/proposta.html');
       const template = await fs.readFile(templatePath, 'utf-8');
 
+      // Registrar helper para formatação monetária
+      handlebars.registerHelper('formatMoney', function(value) {
+        if (!value && value !== 0) return '0,00';
+        
+        // Garantir que o valor é um número e arredondar para 2 casas decimais
+        const numValue = Number(parseFloat(value).toFixed(2));
+        
+        try {
+          return numValue.toLocaleString('pt-BR', { 
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+        } catch (error) {
+          console.error(`Erro ao formatar valor monetário: ${error}`);
+          // Fallback caso o toLocaleString falhe
+          return numValue.toFixed(2).replace('.', ',');
+        }
+      });
+
       // Tenta parsear cada campo individualmente com logs
       let clientInfo, especificacoes_html, especificacoes_document, afazerHds, afazerContratante, naoFazerHds;
       
@@ -59,6 +78,18 @@ class PdfService {
         naoFazerHds = [];
       }
 
+      // Processar proposta_itens se necessário
+      let proposta_itens = [];
+      try {
+        proposta_itens = typeof propostaData.proposta_itens === 'string' 
+          ? JSON.parse(propostaData.proposta_itens)
+          : (Array.isArray(propostaData.proposta_itens) ? propostaData.proposta_itens : []);
+        console.log('proposta_itens parseado:', proposta_itens);
+      } catch (e) {
+        console.error('Erro ao parsear proposta_itens:', e);
+        proposta_itens = [];
+      }
+
       // Converte a imagem para base64 (usando a mesma imagem para ambos)
       const logoPath = path.join(__dirname, '../imgs/logo_horizontal.png');
       
@@ -83,7 +114,8 @@ class PdfService {
           maximumFractionDigits: 2
         }).format(propostaData.valor_final),
         logoSrc: `data:image/png;base64,${logoBase64}`,
-        logoHorizontalSrc: `data:image/png;base64,${logoBase64}`
+        logoHorizontalSrc: `data:image/png;base64,${logoBase64}`,
+        proposta_itens
       };
 
       console.log('Dados formatados para template:', {

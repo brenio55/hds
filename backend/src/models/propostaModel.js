@@ -6,9 +6,10 @@ class PropostaModel {
       INSERT INTO propostas (
         descricao, data_emissao, client_info, versao,
         documento_text, especificacoes_html, afazer_hds,
-        afazer_contratante, naofazer_hds, valor_final, user_id
+        afazer_contratante, naofazer_hds, valor_final, user_id,
+        proposta_itens
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *
     `;
 
@@ -33,7 +34,10 @@ class PropostaModel {
       typeof propostaData.valor_final === 'string' 
         ? parseFloat(propostaData.valor_final.replace(/\./g, '').replace(',', '.'))
         : propostaData.valor_final,
-      propostaData.user_id
+      propostaData.user_id,
+      typeof propostaData.proposta_itens === 'string'
+        ? propostaData.proposta_itens
+        : JSON.stringify(propostaData.proposta_itens || [])
     ];
 
     const result = await db.query(query, values);
@@ -87,6 +91,13 @@ class PropostaModel {
         // Busca em campos JSON
         const field = key.split('.')[1];
         conditions.push(`client_info->>'${field}' ILIKE $${paramIndex}`);
+      } else if (key.includes('proposta_itens.')) {
+        // Busca em campos do array proposta_itens
+        const field = key.split('.')[1];
+        conditions.push(`EXISTS (
+          SELECT 1 FROM jsonb_array_elements(proposta_itens) as item
+          WHERE item->>'${field}' ILIKE $${paramIndex}
+        )`);
       } else {
         // Busca em campos normais
         conditions.push(`${key}::text ILIKE $${paramIndex}`);
@@ -103,6 +114,45 @@ class PropostaModel {
 
     const result = await db.query(query, values);
     return result.rows;
+  }
+  
+  static async update(id, propostaData) {
+    const fieldsToUpdate = [];
+    const values = [];
+    let paramIndex = 1;
+
+    // Adicionar campos para atualização
+    for (const [key, value] of Object.entries(propostaData)) {
+      if (key === 'id' || key === 'created_at') continue; // Pular campos que não devem ser atualizados
+      
+      // Tratar campos específicos
+      if (key === 'client_info' || key === 'afazer_hds' || key === 'afazer_contratante' || key === 'naofazer_hds' || key === 'proposta_itens') {
+        fieldsToUpdate.push(`${key} = $${paramIndex}`);
+        values.push(typeof value === 'string' ? value : JSON.stringify(value || []));
+      } else if (key === 'valor_final' && typeof value === 'string') {
+        fieldsToUpdate.push(`${key} = $${paramIndex}`);
+        values.push(parseFloat(value.replace(/\./g, '').replace(',', '.')));
+      } else {
+        fieldsToUpdate.push(`${key} = $${paramIndex}`);
+        values.push(value);
+      }
+      
+      paramIndex++;
+    }
+
+    // Adicionar o ID como último parâmetro
+    values.push(id);
+
+    // Construir a query
+    const query = `
+      UPDATE propostas 
+      SET ${fieldsToUpdate.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `;
+
+    const result = await db.query(query, values);
+    return result.rows[0];
   }
 }
 
