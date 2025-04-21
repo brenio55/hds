@@ -950,9 +950,8 @@ class ApiService {
                 id_number: formData.get('pedidoId'),
                 id_type: formData.get('tipoPedido').toLowerCase(),
                 // Convertendo para números com ponto como separador decimal
-                valor_total_pedido: parseFloat(formData.get('valorFaturamento').replace(',', '.')),
-                valor_faturado: parseFloat(formData.get('valorFaturamento').replace(',', '.')),
-                valor_a_faturar: 0, // Após faturar, não sobra nada a faturar
+                valor_total_pedido: parseFloat(formData.get('valorTotal').toString().replace(',', '.')),
+                valor_faturado: parseFloat(formData.get('valorFaturamento').toString().replace(',', '.')),
                 data_vencimento: formData.get('dataVencimento'),
                 nf: formData.get('numeroNF'),
                 pagamento: formData.get('metodoPagamento')
@@ -977,7 +976,8 @@ class ApiService {
                 if (formData.get('arquivoBoleto')) {
                     try {
                         const base64Boleto = await this.fileToBase64(formData.get('arquivoBoleto'));
-                        dadosFaturamento.boleto_anexo = base64Boleto;
+                        // Usar recebimento_anexo conforme esperado pelo backend
+                        dadosFaturamento.recebimento_anexo = base64Boleto;
                     } catch (e) {
                         console.error("Erro ao converter arquivo do boleto para base64:", e);
                     }
@@ -986,7 +986,11 @@ class ApiService {
                 dadosFaturamento.dados_conta = formData.get('dadosConta');
             }
             
-            console.log("ApiService: Enviando JSON para a API:", {...dadosFaturamento, nf_anexo: dadosFaturamento.nf_anexo ? '[base64]' : null });
+            console.log("ApiService: Enviando JSON para a API:", {
+                ...dadosFaturamento, 
+                nf_anexo: dadosFaturamento.nf_anexo ? '[base64]' : null, 
+                recebimento_anexo: dadosFaturamento.recebimento_anexo ? '[base64]' : null 
+            });
             
             // Enviar como JSON em vez de FormData
             const response = await fetch(`${API_URL}/api/faturamentos`, {
@@ -1002,7 +1006,7 @@ class ApiService {
                 let errorMsg = `Erro ao faturar pedido: ${response.statusText}`;
                 try {
                     const errorData = await response.json();
-                    errorMsg = errorData.error || errorMsg;
+                    errorMsg = errorData.error || errorData.message || errorMsg;
                 } catch {
                     const errorText = await response.text();
                     if (errorText) errorMsg = errorText;
@@ -1373,6 +1377,7 @@ class ApiService {
     static async consultarFaturamentos(filtros = {}) {
         try {
             console.log('Consultando faturamentos com filtros:', filtros);
+            console.warn('AVISO: Este método não deve ser usado quando os dados já estão disponíveis na resposta de pedidosConsolidados');
             
             // Construir query string com os filtros
             const queryParams = new URLSearchParams();
@@ -1428,10 +1433,34 @@ class ApiService {
                     // Mapear as propriedades do objeto retornado pelo backend para o formato esperado pelo frontend
                     const valorTotalPedido = parseFloat(fat.valor_total_pedido || 0);
                     const valorFaturado = parseFloat(fat.valor_faturado || 0);
+                    const valorAFaturar = parseFloat(fat.valor_a_faturar || 0);
                     
-                    // Obter valor faturado em valor monetário a partir da porcentagem
-                    const porcentagemFaturada = parseFloat(fat.valor_faturado || 0); // 0-100
-                    const valorFaturadoCalculado = valorFaturado;
+                    // Calcular porcentagem faturada (0-100%)
+                    let porcentagemFaturada = 0;
+                    if (valorTotalPedido > 0) {
+                        porcentagemFaturada = (valorFaturado / valorTotalPedido) * 100;
+                    }
+                    
+                    // Extrair dados de detalhes_pagamento
+                    let detalhesPagamento = {};
+                    if (fat.detalhes_pagamento) {
+                        try {
+                            // Pode vir como string JSON ou como objeto já parseado
+                            if (typeof fat.detalhes_pagamento === 'string') {
+                                detalhesPagamento = JSON.parse(fat.detalhes_pagamento);
+                            } else {
+                                detalhesPagamento = fat.detalhes_pagamento;
+                            }
+                        } catch (err) {
+                            console.error('Erro ao processar detalhes_pagamento:', err);
+                        }
+                    }
+                    
+                    // Determinar URL para o anexo, se existir
+                    let anexoUrl = null;
+                    if (detalhesPagamento.anexo_id) {
+                        anexoUrl = `${API_URL}/api/faturamentos/${fat.id}/anexo`;
+                    }
                     
                     faturamentosDetalhados.push({
                         id: fat.id,
@@ -1439,16 +1468,17 @@ class ApiService {
                         tipoPedido: fat.id_type,
                         valorTotal: valorTotalPedido,
                         valorFaturado: valorFaturado,
-                        valorTotalFaturado: valorFaturadoCalculado,
-                        valorAFaturar: Math.max(0, valorTotalPedido - valorFaturado),
+                        valorAFaturar: valorAFaturar,
+                        porcentagemFaturada: porcentagemFaturada,
                         dataFaturamento: fat.created_at,
                         dataVencimento: fat.data_vencimento,
                         numeroNF: fat.nf,
                         arquivoNF: fat.nf_anexo,
-                        metodoPagamento: fat.pagamento, // Agora é string no backend, não objeto
-                        codigoBoleto: fat.numero_boleto, // Movido para o nível principal
-                        arquivoBoleto: fat.boleto_anexo, // Movido para o nível principal
-                        dadosConta: fat.dados_conta // Movido para o nível principal
+                        metodoPagamento: fat.pagamento,
+                        // Dados extraídos de detalhes_pagamento
+                        codigoBoleto: detalhesPagamento.numero_boleto,
+                        dadosConta: detalhesPagamento.dados_conta,
+                        arquivoBoleto: anexoUrl
                     });
                 } catch (err) {
                     console.error(`Erro ao processar faturamento ID ${fat.id}:`, err);
@@ -1459,15 +1489,12 @@ class ApiService {
                         tipoPedido: fat.id_type,
                         valorTotal: parseFloat(fat.valor_total_pedido || 0),
                         valorFaturado: parseFloat(fat.valor_faturado || 0),
-                        valorAFaturar: Math.max(0, parseFloat(fat.valor_total_pedido || 0) - parseFloat(fat.valor_faturado || 0)),
+                        valorAFaturar: parseFloat(fat.valor_a_faturar || 0),
                         dataFaturamento: fat.created_at,
                         dataVencimento: fat.data_vencimento,
                         numeroNF: fat.nf,
                         arquivoNF: fat.nf_anexo,
-                        metodoPagamento: fat.pagamento || 'N/A',
-                        codigoBoleto: fat.numero_boleto,
-                        arquivoBoleto: fat.boleto_anexo,
-                        dadosConta: fat.dados_conta
+                        metodoPagamento: fat.pagamento || 'N/A'
                     });
                 }
             }

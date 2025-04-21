@@ -197,20 +197,9 @@ function FaturarPedido() {
             console.log(`Valor total do pedido: ${valorTotalPedido}`);
             setValorTotal(valorTotalPedido);
             
-            // Buscar faturamentos existentes para este pedido
-            const faturamentos = await ApiService.consultarFaturamentos({ 
-                tipo: pedidoEncontrado.tipo || 'compra',
-                numeroPedido: pedidoId 
-            });
-            
-            console.log("Faturamentos para este pedido:", faturamentos);
-            
-            // Calcular valor já faturado
-            const totalFaturado = faturamentos.reduce(
-                (total, fat) => total + fat.valorFaturado, 
-                0
-            );
-            
+            // Usar valor faturado já disponível no pedido
+            const totalFaturado = pedidoEncontrado.valor_faturado;
+            console.log(`Valor já faturado do pedido: ${totalFaturado}`);
             setValorFaturado(totalFaturado);
             
             // Calcular porcentagem faturada
@@ -221,8 +210,8 @@ function FaturarPedido() {
                 setPorcentagemFaturada(0);
             }
             
-            // Sugerir valor restante para faturamento
-            const valorRestante = valorTotalPedido - totalFaturado;
+            // Usar valor a faturar já disponível no pedido
+            const valorRestante = pedidoEncontrado.valor_a_faturar;
             if (valorRestante > 0) {
                 setNovoValorFaturamento(valorRestante.toFixed(2));
             } else {
@@ -347,12 +336,21 @@ function FaturarPedido() {
             
             // Preparar os dados do faturamento
             const formData = new FormData();
+            
+            // Informações básicas do pedido
             formData.append('pedidoId', pedidoSelecionado);
             formData.append('tipoPedido', pedido.tipo);
-            // Garantir que o valor seja enviado no formato correto (com ponto como separador decimal)
+            
+            // Informações financeiras 
+            // Valor total do pedido agora é necessário para o cálculo de valor_a_faturar no backend
+            formData.append('valorTotal', valorTotal);
             formData.append('valorFaturamento', valorFaturamentoNumerico.toString());
+            
+            // Informações da NF
             formData.append('dataVencimento', dataVencimento);
             formData.append('numeroNF', numeroNF);
+            
+            // Método de pagamento e dados relacionados
             formData.append('metodoPagamento', metodoPagamento);
             
             if (metodoPagamento === 'boleto') {
