@@ -70,7 +70,6 @@ function PedidosDeMaterial() {
     const [cnpj, setCnpj] = useState('');
     const [cep, setCep] = useState('');
     const [contato, setContato] = useState('');
-    const [devMode, setDevMode] = useState(false);
     const [fornecedorId, setFornecedorId] = useState('');
     const [fornecedorNome, setFornecedorNome] = useState('');
     const [endereco, setEndereco] = useState('');
@@ -93,55 +92,6 @@ function PedidosDeMaterial() {
     // Novos estados para controlar o carregamento dos botões
     const [loadingGerarPedido, setLoadingGerarPedido] = useState(false);
     const [loadingVisualizarPdf, setLoadingVisualizarPdf] = useState(false);
-
-    const dadosTeste = {
-        codigo: '001',
-        fornecedor: 'Empresa Teste LTDA',
-        cnpj: '12.345.678/0001-90',
-        endereco: 'Rua Teste, 123',
-        cep: '12345-678',
-        contato: '(11) 9 9999-9999',
-        pedido: '0123456789',
-        dataVencto: new Date().toISOString().split('T')[0],
-        condPagto: '30DDL',
-        centroCusto: '1'
-    };
-
-    const itemTeste = {
-        item: '1001',
-        descricao: 'Material de Teste',
-        unidade: 'UN',
-        quantidade: '10',
-        ipi: '10',
-        valorUnitario: '100',
-        valorTotal: '1000',
-        desconto: '5',
-        previsaoEntrega: new Date().toISOString().split('T')[0]
-    };
-
-    useEffect(() => {
-        if (devMode) {
-            setCnpj(dadosTeste.cnpj);
-            setCep(dadosTeste.cep);
-            setContato(dadosTeste.contato);
-            setItemAtual(itemTeste);
-        } else {
-            setCnpj('');
-            setCep('');
-            setContato('');
-            setItemAtual({
-                item: '',
-                descricao: '',
-                unidade: '',
-                quantidade: '',
-                ipi: '',
-                valorUnitario: '',
-                valorTotal: '',
-                desconto: '',
-                previsaoEntrega: '',
-            });
-        }
-    }, [devMode]);
 
     useEffect(() => {
         const today = new Date();
@@ -254,10 +204,6 @@ function PedidosDeMaterial() {
     };
 
     const handleInputChange = (e) => {
-        if (devMode) {
-            return;
-        }
-        
         const { name, value } = e.target;
         const updatedItem = { ...itemAtual };
 
@@ -278,17 +224,8 @@ function PedidosDeMaterial() {
     };
 
     const handleAddItem = () => {
-        if (devMode) {
-            const novoItem = { ...itemTeste };
-            const quantidade = parseFloat(novoItem.quantidade.toString().replace(',', '.')) || 0;
-            const valorUnitario = parseFloat(novoItem.valorUnitario.toString().replace(',', '.')) || 0;
-            novoItem.valorTotal = (quantidade * valorUnitario).toFixed(2).toString();
-            novoItem.item = (itens.length + 1).toString();
-            setItens(prev => [...prev, novoItem]);
-        } else {
-            const novoItem = { ...itemAtual, item: (itens.length + 1).toString() };
-            setItens(prev => [...prev, novoItem]);
-        }
+        const novoItem = { ...itemAtual, item: (itens.length + 1).toString() };
+        setItens(prev => [...prev, novoItem]);
         
         setItemAtual({
             item: '',
@@ -776,7 +713,6 @@ function PedidosDeMaterial() {
                                 type="date"
                                 name="dataVencto"
                                 min={minDate}
-                                defaultValue={devMode ? dadosTeste.dataVencto : ''}
                             />
                         </div>
                         <div className="form-group">
@@ -1040,17 +976,6 @@ function PedidosDeMaterial() {
                                 />
                             </div>
                         </div>
-                    </div>
-
-                    <div className="dev-mode-toggle">
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={devMode}
-                                onChange={(e) => setDevMode(e.target.checked)}
-                            />
-                            Modo de Desenvolvimento
-                        </label>
                     </div>
 
                     <button type="submit" disabled={loadingGerarPedido}>

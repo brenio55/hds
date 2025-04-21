@@ -21,7 +21,6 @@ const router = express.Router();
  *             type: object
  *             required:
  *               - descricao
- *               - valor_final
  *             properties:
  *               descricao:
  *                 type: string
@@ -38,8 +37,80 @@ const router = express.Router();
  *                 type: string
  *                 description: Valor em formato decimal (aceita formato 10.000,50 ou 0,25)
  *                 example: "10.000,50"
+ *               proposta_itens:
+ *                 type: array
+ *                 description: Lista de itens da proposta
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     nome:
+ *                       type: string
+ *                       description: Nome do item
+ *                     qtdUnidadeDeMedida:
+ *                       type: string
+ *                       description: Unidade de medida (ex: "VB", "UN", "M²")
+ *                     qtdUnidades:
+ *                       type: string
+ *                       description: Quantidade
+ *                     valor_unitario:
+ *                       type: number
+ *                       description: Valor unitário
+ *                     valor_total:
+ *                       type: number
+ *                       description: Valor total (será calculado automaticamente se não fornecido)
  */
 router.post('/', authMiddleware, validateProposta, PropostaController.create);
+
+/**
+ * @swagger
+ * /propostas/{id}:
+ *   put:
+ *     summary: Atualiza uma proposta existente
+ *     tags: [Propostas]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID da proposta
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               descricao:
+ *                 type: string
+ *               data_emissao:
+ *                 type: string
+ *                 format: date
+ *               client_info:
+ *                 type: object
+ *               versao:
+ *                 type: string
+ *               valor_final:
+ *                 type: string
+ *               proposta_itens:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     nome:
+ *                       type: string
+ *                     qtdUnidadeDeMedida:
+ *                       type: string
+ *                     qtdUnidades:
+ *                       type: string
+ *                     valor_unitario:
+ *                       type: number
+ *                     valor_total:
+ *                       type: number
+ */
+router.put('/:id', authMiddleware, validateProposta, PropostaController.update);
 
 /**
  * @swagger

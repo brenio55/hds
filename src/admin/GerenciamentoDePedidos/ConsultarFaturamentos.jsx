@@ -25,6 +25,11 @@ function ConsultarFaturamentos() {
 
     // Função para navegar para a tela de faturar com pedido pré-selecionado
     const navegarParaFaturar = (pedidoId) => {
+        if (!pedidoId) {
+            console.error('ID do pedido inválido para navegação');
+            return;
+        }
+        console.log(`Navegando para faturar o pedido ID: ${pedidoId}`);
         window.location.href = `/admin/faturarPedido?pedido=${pedidoId}`;
     };
     
@@ -493,13 +498,6 @@ function ConsultarFaturamentos() {
                                 
                                 <div className="modal-buttons">
                                     {visualizandoDetalhes.valorAFaturar > 0 && (
-                                        // <button 
-                                        //     onClick={() => {
-                                        //         fecharDetalhes();
-                                        //         navegarParaFaturar(visualizandoDetalhes.id);
-                                        //     }}
-                                        //     className="action-button faturar-button"
-                                        // >
                                         <button 
                                             onClick={() => {
                                                 alert("Esta função por este botão está desabilitada no momento, por favor, use a tela faturar pedido por agora.")

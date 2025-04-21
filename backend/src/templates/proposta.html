@@ -270,6 +270,31 @@
             <div class="secao">
                 <div class="secao-principal">5. VALORES E CONDIÇÕES DE PAGAMENTO</div>
                 <div class="subtitulo">A. VALORES:</div>
+                
+                {{#if proposta_itens.length}}
+                <table class="tabela-valores">
+                    <tr>
+                        <th>NOME</th>
+                        <th>UN. MEDIDAS</th>
+                        <th>UNIDADES</th>
+                        <th>VALOR UNITÁRIO</th>
+                        <th>VALOR TOTAL</th>
+                    </tr>
+                    {{#each proposta_itens}}
+                    <tr>
+                        <td>{{nome}}</td>
+                        <td>{{qtdUnidadeDeMedida}}</td>
+                        <td>{{qtdUnidades}}</td>
+                        <td>R$ {{formatMoney valor_unitario}}</td>
+                        <td>R$ {{formatMoney valor_total}}</td>
+                    </tr>
+                    {{/each}}
+                    <tr>
+                        <td colspan="4" style="text-align: right; font-weight: bold;">VALOR FINAL:</td>
+                        <td style="font-weight: bold;">R$ {{valorFinal}}</td>
+                    </tr>
+                </table>
+                {{else}}
                 <table class="tabela-valores">
                     <tr>
                         <th>SERVIÇO</th>
@@ -280,6 +305,8 @@
                         <td>R$ {{valorFinal}}</td>
                     </tr>
                 </table>
+                {{/if}}
+                
                 <p>Obs. Impostos já calculados no valor final do serviço.</p>
                 <div class="subtitulo">B. Condição e formas de Pagamento Sugerida:</div>
                 <p>Condição de pagamento serviço: 30 dias de data liquida</p>
