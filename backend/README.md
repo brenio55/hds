@@ -229,7 +229,23 @@ Content-Type: application/json
     "Hospedagem",
     "Manutenção após entrega"
   ],
-  "valor_final": "10000,50"
+  "valor_final": "10000,50",
+  "proposta_itens": [
+    {
+      "nome": "Cabeamento estruturado Cat6",
+      "qtdUnidadeDeMedida": "M",
+      "qtdUnidades": "150",
+      "valor_unitario": 12.50,
+      "valor_total": 1875.00
+    },
+    {
+      "nome": "Switch 24 portas gerenciável",
+      "qtdUnidadeDeMedida": "UN",
+      "qtdUnidades": "2",
+      "valor_unitario": 650.00,
+      "valor_total": 1300.00
+    }
+  ]
 }
 ```
 
@@ -250,6 +266,7 @@ Content-Type: application/json
 - `afazer_contratante`: Array - Lista de tarefas a serem realizadas pelo contratante
 - `naofazer_hds`: Array - Lista de itens fora do escopo
 - `valor_final`: String - Valor final da proposta (formato: "10000,50" ou "10.000,50")
+- `proposta_itens`: Array - Lista de itens individuais da proposta
 
 **Resposta de Sucesso:**
 ```json
@@ -287,7 +304,23 @@ Content-Type: application/json
   "created_at": "2024-03-21T10:00:00Z",
   "pdf_versions": {
     "1.0": "uuid-do-pdf"
-  }
+  },
+  "proposta_itens": [
+    {
+      "nome": "Cabeamento estruturado Cat6",
+      "qtdUnidadeDeMedida": "M",
+      "qtdUnidades": "150",
+      "valor_unitario": 12.50,
+      "valor_total": 1875.00
+    },
+    {
+      "nome": "Switch 24 portas gerenciável",
+      "qtdUnidadeDeMedida": "UN",
+      "qtdUnidades": "2",
+      "valor_unitario": 650.00,
+      "valor_total": 1300.00
+    }
+  ]
 }
 ```
 
@@ -324,7 +357,23 @@ curl -X POST http://localhost:3000/api/propostas \
       "Hospedagem",
       "Manutenção após entrega"
     ],
-    "valor_final": "10000,50"
+    "valor_final": "10000,50",
+    "proposta_itens": [
+      {
+        "nome": "Cabeamento estruturado Cat6",
+        "qtdUnidadeDeMedida": "M",
+        "qtdUnidades": "150",
+        "valor_unitario": 12.50,
+        "valor_total": 1875.00
+      },
+      {
+        "nome": "Switch 24 portas gerenciável",
+        "qtdUnidadeDeMedida": "UN",
+        "qtdUnidades": "2",
+        "valor_unitario": 650.00,
+        "valor_total": 1300.00
+      }
+    ]
   }'
   ```
 
@@ -1397,3 +1446,29 @@ Para pagamento via PIX ou TED:
 - `Authorization`: Bearer {token}
 
 **Resposta de Sucesso**: Arquivo do anexo (normalmente um PDF)
+
+## Detalhes sobre o campo proposta_itens
+
+### Estrutura
+O campo `proposta_itens` foi adicionado para permitir a especificação detalhada dos itens que compõem uma proposta. Cada item possui os seguintes campos:
+
+- `nome`: Nome ou descrição do item (obrigatório)
+- `qtdUnidadeDeMedida`: Unidade de medida (ex: "M" para metros, "UN" para unidades, "VB" para verba)
+- `qtdUnidades`: Quantidade de unidades
+- `valor_unitario`: Preço por unidade
+- `valor_total`: Valor total do item (calculado automaticamente se não for fornecido)
+
+### Funcionalidades
+
+1. **Cálculo Automático**: 
+   - Se `valor_total` não for especificado, ele será calculado como `valor_unitario * qtdUnidades`
+   - Se `valor_final` da proposta não for especificado, ele será calculado como a soma de todos os `valor_total` dos itens
+
+2. **PDF Gerado**:
+   - No PDF da proposta, os itens serão exibidos em uma tabela detalhada na seção "5. VALORES E CONDIÇÕES DE PAGAMENTO"
+   - A tabela mostrará o nome, unidade de medida, quantidade, valor unitário e valor total de cada item
+   - Se não houver itens na proposta, será exibida uma tabela simplificada apenas com o valor final
+
+3. **Busca Avançada**:
+   - É possível buscar propostas pelo conteúdo dos itens usando `item.campo=valor`
+   - Exemplo: `GET /api/propostas/search?item.nome=Switch` para buscar propostas que incluam um item contendo "Switch" no nome
