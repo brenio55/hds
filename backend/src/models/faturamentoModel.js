@@ -216,6 +216,17 @@ class FaturamentoModel {
     const result = await db.query(query, [value]);
     return result.rows;
   }
+
+  static async findHistorico(id_number, id_type) {
+    const query = `
+      SELECT * FROM faturamento 
+      WHERE id_number = $1 AND id_type = $2
+      ORDER BY created_at DESC
+    `;
+    
+    const result = await db.query(query, [id_number, id_type]);
+    return result.rows;
+  }
 }
 
 module.exports = FaturamentoModel; 
