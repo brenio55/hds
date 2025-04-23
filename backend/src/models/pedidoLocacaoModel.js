@@ -7,9 +7,9 @@ class PedidoLocacaoModel {
         fornecedor_id, "clientInfo_id", proposta_id, itens, 
         total_bruto, total_ipi, total_descontos, valor_frete, 
         outras_despesas, total_final, informacoes_importantes, 
-        cond_pagto, prazo_entrega, frete
+        cond_pagto, prazo_entrega, frete, tipo_frete
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING *
     `;
 
@@ -27,7 +27,8 @@ class PedidoLocacaoModel {
       data.informacoes_importantes,
       data.cond_pagto,
       data.prazo_entrega,
-      data.frete
+      data.frete,
+      data.tipo_frete || 'CIF' // Valor padrão CIF se não for especificado
     ];
 
     try {
@@ -57,8 +58,9 @@ class PedidoLocacaoModel {
           informacoes_importantes = $11,
           cond_pagto = $12,
           prazo_entrega = $13,
-          frete = $14
-      WHERE id = $15
+          frete = $14,
+          tipo_frete = $15
+      WHERE id = $16
       RETURNING *
     `;
 
@@ -77,6 +79,7 @@ class PedidoLocacaoModel {
       data.cond_pagto,
       data.prazo_entrega,
       data.frete,
+      data.tipo_frete || 'CIF', // Valor padrão CIF se não for especificado
       id
     ];
 

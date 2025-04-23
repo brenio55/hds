@@ -748,13 +748,13 @@ curl -X PUT http://localhost:3000/api/pedidos-compra/1 \
 POST /api/pedidos-locacao
 ```
 
-**Headers:**
+**Headers**:
 ```http
 Authorization: Bearer seu_token
 Content-Type: application/json
 ```
 
-**Corpo da Requisição:**
+**Corpo da Requisição**:
 ```json
 {
   "fornecedor_id": 1,
@@ -772,6 +772,7 @@ Content-Type: application/json
   "total_ipi": 100.00,
   "total_descontos": 50.00,
   "frete": 75.00,           // Valor do frete (anteriormente valor_frete)
+  "tipo_frete": "CIF",      // Tipo do frete: "CIF" (fornecedor paga) ou "FOB" (destinatário paga)
   "outras_despesas": 25.00,
   "total_final": 1150.00,
   "informacoes_importantes": "Informações importantes aqui",
@@ -780,7 +781,7 @@ Content-Type: application/json
 }
 ```
 
-**Exemplo de uso com curl:**
+**Exemplo de uso com curl**:
 ```bash
 curl -X POST \
   'http://localhost:3000/api/pedidos-locacao' \
@@ -795,6 +796,7 @@ curl -X POST \
     "total_ipi": 100.00,
     "total_descontos": 50.00,
     "frete": 75.00,
+    "tipo_frete": "CIF",
     "outras_despesas": 25.00,
     "total_final": 1150.00,
     "informacoes_importantes": "Informações importantes aqui",
@@ -803,8 +805,10 @@ curl -X POST \
   }'
 ```
 
-**Observações:**
+**Observações**:
 - O campo `valor_frete` foi substituído por `frete` para manter consistência com outros endpoints
+- O novo campo `tipo_frete` aceita dois valores: "CIF" (frete por conta do fornecedor) ou "FOB" (frete por conta do destinatário)
+- Se não for especificado, o `tipo_frete` assume o valor padrão "CIF"
 - O valor do frete deve ser enviado como número decimal
 - Internamente, o valor é armazenado na coluna `valor_frete` do banco de dados
 
