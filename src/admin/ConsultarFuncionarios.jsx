@@ -338,12 +338,12 @@ function ConsultarFuncionarios() {
                                 >
                                     Informações
                                 </button>
-                                <button 
+                                {/* <button 
                                     className={`tab-button ${activeTab === 'horas' ? 'active' : ''}`}
                                     onClick={() => setActiveTab('horas')}
                                 >
                                     Horas Trabalhadas
-                                </button>
+                                </button> */}
                             </div>
                             
                             {activeTab === 'info' ? (
