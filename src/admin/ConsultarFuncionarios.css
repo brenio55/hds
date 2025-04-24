@@ -86,18 +86,20 @@ tr:hover {
 
 .actions-column {
     display: flex;
-    gap: 8px;
+    gap: 5px;
 }
 
 .view-button,
 .edit-button,
 .delete-button {
-    padding: 6px 10px;
+    padding: 6px 8px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     transition: background-color 0.2s;
+    min-width: 60px;
+    white-space: nowrap;
 }
 
 .view-button {
@@ -302,4 +304,55 @@ tr:hover {
     padding: 15px;
     color: #6c757d;
     font-style: italic;
+}
+
+/* Estilo para os valores de HH */
+.cargo-valores {
+    margin-top: 12px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-left: 3px solid #28a745;
+    border-radius: 4px;
+}
+
+.cargo-valores h5 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #28a745;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 5px;
+}
+
+.cargo-valores p {
+    margin: 4px 0;
+    font-size: 13px;
+}
+
+.valores-hh-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.valores-hh-table th,
+.valores-hh-table td {
+    padding: 5px 8px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.valores-hh-table th {
+    font-weight: 600;
+    color: #495057;
+    background-color: #f1f3f5;
+}
+
+.valores-hh-table tr:last-child td {
+    border-bottom: none;
+}
+
+.valores-hh-table tr:hover td {
+    background-color: #f1f1f1;
 } 

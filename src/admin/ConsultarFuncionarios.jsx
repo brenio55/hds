@@ -24,6 +24,7 @@ function ConsultarFuncionarios() {
     });
     const [obras, setObras] = useState([]);
     const [loadingObras, setLoadingObras] = useState(false);
+    const [cargoInfo, setCargoInfo] = useState(null);
 
     useEffect(() => {
         carregarFuncionarios();
@@ -35,7 +36,33 @@ function ConsultarFuncionarios() {
         
         try {
             const data = await ApiService.buscarFuncionarios();
-            setFuncionarios(data);
+            
+            // Carregar informações dos cargos para cada funcionário
+            const funcionariosComCargos = await Promise.all(data.map(async (funcionario) => {
+                if (funcionario.cargo_id) {
+                    try {
+                        const cargo = await ApiService.buscarCargoPorId(funcionario.cargo_id);
+                        return { 
+                            ...funcionario, 
+                            cargoInfo: cargo,
+                            // Usar apenas o nome do cargo obtido da tabela cargos
+                            cargoNome: cargo.nome
+                        };
+                    } catch (e) {
+                        console.error(`Erro ao carregar cargo para funcionário ${funcionario.id}:`, e);
+                        return {
+                            ...funcionario,
+                            cargoNome: 'Não encontrado'
+                        };
+                    }
+                }
+                return {
+                    ...funcionario,
+                    cargoNome: 'Sem cargo'
+                };
+            }));
+            
+            setFuncionarios(funcionariosComCargos);
         } catch (error) {
             console.error('Erro ao carregar funcionários:', error);
             setError('Não foi possível carregar a lista de funcionários. Por favor, tente novamente.');
@@ -52,11 +79,37 @@ function ConsultarFuncionarios() {
         if (window.confirm('Tem certeza que deseja excluir este funcionário?')) {
             setLoading(true);
             try {
+                // Verificar se há reembolsos associados ao funcionário
+                const reembolsos = await ApiService.buscarReembolsos({ funcionarioId: id });
+                
+                if (reembolsos && reembolsos.length > 0) {
+                    alert(`Não é possível excluir este funcionário pois existem ${reembolsos.length} reembolso(s) associados a ele. Remova os reembolsos primeiro.`);
+                    setLoading(false);
+                    return;
+                }
+                
+                // Verificar se há registros de HH associados ao funcionário
+                const registrosHH = await ApiService.buscarRegistrosHH({ funcionario_id: id });
+                
+                if (registrosHH && registrosHH.length > 0) {
+                    alert(`Não é possível excluir este funcionário pois existem ${registrosHH.length} registro(s) de horas trabalhadas associados a ele. Remova os registros primeiro.`);
+                    setLoading(false);
+                    return;
+                }
+                
+                // Se não houver registros associados, proceder com a exclusão
                 await ApiService.deletarFuncionario(id);
                 await carregarFuncionarios();
+                
             } catch (error) {
                 console.error('Erro ao excluir funcionário:', error);
-                setError('Não foi possível excluir o funcionário. Por favor, tente novamente.');
+                
+                // Exibir mensagem específica em caso de erro de restrição de chave estrangeira
+                if (error.message && error.message.includes('foreign key constraint')) {
+                    setError('Não foi possível excluir o funcionário porque existem registros relacionados a ele no sistema (reembolsos, horas trabalhadas, etc).');
+                } else {
+                    setError('Não foi possível excluir o funcionário. Por favor, tente novamente.');
+                }
             } finally {
                 setLoading(false);
             }
@@ -67,6 +120,26 @@ function ConsultarFuncionarios() {
         setLoading(true);
         try {
             const funcionario = await ApiService.buscarFuncionarioPorId(id);
+            
+            // Carregar informações do cargo se houver cargo_id
+            let cargoNome = 'Sem cargo';
+            if (funcionario.cargo_id) {
+                try {
+                    const cargo = await ApiService.buscarCargoPorId(funcionario.cargo_id);
+                    // Usar apenas o nome do cargo obtido da tabela cargos
+                    cargoNome = cargo.nome;
+                    setCargoInfo(cargo);
+                } catch (error) {
+                    console.error('Erro ao carregar informações do cargo:', error);
+                    setCargoInfo(null);
+                }
+            } else {
+                setCargoInfo(null);
+            }
+            
+            // Adicionar propriedade cargoNome ao funcionário
+            funcionario.cargoNome = cargoNome;
+            
             setFuncionarioSelecionado(funcionario);
             setShowModal(true);
             
@@ -154,6 +227,11 @@ function ConsultarFuncionarios() {
         }
     };
 
+    const formatarMoeda = (valor) => {
+        if (valor === null || valor === undefined) return 'R$ 0,00';
+        return `R$ ${parseFloat(valor).toFixed(2).replace('.', ',')}`;
+    };
+
     return (
         <>
             <HeaderAdmin />
@@ -185,6 +263,7 @@ function ConsultarFuncionarios() {
                                     <th>ID</th>
                                     <th>Nome</th>
                                     <th>Cargo</th>
+                                    <th>Valor HH</th>
                                     <th>Contato</th>
                                     <th>Ações</th>
                                 </tr>
@@ -192,7 +271,7 @@ function ConsultarFuncionarios() {
                             <tbody>
                                 {funcionarios.length === 0 ? (
                                     <tr>
-                                        <td colSpan="5" className="no-data">
+                                        <td colSpan="6" className="no-data">
                                             Nenhum funcionário encontrado
                                         </td>
                                     </tr>
@@ -213,7 +292,8 @@ function ConsultarFuncionarios() {
                                             <tr key={funcionario.id}>
                                                 <td>{funcionario.id}</td>
                                                 <td>{contato?.nome || 'N/A'}</td>
-                                                <td>{funcionario.cargo}</td>
+                                                <td>{funcionario.cargoNome}</td>
+                                                <td>{funcionario.cargoInfo ? formatarMoeda(funcionario.cargoInfo.valor_hh) : 'N/A'}</td>
                                                 <td>{contato?.telefone || 'N/A'}</td>
                                                 <td className="actions-column">
                                                     <button 
@@ -271,7 +351,34 @@ function ConsultarFuncionarios() {
                                     <div className="detail-section">
                                         <h4>Informações Profissionais</h4>
                                         <p><strong>ID:</strong> {funcionarioSelecionado.id}</p>
-                                        <p><strong>Cargo:</strong> {funcionarioSelecionado.cargo}</p>
+                                        <p><strong>Cargo:</strong> {funcionarioSelecionado.cargoNome}</p>
+                                        {cargoInfo && (
+                                            <div className="cargo-valores">
+                                                <h5>Valores de Hora (HH)</h5>
+                                                <table className="valores-hh-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Tipo</th>
+                                                            <th>Valor</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Normal</td>
+                                                            <td>{formatarMoeda(cargoInfo.valor_hh)}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Extra (+60%)</td>
+                                                            <td>{formatarMoeda(cargoInfo.valor_hh * 1.6)}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Extra (+100%)</td>
+                                                            <td>{formatarMoeda(cargoInfo.valor_hh * 2)}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
                                     </div>
                                     
                                     <div className="detail-section">
@@ -339,104 +446,6 @@ function ConsultarFuncionarios() {
                             ) : (
                                 <>
                                     <div className="hh-section">
-                                        <h4>Registrar Horas Trabalhadas</h4>
-                                        <form onSubmit={handleSubmitRegistroHH} className="hh-form">
-                                            <div className="form-row">
-                                                <div className="form-group">
-                                                    <label htmlFor="obra_id">Obra/Centro de Custo*</label>
-                                                    <select
-                                                        id="obra_id"
-                                                        name="obra_id"
-                                                        value={novoRegistroHH.obra_id}
-                                                        onChange={handleNovoRegistroHHChange}
-                                                        required
-                                                    >
-                                                        <option value="">Selecione uma obra</option>
-                                                        {loadingObras ? (
-                                                            <option disabled>Carregando obras...</option>
-                                                        ) : (
-                                                            obras.map(obra => (
-                                                                <option key={obra.id} value={obra.id}>
-                                                                    {obra.numero} - {obra.cliente_nome || obra.nome || 'Sem nome'}
-                                                                </option>
-                                                            ))
-                                                        )}
-                                                    </select>
-                                                </div>
-                                                <div className="form-group">
-                                                    <label htmlFor="data_registro">Data*</label>
-                                                    <input
-                                                        type="date"
-                                                        id="data_registro"
-                                                        name="data_registro"
-                                                        value={novoRegistroHH.data_registro}
-                                                        onChange={handleNovoRegistroHHChange}
-                                                        required
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="form-row">
-                                                <div className="form-group">
-                                                    <label htmlFor="horas_normais">Horas Normais</label>
-                                                    <input
-                                                        type="number"
-                                                        id="horas_normais"
-                                                        name="horas_normais"
-                                                        value={novoRegistroHH.horas_normais}
-                                                        onChange={handleNovoRegistroHHChange}
-                                                        step="0.5"
-                                                        min="0"
-                                                    />
-                                                </div>
-                                                <div className="form-group">
-                                                    <label htmlFor="horas_60">Horas +60%</label>
-                                                    <input
-                                                        type="number"
-                                                        id="horas_60"
-                                                        name="horas_60"
-                                                        value={novoRegistroHH.horas_60}
-                                                        onChange={handleNovoRegistroHHChange}
-                                                        step="0.5"
-                                                        min="0"
-                                                    />
-                                                </div>
-                                                <div className="form-group">
-                                                    <label htmlFor="horas_100">Horas +100%</label>
-                                                    <input
-                                                        type="number"
-                                                        id="horas_100"
-                                                        name="horas_100"
-                                                        value={novoRegistroHH.horas_100}
-                                                        onChange={handleNovoRegistroHHChange}
-                                                        step="0.5"
-                                                        min="0"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="form-group">
-                                                <label htmlFor="observacao">Observação</label>
-                                                <textarea
-                                                    id="observacao"
-                                                    name="observacao"
-                                                    value={novoRegistroHH.observacao}
-                                                    onChange={handleNovoRegistroHHChange}
-                                                    placeholder="Observações sobre as horas trabalhadas"
-                                                    rows={2}
-                                                />
-                                            </div>
-                                            <div className="form-actions">
-                                                <button 
-                                                    type="submit" 
-                                                    className="submit-button"
-                                                    disabled={loadingHH}
-                                                >
-                                                    {loadingHH ? 'Salvando...' : 'Registrar Horas'}
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    
-                                    <div className="hh-section">
                                         <h4>Histórico de Horas Trabalhadas</h4>
                                         {loadingHH ? (
                                             <p className="loading-text">Carregando registros...</p>
@@ -490,17 +499,6 @@ function ConsultarFuncionarios() {
                                 <button className="close-button" onClick={fecharModal}>
                                     Fechar
                                 </button>
-                                {activeTab === 'info' && (
-                                    <button 
-                                        className="edit-button"
-                                        onClick={() => {
-                                            fecharModal();
-                                            handleEditar(funcionarioSelecionado.id);
-                                        }}
-                                    >
-                                        Editar
-                                    </button>
-                                )}
                             </div>
                         </div>
                     </div>
