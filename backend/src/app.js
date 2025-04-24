@@ -14,6 +14,8 @@ const servicoRoutes = require('./routes/servicoRoutes');
 const pedidosConsolidadosRoutes = require('./routes/pedidosConsolidadosRoutes');
 const faturamentoRoutes = require('./routes/faturamentoRoutes');
 const aluguelRoutes = require('./routes/aluguelRoutes');
+const cargoRoutes = require('./routes/cargoRoutes');
+const hhRegistroRoutes = require('./routes/hhRegistroRoutes');
 
 const app = express();
 
@@ -75,6 +77,8 @@ app.use('/api/servicos', servicoRoutes);
 app.use('/api/pedidos-consolidados', pedidosConsolidadosRoutes);
 app.use('/api/faturamentos', faturamentoRoutes);
 app.use('/api/alugueis', aluguelRoutes);
+app.use('/api/cargos', cargoRoutes);
+app.use('/api/hh-registros', hhRegistroRoutes);
 
 // Tratamento de erros
 app.use((err, req, res, next) => {

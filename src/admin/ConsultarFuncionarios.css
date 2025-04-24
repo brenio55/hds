@@ -210,4 +210,96 @@ tr:hover {
 
 .close-button:hover {
     background-color: #7e7e7e;
+}
+
+/* Modal de Funcionário com Tabs */
+.funcionario-modal {
+    max-width: 800px;
+    max-height: 90vh;
+}
+
+.modal-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.tab-button {
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #6c757d;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.tab-button:hover {
+    color: #495057;
+}
+
+.tab-button.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+}
+
+/* Seção de Horas Trabalhadas */
+.hh-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.hh-section h4 {
+    margin-bottom: 15px;
+    color: #555;
+    font-size: 16px;
+}
+
+.hh-form {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.hh-table-container {
+    overflow-x: auto;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.hh-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.hh-table th, 
+.hh-table td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.hh-table th {
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 0 #dee2e6;
+}
+
+.hh-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.loading-text, 
+.no-data-text {
+    text-align: center;
+    padding: 15px;
+    color: #6c757d;
+    font-style: italic;
 } 

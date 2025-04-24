@@ -24,6 +24,8 @@ import RCAluguel from './admin/Financeiro/RCAluguel';
 import ConsultarCentroCusto from './admin/Financeiro/ConsultarCentroCusto';
 import CadastrarFuncionario from './admin/CadastrarFuncionario';
 import ConsultarFuncionarios from './admin/ConsultarFuncionarios';
+import CadastrarCargo from './admin/CadastrarCargo';
+import ConsultarCargos from './admin/ConsultarCargos';
 
 function AppRoutes() {
   const { adminUser } = useAdmin();
@@ -54,6 +56,8 @@ function AppRoutes() {
         <Route path="/admin/consultarCentroCusto" element={<ConsultarCentroCusto />} />
         <Route path="/admin/cadastrarFuncionario" element={<CadastrarFuncionario />} />
         <Route path="/admin/consultarFuncionarios" element={<ConsultarFuncionarios />} />
+        <Route path="/admin/cadastrarCargo" element={<CadastrarCargo />} />
+        <Route path="/admin/consultarCargos" element={<ConsultarCargos />} />
       </Routes>
     );
   } else {

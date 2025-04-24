@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import './CadastrarFuncionario.css';
 import HeaderAdmin from './HeaderAdmin';
 import ApiService from '../services/ApiService';
 
 function CadastrarFuncionario() {
     const navigate = useNavigate();
+    const { id } = useParams(); // Para caso de edição
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [cargos, setCargos] = useState([]);
+    const [carregandoCargos, setCarregandoCargos] = useState(false);
+    const [cargoSelecionado, setCargoSelecionado] = useState(null);
     const [formData, setFormData] = useState({
         cargo: '',
+        cargo_id: '',
         contato: {
             nome: '',
             email: '',
@@ -27,6 +32,84 @@ function CadastrarFuncionario() {
             pix: ''
         }
     });
+
+    // Carregar lista de cargos ao montar o componente
+    useEffect(() => {
+        carregarCargos();
+        
+        // Se for modo de edição, carregar dados do funcionário
+        if (id) {
+            carregarFuncionario(id);
+        }
+    }, [id]);
+
+    // Carregar cargos disponíveis
+    const carregarCargos = async () => {
+        setCarregandoCargos(true);
+        try {
+            const listaCargos = await ApiService.buscarCargos();
+            setCargos(listaCargos);
+        } catch (error) {
+            console.error('Erro ao carregar cargos:', error);
+            setError('Não foi possível carregar a lista de cargos.');
+        } finally {
+            setCarregandoCargos(false);
+        }
+    };
+
+    // Carregar dados do funcionário para edição
+    const carregarFuncionario = async (funcionarioId) => {
+        setLoading(true);
+        try {
+            const funcionario = await ApiService.buscarFuncionarioPorId(funcionarioId);
+            
+            // Normalizar contato e dados que podem vir como string JSON
+            let contatoObj = funcionario.contato;
+            let dadosObj = funcionario.dados;
+            
+            if (typeof contatoObj === 'string') {
+                try {
+                    contatoObj = JSON.parse(contatoObj);
+                } catch (e) {
+                    contatoObj = {};
+                }
+            }
+            
+            if (typeof dadosObj === 'string') {
+                try {
+                    dadosObj = JSON.parse(dadosObj);
+                } catch (e) {
+                    dadosObj = {};
+                }
+            }
+            
+            setFormData({
+                cargo: funcionario.cargo || '',
+                cargo_id: funcionario.cargo_id || '',
+                contato: contatoObj || {},
+                dados: dadosObj || {}
+            });
+            
+            // Se tiver cargo_id, selecionar o cargo correspondente
+            if (funcionario.cargo_id) {
+                const cargo = cargos.find(c => c.id === funcionario.cargo_id);
+                setCargoSelecionado(cargo || null);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar funcionário:', error);
+            setError('Não foi possível carregar os dados do funcionário.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Atualizar cargo selecionado quando selecionar um cargo na lista
+    useEffect(() => {
+        if (formData.cargo_id && cargos.length > 0) {
+            const cargo = cargos.find(c => c.id == formData.cargo_id);
+            setCargoSelecionado(cargo || null);
+        }
+    }, [formData.cargo_id, cargos]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -58,6 +141,11 @@ function CadastrarFuncionario() {
         }));
     };
 
+    const formatarMoeda = (valor) => {
+        if (valor === null || valor === undefined) return 'R$ 0,00';
+        return `R$ ${parseFloat(valor).toFixed(2).replace('.', ',')}`;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -65,37 +153,51 @@ function CadastrarFuncionario() {
         setSuccess(false);
 
         try {
-            const response = await ApiService.criarFuncionario(formData);
-            console.log('Funcionário cadastrado:', response);
-            setSuccess(true);
+            // Verificar se estamos criando ou atualizando
+            let response;
             
-            // Limpar o formulário
-            setFormData({
-                cargo: '',
-                contato: {
-                    nome: '',
-                    email: '',
-                    telefone: '',
-                    endereco: ''
-                },
-                dados: {
-                    cpf: '',
-                    rg: '',
-                    data_nascimento: '',
-                    banco: '',
-                    agencia: '',
-                    conta: '',
-                    pix: ''
-                }
-            });
+            if (id) {
+                // Edição de funcionário existente
+                response = await ApiService.atualizarFuncionario(id, formData);
+                setSuccess('Funcionário atualizado com sucesso!');
+            } else {
+                // Criação de novo funcionário
+                response = await ApiService.criarFuncionario(formData);
+                setSuccess('Funcionário cadastrado com sucesso!');
+            }
+            
+            console.log('Resposta da API:', response);
+            
+            // Limpar o formulário em caso de criação
+            if (!id) {
+                setFormData({
+                    cargo: '',
+                    cargo_id: '',
+                    contato: {
+                        nome: '',
+                        email: '',
+                        telefone: '',
+                        endereco: ''
+                    },
+                    dados: {
+                        cpf: '',
+                        rg: '',
+                        data_nascimento: '',
+                        banco: '',
+                        agencia: '',
+                        conta: '',
+                        pix: ''
+                    }
+                });
+            }
             
             // Redirecionar após 2 segundos
             setTimeout(() => {
-                navigate('/consultarFuncionarios');
+                navigate('/admin/consultarFuncionarios');
             }, 2000);
         } catch (error) {
-            console.error('Erro ao cadastrar funcionário:', error);
-            setError(error.message || 'Ocorreu um erro ao cadastrar o funcionário.');
+            console.error('Erro ao salvar funcionário:', error);
+            setError(error.message || 'Ocorreu um erro ao salvar os dados do funcionário.');
         } finally {
             setLoading(false);
         }
@@ -105,11 +207,11 @@ function CadastrarFuncionario() {
         <>
             <HeaderAdmin />
             <div className="cadastrar-funcionario-container">
-                <h2>Cadastrar Funcionário</h2>
+                <h2>{id ? 'Editar Funcionário' : 'Cadastrar Funcionário'}</h2>
                 
                 {success && (
                     <div className="success-message">
-                        Funcionário cadastrado com sucesso! Redirecionando...
+                        {success} Redirecionando...
                     </div>
                 )}
                 
@@ -122,15 +224,52 @@ function CadastrarFuncionario() {
                 <form onSubmit={handleSubmit}>
                     <div className="form-section">
                         <h3>Informações Profissionais</h3>
+                        
                         <div className="form-group">
-                            <label htmlFor="cargo">Cargo/Função*</label>
+                            <label htmlFor="cargo_id">Cargo/Função*</label>
+                            <select
+                                id="cargo_id"
+                                name="cargo_id"
+                                value={formData.cargo_id}
+                                onChange={handleInputChange}
+                                required
+                            >
+                                <option value="">Selecione um cargo</option>
+                                {carregandoCargos ? (
+                                    <option disabled>Carregando cargos...</option>
+                                ) : (
+                                    cargos.map(cargo => (
+                                        <option key={cargo.id} value={cargo.id}>
+                                            {cargo.nome}
+                                        </option>
+                                    ))
+                                )}
+                            </select>
+                            {cargoSelecionado && (
+                                <div className="cargo-info">
+                                    <h4>Informações de Valores por Hora (HH)</h4>
+                                    <p><strong>Valor HH Normal:</strong> {formatarMoeda(cargoSelecionado.valor_hh)}</p>
+                                    <p><strong>Valor HH + 60%:</strong> {formatarMoeda(cargoSelecionado.valor_hh * 1.6)}</p>
+                                    <p><strong>Valor HH + 100%:</strong> {formatarMoeda(cargoSelecionado.valor_hh * 2)}</p>
+                                    <p className="cargo-info-note">Estes valores serão usados nos registros de horas trabalhadas para este funcionário.</p>
+                                </div>
+                            )}
+                            <div className="form-group-footer">
+                                <a href="#" onClick={(e) => { e.preventDefault(); navigate('/admin/cadastrarCargo'); }}>
+                                    + Cadastrar novo cargo
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div className="form-group">
+                            <label htmlFor="cargo">Cargo/Função (Descrição Manual)</label>
                             <input
                                 type="text"
                                 id="cargo"
                                 name="cargo"
                                 value={formData.cargo}
                                 onChange={handleInputChange}
-                                required
+                                placeholder="Descrição opcional do cargo (caso não selecione acima)"
                             />
                         </div>
                     </div>
@@ -144,7 +283,7 @@ function CadastrarFuncionario() {
                                     type="text"
                                     id="nome"
                                     name="nome"
-                                    value={formData.contato.nome}
+                                    value={formData.contato.nome || ''}
                                     onChange={handleContatoChange}
                                     required
                                 />
@@ -155,7 +294,7 @@ function CadastrarFuncionario() {
                                     type="email"
                                     id="email"
                                     name="email"
-                                    value={formData.contato.email}
+                                    value={formData.contato.email || ''}
                                     onChange={handleContatoChange}
                                 />
                             </div>
@@ -167,7 +306,7 @@ function CadastrarFuncionario() {
                                     type="text"
                                     id="telefone"
                                     name="telefone"
-                                    value={formData.contato.telefone}
+                                    value={formData.contato.telefone || ''}
                                     onChange={handleContatoChange}
                                     required
                                 />
@@ -178,7 +317,7 @@ function CadastrarFuncionario() {
                                     type="text"
                                     id="endereco"
                                     name="endereco"
-                                    value={formData.contato.endereco}
+                                    value={formData.contato.endereco || ''}
                                     onChange={handleContatoChange}
                                 />
                             </div>
@@ -194,7 +333,7 @@ function CadastrarFuncionario() {
                                     type="text"
                                     id="cpf"
                                     name="cpf"
-                                    value={formData.dados.cpf}
+                                    value={formData.dados.cpf || ''}
                                     onChange={handleDadosChange}
                                     required
                                 />
@@ -205,7 +344,7 @@ function CadastrarFuncionario() {
                                     type="text"
                                     id="rg"
                                     name="rg"
-                                    value={formData.dados.rg}
+                                    value={formData.dados.rg || ''}
                                     onChange={handleDadosChange}
                                 />
                             </div>
@@ -215,7 +354,7 @@ function CadastrarFuncionario() {
                                     type="date"
                                     id="data_nascimento"
                                     name="data_nascimento"
-                                    value={formData.dados.data_nascimento}
+                                    value={formData.dados.data_nascimento || ''}
                                     onChange={handleDadosChange}
                                 />
                             </div>
@@ -227,7 +366,7 @@ function CadastrarFuncionario() {
                                     type="text"
                                     id="banco"
                                     name="banco"
-                                    value={formData.dados.banco}
+                                    value={formData.dados.banco || ''}
                                     onChange={handleDadosChange}
                                 />
                             </div>
@@ -237,7 +376,7 @@ function CadastrarFuncionario() {
                                     type="text"
                                     id="agencia"
                                     name="agencia"
-                                    value={formData.dados.agencia}
+                                    value={formData.dados.agencia || ''}
                                     onChange={handleDadosChange}
                                 />
                             </div>
@@ -249,7 +388,7 @@ function CadastrarFuncionario() {
                                     type="text"
                                     id="conta"
                                     name="conta"
-                                    value={formData.dados.conta}
+                                    value={formData.dados.conta || ''}
                                     onChange={handleDadosChange}
                                 />
                             </div>
@@ -259,18 +398,18 @@ function CadastrarFuncionario() {
                                     type="text"
                                     id="pix"
                                     name="pix"
-                                    value={formData.dados.pix}
+                                    value={formData.dados.pix || ''}
                                     onChange={handleDadosChange}
                                 />
                             </div>
                         </div>
                     </div>
                     
-                    <div className="form-buttons">
+                    <div className="form-actions">
                         <button 
                             type="button" 
                             className="cancel-button"
-                            onClick={() => navigate('/dashboard')}
+                            onClick={() => navigate('/consultarFuncionarios')}
                         >
                             Cancelar
                         </button>
@@ -279,7 +418,7 @@ function CadastrarFuncionario() {
                             className="submit-button"
                             disabled={loading}
                         >
-                            {loading ? 'Salvando...' : 'Salvar'}
+                            {loading ? 'Salvando...' : id ? 'Atualizar Funcionário' : 'Cadastrar Funcionário'}
                         </button>
                     </div>
                 </form>
