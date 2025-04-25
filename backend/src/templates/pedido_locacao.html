@@ -440,7 +440,7 @@
                     </tr>
                     <tr>
                         <!-- <th>Tipo de Frete</th> -->
-                        <td>Tipo de Frete: $ f $</td>
+                        <td>Tipo de Frete: {{tipo_frete}} {{#if (eq tipo_frete "CIF")}}(Frete por conta do fornecedor){{else}}(Frete por conta do destinatário){{/if}}</td>
                         <!-- o valor acima ainda será definido -->
                         <!-- <td>{{frete}} ({{#if (eq frete "CIF")}}Frete por conta do fornecedor{{else}}Frete por conta do destinatário{{/if}})</td> -->
                     </tr>
