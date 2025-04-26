@@ -65,6 +65,60 @@ class FuncionarioController {
       res.status(400).json({ error: error.message });
     }
   }
+
+  static async associarProposta(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { funcionarioId, propostaId } = req.params;
+      const { dataInicio } = req.body;
+
+      const associacao = await FuncionarioModel.associarProposta(
+        funcionarioId, 
+        propostaId, 
+        dataInicio
+      );
+
+      res.json(associacao);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  static async desassociarProposta(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { funcionarioId, propostaId } = req.params;
+      const { dataFim } = req.body;
+
+      const desassociacao = await FuncionarioModel.desassociarProposta(
+        funcionarioId, 
+        propostaId, 
+        dataFim
+      );
+
+      res.json(desassociacao);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  static async listarPropostas(req, res) {
+    try {
+      const { funcionarioId } = req.params;
+      const propostas = await FuncionarioModel.listarPropostas(funcionarioId);
+      res.json(propostas);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = FuncionarioController; 

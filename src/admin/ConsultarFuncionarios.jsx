@@ -165,7 +165,22 @@ function ConsultarFuncionarios() {
         setLoadingObras(true);
         try {
             const response = await ApiService.buscarPropostas();
-            setObras(Array.isArray(response) ? response : []);
+            
+            // Verificar o formato da resposta e extrair o array de propostas
+            let listaObras = [];
+            if (response && response.propostas && Array.isArray(response.propostas)) {
+                // Se a resposta tiver o formato { total: X, propostas: [...] }
+                listaObras = response.propostas;
+            } else if (Array.isArray(response)) {
+                // Se a resposta já for um array
+                listaObras = response;
+            } else if (response && typeof response === 'object') {
+                // Se for outro formato de objeto, tentar extrair valores
+                listaObras = Object.values(response).filter(item => typeof item === 'object');
+            }
+            
+            setObras(listaObras);
+            console.log("Obras carregadas:", listaObras.length);
         } catch (error) {
             console.error('Erro ao carregar obras:', error);
         } finally {
@@ -232,6 +247,34 @@ function ConsultarFuncionarios() {
         return `R$ ${parseFloat(valor).toFixed(2).replace('.', ',')}`;
     };
 
+    const formatarNomeProposta = (proposta) => {
+        if (!proposta) return 'Proposta sem nome';
+        
+        // Se tiver número, usar como prefixo
+        const numero = proposta.numero ? `#${proposta.numero} - ` : '';
+        
+        // Prioridade para campos que podem conter nome do cliente
+        const clientNome = proposta.client_info && typeof proposta.client_info === 'object' 
+            ? proposta.client_info.nome || proposta.client_info.nome_cliente || proposta.client_info.cliente
+            : '';
+            
+        // Alternativa: tentar extrair de string JSON
+        let clienteFromJson = '';
+        if (proposta.client_info && typeof proposta.client_info === 'string') {
+            try {
+                const clientObj = JSON.parse(proposta.client_info);
+                clienteFromJson = clientObj.nome || clientObj.nome_cliente || clientObj.cliente || '';
+            } catch (e) {
+                // Ignorar erro de parse
+            }
+        }
+        
+        // Usar o melhor nome disponível
+        const nome = clientNome || clienteFromJson || proposta.titulo || proposta.descricao || `ID: ${proposta.id}`;
+        
+        return `${numero}${nome}`;
+    };
+
     return (
         <>
             <HeaderAdmin />
@@ -265,13 +308,14 @@ function ConsultarFuncionarios() {
                                     <th>Cargo</th>
                                     <th>Valor HH</th>
                                     <th>Contato</th>
+                                    <th>Obras</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {funcionarios.length === 0 ? (
                                     <tr>
-                                        <td colSpan="6" className="no-data">
+                                        <td colSpan="7" className="no-data">
                                             Nenhum funcionário encontrado
                                         </td>
                                     </tr>
@@ -279,22 +323,44 @@ function ConsultarFuncionarios() {
                                     funcionarios.map((funcionario) => {
                                         // Converter string JSON para objeto se necessário
                                         let contato = funcionario.contato;
+                                        let dados = funcionario.dados;
+                                        
                                         if (typeof contato === 'string') {
                                             try {
                                                 contato = JSON.parse(contato);
                                             } catch (e) {
                                                 console.error('Erro ao parsear contato:', e);
-                                                contato = { nome: 'Erro ao carregar nome', email: '', telefone: '' };
+                                                contato = { email: '', telefone: '' };
                                             }
                                         }
+                                        
+                                        if (typeof dados === 'string') {
+                                            try {
+                                                dados = JSON.parse(dados);
+                                            } catch (e) {
+                                                console.error('Erro ao parsear dados:', e);
+                                                dados = { nome: 'Erro ao carregar nome' };
+                                            }
+                                        }
+                                        
+                                        // Buscar nome primeiro em dados, depois em contato (compatibilidade)
+                                        const nome = (dados && dados.nome) || 
+                                                    (contato && contato.nome) || 
+                                                    'N/A';
+                                        
+                                        // Contar número de obras associadas
+                                        const numObras = funcionario.propostas && Array.isArray(funcionario.propostas) 
+                                            ? funcionario.propostas.length 
+                                            : 0;
                                         
                                         return (
                                             <tr key={funcionario.id}>
                                                 <td>{funcionario.id}</td>
-                                                <td>{contato?.nome || 'N/A'}</td>
+                                                <td>{nome}</td>
                                                 <td>{funcionario.cargoNome}</td>
                                                 <td>{funcionario.cargoInfo ? formatarMoeda(funcionario.cargoInfo.valor_hh) : 'N/A'}</td>
                                                 <td>{contato?.telefone || 'N/A'}</td>
+                                                <td>{numObras > 0 ? `${numObras} obra(s)` : 'Sem obras'}</td>
                                                 <td className="actions-column">
                                                     <button 
                                                         className="view-button"
@@ -337,6 +403,12 @@ function ConsultarFuncionarios() {
                                     onClick={() => setActiveTab('info')}
                                 >
                                     Informações
+                                </button>
+                                <button 
+                                    className={`tab-button ${activeTab === 'obras' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('obras')}
+                                >
+                                    Obras Associadas
                                 </button>
                                 {/* <button 
                                     className={`tab-button ${activeTab === 'horas' ? 'active' : ''}`}
@@ -389,7 +461,6 @@ function ConsultarFuncionarios() {
                                                     const contato = JSON.parse(funcionarioSelecionado.contato);
                                                     return (
                                                         <>
-                                                            <p><strong>Nome:</strong> {contato.nome || 'N/A'}</p>
                                                             <p><strong>E-mail:</strong> {contato.email || 'N/A'}</p>
                                                             <p><strong>Telefone:</strong> {contato.telefone || 'N/A'}</p>
                                                             <p><strong>Endereço:</strong> {contato.endereco || 'N/A'}</p>
@@ -401,7 +472,6 @@ function ConsultarFuncionarios() {
                                             })()
                                         ) : (
                                             <>
-                                                <p><strong>Nome:</strong> {funcionarioSelecionado.contato?.nome || 'N/A'}</p>
                                                 <p><strong>E-mail:</strong> {funcionarioSelecionado.contato?.email || 'N/A'}</p>
                                                 <p><strong>Telefone:</strong> {funcionarioSelecionado.contato?.telefone || 'N/A'}</p>
                                                 <p><strong>Endereço:</strong> {funcionarioSelecionado.contato?.endereco || 'N/A'}</p>
@@ -417,6 +487,7 @@ function ConsultarFuncionarios() {
                                                     const dados = JSON.parse(funcionarioSelecionado.dados);
                                                     return (
                                                         <>
+                                                            <p><strong>Nome:</strong> {dados.nome || 'N/A'}</p>
                                                             <p><strong>CPF:</strong> {dados.cpf || 'N/A'}</p>
                                                             <p><strong>RG:</strong> {dados.rg || 'N/A'}</p>
                                                             <p><strong>Data de Nascimento:</strong> {dados.data_nascimento || 'N/A'}</p>
@@ -432,6 +503,7 @@ function ConsultarFuncionarios() {
                                             })()
                                         ) : (
                                             <>
+                                                <p><strong>Nome:</strong> {funcionarioSelecionado.dados?.nome || 'N/A'}</p>
                                                 <p><strong>CPF:</strong> {funcionarioSelecionado.dados?.cpf || 'N/A'}</p>
                                                 <p><strong>RG:</strong> {funcionarioSelecionado.dados?.rg || 'N/A'}</p>
                                                 <p><strong>Data de Nascimento:</strong> {funcionarioSelecionado.dados?.data_nascimento || 'N/A'}</p>
@@ -443,6 +515,36 @@ function ConsultarFuncionarios() {
                                         )}
                                     </div>
                                 </>
+                            ) : activeTab === 'obras' ? (
+                                <div className="obras-section">
+                                    <h4>Obras/Propostas Associadas</h4>
+                                    {!funcionarioSelecionado.propostas || funcionarioSelecionado.propostas.length === 0 ? (
+                                        <p className="no-data-text">Este funcionário não está associado a nenhuma obra.</p>
+                                    ) : (
+                                        <div className="obras-table-container">
+                                            <table className="obras-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>Descrição</th>
+                                                        <th>Data Início</th>
+                                                        <th>Data Fim</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {funcionarioSelecionado.propostas.map(proposta => (
+                                                        <tr key={proposta.id}>
+                                                            <td>{proposta.id}</td>
+                                                            <td>{proposta.descricao}</td>
+                                                            <td>{proposta.data_inicio ? new Date(proposta.data_inicio).toLocaleDateString() : 'N/A'}</td>
+                                                            <td>{proposta.data_fim ? new Date(proposta.data_fim).toLocaleDateString() : 'Ativo'}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
                             ) : (
                                 <>
                                     <div className="hh-section">

@@ -355,4 +355,47 @@ tr:hover {
 
 .valores-hh-table tr:hover td {
     background-color: #f1f1f1;
+}
+
+/* Estilo para seção de obras associadas */
+.obras-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+}
+
+.obras-section h4 {
+    margin-bottom: 15px;
+    color: #555;
+    font-size: 16px;
+}
+
+.obras-table-container {
+    overflow-x: auto;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.obras-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.obras-table th, 
+.obras-table td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.obras-table th {
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 0 #dee2e6;
+}
+
+.obras-table tbody tr:hover {
+    background-color: #f1f1f1;
 } 

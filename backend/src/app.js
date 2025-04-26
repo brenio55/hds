@@ -16,6 +16,7 @@ const faturamentoRoutes = require('./routes/faturamentoRoutes');
 const aluguelRoutes = require('./routes/aluguelRoutes');
 const cargoRoutes = require('./routes/cargoRoutes');
 const hhRegistroRoutes = require('./routes/hhRegistroRoutes');
+const interFuncPropostaRoutes = require('./routes/interFuncPropostaRoutes');
 
 const app = express();
 
@@ -79,6 +80,7 @@ app.use('/api/faturamentos', faturamentoRoutes);
 app.use('/api/alugueis', aluguelRoutes);
 app.use('/api/cargos', cargoRoutes);
 app.use('/api/hh-registros', hhRegistroRoutes);
+app.use('/api/func-propostas', interFuncPropostaRoutes);
 
 // Tratamento de erros
 app.use((err, req, res, next) => {
