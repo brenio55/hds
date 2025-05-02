@@ -62,58 +62,101 @@ class FaturamentoModel {
 
   static async create(dados) {
     try {
-      // Garantir que temos todos os campos obrigatórios
       if (!dados.valor_total_pedido) {
         throw new Error('O campo valor_total_pedido é obrigatório');
       }
-      
-      // Calcular valor_a_faturar como (valor_total - (valor_faturado/100 * valor_total))
+  
       const valorTotalPedido = parseFloat(dados.valor_total_pedido);
-      const percentualFaturado = parseFloat(dados.valor_faturado);
-      const valorAFaturar = Math.max(0, valorTotalPedido - (percentualFaturado / 100 * valorTotalPedido));
-      
-      // Preparar o objeto detalhes_pagamento com base no tipo de pagamento
+      const novoValorFaturado = parseFloat(dados.valor_faturado);
+  
       let detalhesPagamento = {};
-      
+  
       if (dados.pagamento === 'boleto') {
         detalhesPagamento.numero_boleto = dados.numero_boleto || '';
       } else if (dados.pagamento === 'pix' || dados.pagamento === 'ted') {
         detalhesPagamento.dados_conta = dados.dados_conta || '';
       }
-      
-      // Processar anexo se fornecido
+  
       if (dados.recebimento_anexo) {
         const anexoFileName = await this.saveAnexoFile(dados.recebimento_anexo);
         detalhesPagamento.anexo_id = anexoFileName;
       }
-      
-      const result = await db.query(
-        'INSERT INTO faturamento (id_number, id_type, valor_total_pedido, valor_faturado, valor_a_faturar, data_vencimento, nf, nf_anexo, pagamento, detalhes_pagamento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id',
-        [
-          dados.id_number, 
-          dados.id_type, 
-          valorTotalPedido,
-          percentualFaturado, 
-          valorAFaturar,
-          dados.data_vencimento, 
-          dados.nf, 
-          dados.nf_anexo, 
-          dados.pagamento,
-          JSON.stringify(detalhesPagamento)
-        ]
+  
+      const existingRecords = await db.query(
+        'SELECT * FROM faturamento WHERE id_number = $1 AND id_type = $2 ORDER BY created_at DESC LIMIT 1',
+        [dados.id_number, dados.id_type]
       );
-      
-      const id = result.rows[0].id;
-      return { 
-        id, 
-        ...dados, 
-        valor_a_faturar: valorAFaturar,
-        detalhes_pagamento: detalhesPagamento 
-      };
+  
+      if (existingRecords.rows.length > 0) {
+        const existing = existingRecords.rows[0];
+  
+        const acumuladoFaturado = parseFloat(existing.valor_faturado) + novoValorFaturado;
+        const valorAFaturar = Math.max(0, valorTotalPedido - (acumuladoFaturado / 100 * valorTotalPedido));
+  
+        if (acumuladoFaturado >= 100) {
+          // Quitado: apenas atualiza agendamento = FALSE
+          await db.query(
+            'UPDATE faturamento SET agendamento = FALSE WHERE id = $1',
+            [existing.id]
+          );
+          return { ...existing, agendamento: false };
+        } else {
+          // Atualiza registro existente com novos valores acumulados
+          await db.query(
+            `UPDATE faturamento 
+             SET valor_faturado = $1, 
+                 valor_total_pedido = $2, 
+                 valor_a_faturar = $3, 
+                 agendamento = FALSE 
+             WHERE id = $4`,
+            [acumuladoFaturado, valorTotalPedido, valorAFaturar, existing.id]
+          );
+  
+          // Cria novo com agendamento = TRUE
+          const novo = await db.query(
+            'INSERT INTO faturamento (id_number, id_type, valor_total_pedido, valor_faturado, valor_a_faturar, data_vencimento, nf, nf_anexo, pagamento, detalhes_pagamento, agendamento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, TRUE) RETURNING *',
+            [
+              dados.id_number,
+              dados.id_type,
+              valorTotalPedido,
+              novoValorFaturado,
+              Math.max(0, valorTotalPedido - (novoValorFaturado / 100 * valorTotalPedido)),
+              dados.data_vencimento,
+              dados.nf,
+              dados.nf_anexo,
+              dados.pagamento,
+              JSON.stringify(detalhesPagamento)
+            ]
+          );
+  
+          return novo.rows[0];
+        }
+      } else {
+        // Nenhum registro anterior — criar novo com agendamento = TRUE
+        const valorAFaturar = Math.max(0, valorTotalPedido - (novoValorFaturado / 100 * valorTotalPedido));
+        const novo = await db.query(
+          'INSERT INTO faturamento (id_number, id_type, valor_total_pedido, valor_faturado, valor_a_faturar, data_vencimento, nf, nf_anexo, pagamento, detalhes_pagamento, agendamento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, TRUE) RETURNING *',
+          [
+            dados.id_number,
+            dados.id_type,
+            valorTotalPedido,
+            novoValorFaturado,
+            valorAFaturar,
+            dados.data_vencimento,
+            dados.nf,
+            dados.nf_anexo,
+            dados.pagamento,
+            JSON.stringify(detalhesPagamento)
+          ]
+        );
+  
+        return novo.rows[0];
+      }
+  
     } catch (error) {
       throw new Error(`Erro ao criar faturamento: ${error.message}`);
     }
-  }
+  }    
 
   static async findById(id) {
     const query = 'SELECT * FROM faturamento WHERE id = $1';
