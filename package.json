@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-pdf/renderer": "^4.1.5",
     "@supabase/supabase-js": "^2.46.1",
+    "@tailwindcss/vite": "^4.1.5",
     "@xmldom/xmldom": "^0.9.5",
     "aos": "^2.3.4",
     "axios": "^1.7.9",
@@ -32,6 +33,7 @@
     "react-simple-typewriter": "^5.0.1",
     "supabase": "^1.219.2",
     "swiper": "^11.1.14",
+    "tailwindcss": "^4.1.5",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -39,6 +41,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "daisyui": "^5.0.35",
     "eslint": "^9.9.0",
     "eslint-plugin-react": "^7.35.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",

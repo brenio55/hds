@@ -1,7 +1,7 @@
 // AdminDashboard.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Dashboard.css'; // Importando o CSS
+// import './Dashboard.css'; // Importando o CSS
 import HeaderAdmin from './HeaderAdmin';
 
 function Dashboard(){

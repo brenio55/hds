@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { Routes, Route, BrowserRouter } from 'react-router-dom'
+import { useEffect  } from 'react'
+import { Routes, Route, BrowserRouter, useLocation } from 'react-router-dom'
 import UserHome from './UserHome';
 
 import './css/style.css';
+import './App.css';
 import Login from './admin/Login';
 import Dashboard from './admin/Dashboard';
 // import PedidosDeCompra from './admin/PedidosDeCompra';
@@ -30,6 +31,32 @@ import ConsultarCargos from './admin/ConsultarCargos';
 function AppRoutes() {
   const { adminUser } = useAdmin();
   console.log('Estado do usuário admin:', adminUser);
+
+  let html;
+  let h2;
+  let header;
+  const reactRouterLocation = useLocation();
+
+  useEffect(() => {
+    
+    html = document.querySelector('html');
+    h2 = document.querySelectorAll('h2');
+    header = document.querySelector('header');
+    
+    if (reactRouterLocation.pathname.includes('admin')) {
+      html.setAttribute('data-theme', 'dark');
+      // header.style.backgroundColor = 'unset';
+    }else{
+
+      html.style.backgroundColor = '#f0f0f0';
+      // header.style.backgroundColor = 'rgba(255, 255, 255, 0.92)';
+      html.style.color = '#000';
+
+      h2.forEach( (element) => {
+        element.style.fontWeight = 'bold';
+      });
+    }
+  }, [reactRouterLocation]);
   
   if (adminUser) {
     return (
@@ -71,6 +98,8 @@ function AppRoutes() {
 }
 
 function App() {
+
+
   return (
     <AdminProvider>
       <BrowserRouter>
