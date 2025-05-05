@@ -290,7 +290,7 @@ function CadastrarFuncionario() {
     return (
         <>
             <HeaderAdmin />
-            <div className="cadastrar-funcionario-container">
+            <div className="cadastrar-funcionario-container pt-[var(--std-topSpace-navbar)] px-8 mx-auto">
                 <h2>{id ? 'Editar Funcionário' : 'Cadastrar Funcionário'}</h2>
                 
                 {success && (

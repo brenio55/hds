@@ -6,6 +6,7 @@ import './css/style.css';
 import './App.css';
 import Login from './admin/Login';
 import Dashboard from './admin/Dashboard';
+import DashboardOptimzed from './admin/DashboardOptimzed';
 // import PedidosDeCompra from './admin/PedidosDeCompra';
 import PedidosDeMaterial from './admin/PedidosDeMaterial';
 import PedidosDeLocacao from './admin/PedidosDeLocacao';
@@ -47,7 +48,6 @@ function AppRoutes() {
       html.setAttribute('data-theme', 'dark');
       // header.style.backgroundColor = 'unset';
     }else{
-
       html.style.backgroundColor = '#f0f0f0';
       // header.style.backgroundColor = 'rgba(255, 255, 255, 0.92)';
       html.style.color = '#000';
@@ -55,6 +55,10 @@ function AppRoutes() {
       h2.forEach( (element) => {
         element.style.fontWeight = 'bold';
       });
+    }
+
+    if(reactRouterLocation.pathname.includes('admin') && !reactRouterLocation.pathname.includes('dashboardoptimzed')){
+      html.setAttribute('data-theme', 'light');
     }
   }, [reactRouterLocation]);
   
@@ -65,6 +69,9 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/admin/login" element={<Login />} />
         <Route path="/admin/dashboard" element={<Dashboard />} />
+
+        <Route path="/admin/dashboardOptimzed" element={<DashboardOptimzed />} />
+
         {/* <Route path="/pedidosDeCompra" element={<PedidosDeCompra />} /> */}
         <Route path="/admin/pedidosDeMaterial" element={<PedidosDeMaterial />} />
         <Route path="/admin/pedidosDeLocacao" element={<PedidosDeLocacao />} />

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './CadastrarFornecedor.css';
 import HeaderAdmin from './HeaderAdmin';
 import ApiService from '../services/ApiService';
+import '../App.css';
 
 function CadastrarFornecedor() {
     const navigate = useNavigate();
@@ -73,7 +74,7 @@ function CadastrarFornecedor() {
     return (
         <>
             <HeaderAdmin />
-            <div className="cadastrar-fornecedor-container">
+            <div className="cadastrar-fornecedor-container pt-[var(--std-topSpace-navbar)]">
                 <h2>Cadastrar Fornecedor</h2>
                 
                 {error && (

@@ -39,7 +39,7 @@ function VisualizarFornecedor() {
     return (
         <>
             <HeaderAdmin />
-            <div className="visualizar-fornecedor-container">
+            <div className="visualizar-fornecedor-container pt-[var(--std-topSpace-navbar)] px-8 mx-auto">
                 <h2>Detalhes do Fornecedor</h2>
                 
                 {error && (

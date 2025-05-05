@@ -224,7 +224,7 @@ function ConsultarFornecedores() {
     return (
         <>
             <HeaderAdmin />
-            <div className="consultar-fornecedores-container">
+            <div className="consultar-fornecedores-container pt-[var(--std-topSpace-navbar)] px-8">
                 <h2>Consultar Fornecedores</h2>
                 
                 <form onSubmit={handleSearch} className="search-form">

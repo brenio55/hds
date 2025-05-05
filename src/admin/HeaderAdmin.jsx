@@ -17,7 +17,7 @@ function HeaderAdmin() {
             
             <div className="flex logo-container">
                 <div className="logo">
-                    <img src="/img/LOGO.png" alt="Logo" onClick={() => navigate('/admin/dashboard')} style={{ cursor: 'pointer' }} />    
+                    <img src="/img/LOGO.png" alt="Logo" onClick={() => navigate('/admin/dashboardoptimzed')} style={{ cursor: 'pointer' }} />    
                 </div>
                 <p>ERP - Sistema de Gestão</p>
             </div>

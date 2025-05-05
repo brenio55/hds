@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './ConsultarPropostas.css';
 import HeaderAdmin from './HeaderAdmin';
 import ApiService from '../services/ApiService';
+import '../App.css';
 
 function ConsultarPropostas() {
     const navigate = useNavigate();
@@ -284,7 +285,7 @@ function ConsultarPropostas() {
     return (
         <>
             <HeaderAdmin />
-            <div className="consultar-propostas-container">
+            <div className="consultar-propostas-container pt-[var(--std-topSpace-navbar)] px-8 mx-auto">
                 <h2>Consultar Propostas</h2>
                 
                 <form onSubmit={handleSearch} className="search-form">

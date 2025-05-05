@@ -1,2 +1,16 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: dark
+}
+
+[data-theme="dark"] {
+  --color-primary: white;
+  --color-primary-content: #000000;
+  --color-secondary: #000000;
+  --color-secondary-content: #ffffff;
+  --color-accent: #000000;
+}
+
+:root {
+  --std-topSpace-navbar: 160px;
+}

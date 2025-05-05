@@ -278,7 +278,7 @@ function ConsultarFuncionarios() {
     return (
         <>
             <HeaderAdmin />
-            <div className="consultar-funcionarios-container">
+            <div className="consultar-funcionarios-container pt-[var(--std-topSpace-navbar)] px-8 mx-auto">
                 <h2>Consultar Funcionários</h2>
                 
                 <div className="header-actions">
