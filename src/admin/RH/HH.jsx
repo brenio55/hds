@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderAdminOptmized from '../CommonComponents/HeaderAdminOptmized';
+import AuthService from '../../services/AuthService';
 
 // Importando ícones
 import { FaUserClock, FaClipboardList } from "react-icons/fa";

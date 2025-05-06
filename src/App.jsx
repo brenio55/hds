@@ -44,6 +44,7 @@ function AppRoutes() {
 
   useEffect(() => {
     
+
     html = document.querySelector('html');
     h2 = document.querySelectorAll('h2');
     header = document.querySelector('header');
