@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './CadastrarFornecedor.css'; // Reutilizamos o mesmo CSS
-import HeaderAdmin from './HeaderAdmin';
-import ApiService from '../services/ApiService';
+import HeaderAdmin from '../../CommonComponents/HeaderAdmin';
+import ApiService from '../../../services/ApiService';
 
 function EditarFornecedor() {
     const navigate = useNavigate();

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import HeaderAdmin from './HeaderAdmin';
+import HeaderAdmin from '../../CommonComponents/HeaderAdmin';
 import './GerarPropostas.scss';
-import ApiService from '../services/ApiService';
-import { useAdmin } from '../contexts/AdminContext';
-import '../App.css';
+import ApiService from '../../../services/ApiService';
+import { useAdmin } from '../../../contexts/AdminContext';
+import '../../../App.css';
 
 // Componente do Popup
 const SuccessPopup = ({ onClose, propostaData }) => {

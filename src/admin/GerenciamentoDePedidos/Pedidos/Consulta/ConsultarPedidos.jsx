@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ConsultarPedidos.css';
-import HeaderAdmin from './HeaderAdmin';
-import ApiService from '../services/ApiService';
-import '../App.css';
+import HeaderAdmin from '../../../CommonComponents/HeaderAdmin';
+import ApiService from '../../../../services/ApiService';
+import '../../../../App.css';
 
 function ConsultarPedidos() {
     const navigate = useNavigate();

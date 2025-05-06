@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { formatCNPJ, formatCEP, formatTelefone } from '../utils/formatters';
-import HeaderAdmin from './HeaderAdmin';
-import './pedidos.scss';
-import ApiService from '../services/ApiService';
+import { formatCNPJ, formatCEP, formatTelefone } from '../../../../utils/formatters';
+import HeaderAdmin from '../../../CommonComponents/HeaderAdmin';
+import '../pedidos.scss';
+import ApiService from '../../../../services/ApiService';
 
 // Estilos para o popup de sucesso
 const styles = `

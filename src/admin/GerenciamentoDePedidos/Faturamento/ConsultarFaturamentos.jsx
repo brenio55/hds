@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import HeaderAdmin from '../HeaderAdmin';
-import ApiService from '../../services/ApiService';
+import HeaderAdmin from '../../CommonComponents/HeaderAdmin';
+import ApiService from '../../../services/ApiService';
 import './ConsultarFaturamentos.css';
 // import './GerenciarPedidos.css';
 import axios from 'axios';

@@ -117,7 +117,9 @@ function DashboardOptimzed(){
                 <div className="service-section">
                     <h2 className="text-xl font-medium text-center">Financeiro - Registro e Consulta</h2>
                     <div className="service-buttons mt-4"> 
-                        <div className="btn btn-soft btn-primary py-6 px-4 w-85" onClick={() => handleNavigation('/admin/relatorioGeralCentroCusto')}>
+                        <div className="btn btn-soft btn-primary py-6 px-4 w-85" onClick={() => {
+                            alert('Em desenvolvimento');
+                        }}>
                             <div className="flex items-center gap-2 justify-start flex-row w-full">
                                 <TbReport size={23}/>
                                 <p>Relatório Geral de Centros de Custo</p>

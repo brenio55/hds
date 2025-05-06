@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 // import './Dashboard.css'; // Importando o CSS
-import HeaderAdmin from './HeaderAdmin';
+import HeaderAdmin from './CommonComponents/HeaderAdmin';
 
 function Dashboard(){
     const navigate = useNavigate();

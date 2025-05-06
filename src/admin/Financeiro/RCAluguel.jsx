@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import HeaderAdmin from '../HeaderAdmin';
+import HeaderAdmin from '../CommonComponents/HeaderAdmin';
 import ApiService from '../../services/ApiService';
 import './RCAluguel.css';
 

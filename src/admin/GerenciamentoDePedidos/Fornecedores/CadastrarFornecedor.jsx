@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CadastrarFornecedor.css';
-import HeaderAdmin from './HeaderAdmin';
-import ApiService from '../services/ApiService';
-import '../App.css';
+import HeaderAdmin from '../../CommonComponents/HeaderAdmin';
+import ApiService from '../../../services/ApiService';
+import '../../../App.css';
 
 function CadastrarFornecedor() {
     const navigate = useNavigate();

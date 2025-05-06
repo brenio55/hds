@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { useAdmin } from '../contexts/AdminContext';
+import { useAdmin } from '../../contexts/AdminContext';
 import './HeaderAdmin.css';
-import './../App.css';
+import '../../App.css';
 
 function HeaderAdmin() {
     const navigate = useNavigate();
