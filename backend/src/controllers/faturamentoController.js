@@ -101,6 +101,44 @@ class FaturamentoController {
       return res.status(500).json({ message: error.message });
     }
   }
+
+  static async findHistorico(req, res) {
+    try {
+      const { id_number, id_type } = req.query;
+      
+      // Validação de parâmetros
+      if (!id_number || !id_type) {
+        return res.status(400).json({ 
+          message: 'Os parâmetros id_number e id_type são obrigatórios'
+        });
+      }
+      
+      // Converter id_number para número se necessário
+      const parsedIdNumber = parseInt(id_number, 10);
+      if (isNaN(parsedIdNumber)) {
+        return res.status(400).json({ 
+          message: 'O parâmetro id_number deve ser um número válido'
+        });
+      }
+      
+      // Validar id_type
+      const tiposValidos = ['compra', 'locacao', 'servico'];
+      if (!tiposValidos.includes(id_type)) {
+        return res.status(400).json({ 
+          message: 'O parâmetro id_type deve ser um dos seguintes valores: compra, locacao, servico'
+        });
+      }
+      
+      const faturamentos = await FaturamentoModel.findHistorico(parsedIdNumber, id_type);
+      
+      return res.json({
+        total: faturamentos.length,
+        historico: faturamentos
+      });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
 }
 
 module.exports = FaturamentoController; 

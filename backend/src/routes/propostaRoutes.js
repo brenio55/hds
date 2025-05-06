@@ -48,7 +48,7 @@ const router = express.Router();
  *                       description: Nome do item
  *                     qtdUnidadeDeMedida:
  *                       type: string
- *                       description: Unidade de medida (ex: "VB", "UN", "M²")
+ *                       description: 'Unidade de medida (ex: "VB", "UN", "M²")'
  *                     qtdUnidades:
  *                       type: string
  *                       description: Quantidade

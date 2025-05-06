@@ -35,5 +35,16 @@ module.exports = {
       throw error;
     }
   },
+  getClient: async () => {
+    const client = await pool.connect();
+    const originalRelease = client.release;
+    
+    // Sobrescreve o método release para adicionar logs
+    client.release = () => {
+      originalRelease.call(client);
+    };
+    
+    return client;
+  },
   pool
 };

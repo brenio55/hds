@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.post('/', authMiddleware, FaturamentoController.create);
 router.get('/', authMiddleware, FaturamentoController.findAll);
+router.get('/historico', authMiddleware, FaturamentoController.findHistorico);
 router.get('/:id', authMiddleware, FaturamentoController.findById);
 router.put('/:id', authMiddleware, FaturamentoController.update);
 router.delete('/:id', authMiddleware, FaturamentoController.delete);

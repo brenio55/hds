@@ -2057,6 +2057,326 @@ class ApiService {
             };
         }
     }
+
+    // --- Métodos para Cargos ---
+    
+    /**
+     * Busca todos os cargos
+     * @returns {Promise<Array>} - Lista de cargos
+     */
+    static async buscarCargos() {
+        try {
+            console.log('ApiService: Buscando lista de cargos');
+            
+            const response = await fetch(`${API_URL}/api/cargos`, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar cargos: ${response.statusText}`);
+            }
+
+            const cargos = await response.json();
+            console.log(`ApiService: ${cargos.length} cargos encontrados`);
+            return cargos;
+        } catch (error) {
+            console.error('ApiService: Erro ao buscar cargos:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Busca um cargo pelo ID
+     * @param {number} id - ID do cargo
+     * @returns {Promise<Object>} - Dados do cargo
+     */
+    static async buscarCargoPorId(id) {
+        try {
+            console.log(`ApiService: Buscando cargo com ID ${id}`);
+            
+            const response = await fetch(`${API_URL}/api/cargos/${id}`, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar cargo: ${response.statusText}`);
+            }
+
+            const cargo = await response.json();
+            console.log(`ApiService: Cargo ID ${id} encontrado:`, cargo);
+            return cargo;
+        } catch (error) {
+            console.error(`ApiService: Erro ao buscar cargo ID ${id}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Cria um novo cargo
+     * @param {Object} dadosCargo - Dados do cargo a ser criado
+     * @returns {Promise<Object>} - Dados do cargo criado
+     */
+    static async criarCargo(dadosCargo) {
+        try {
+            console.log('ApiService: Criando novo cargo:', dadosCargo);
+            
+            const response = await fetch(`${API_URL}/api/cargos`, {
+                method: 'POST',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosCargo)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao criar cargo: ${response.statusText}`);
+            }
+
+            const cargo = await response.json();
+            console.log('ApiService: Cargo criado com sucesso:', cargo);
+            return cargo;
+        } catch (error) {
+            console.error('ApiService: Erro ao criar cargo:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Atualiza um cargo existente
+     * @param {number} id - ID do cargo
+     * @param {Object} dadosCargo - Novos dados do cargo
+     * @returns {Promise<Object>} - Dados do cargo atualizado
+     */
+    static async atualizarCargo(id, dadosCargo) {
+        try {
+            console.log(`ApiService: Atualizando cargo ID ${id}:`, dadosCargo);
+            
+            const response = await fetch(`${API_URL}/api/cargos/${id}`, {
+                method: 'PUT',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosCargo)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao atualizar cargo: ${response.statusText}`);
+            }
+
+            const cargo = await response.json();
+            console.log(`ApiService: Cargo ID ${id} atualizado com sucesso:`, cargo);
+            return cargo;
+        } catch (error) {
+            console.error(`ApiService: Erro ao atualizar cargo ID ${id}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Exclui um cargo
+     * @param {number} id - ID do cargo a ser excluído
+     * @returns {Promise<Object>} - Resultado da operação
+     */
+    static async excluirCargo(id) {
+        try {
+            console.log(`ApiService: Excluindo cargo ID ${id}`);
+            
+            const response = await fetch(`${API_URL}/api/cargos/${id}`, {
+                method: 'DELETE',
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao excluir cargo: ${response.statusText}`);
+            }
+
+            const resultado = await response.json();
+            console.log(`ApiService: Cargo ID ${id} excluído com sucesso:`, resultado);
+            return resultado;
+        } catch (error) {
+            console.error(`ApiService: Erro ao excluir cargo ID ${id}:`, error);
+            throw error;
+        }
+    }
+
+    // --- Métodos para Registros de HH ---
+    
+    /**
+     * Busca todos os registros de horas trabalhadas com filtros opcionais
+     * @param {Object} filtros - Filtros opcionais (funcionario_id, obra_id, data_inicio, data_fim)
+     * @returns {Promise<Array>} - Lista de registros de HH
+     */
+    static async buscarRegistrosHH(filtros = {}) {
+        try {
+            console.log('ApiService: Buscando registros de HH com filtros:', filtros);
+            
+            // Construir query string com os filtros
+            const params = new URLSearchParams();
+            if (filtros.funcionario_id) params.append('funcionario_id', filtros.funcionario_id);
+            if (filtros.obra_id) params.append('obra_id', filtros.obra_id);
+            if (filtros.data_inicio) params.append('data_inicio', filtros.data_inicio);
+            if (filtros.data_fim) params.append('data_fim', filtros.data_fim);
+            
+            const url = `${API_URL}/api/hh-registros${params.toString() ? `?${params.toString()}` : ''}`;
+            console.log('ApiService: URL para busca de registros de HH:', url);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar registros de HH: ${response.statusText}`);
+            }
+
+            const registros = await response.json();
+            console.log(`ApiService: ${registros.length} registros de HH encontrados`);
+            return registros;
+        } catch (error) {
+            console.error('ApiService: Erro ao buscar registros de HH:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Busca um registro de HH pelo ID
+     * @param {number} id - ID do registro
+     * @returns {Promise<Object>} - Dados do registro
+     */
+    static async buscarRegistroHHPorId(id) {
+        try {
+            console.log(`ApiService: Buscando registro de HH com ID ${id}`);
+            
+            const response = await fetch(`${API_URL}/api/hh-registros/${id}`, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar registro de HH: ${response.statusText}`);
+            }
+
+            const registro = await response.json();
+            console.log(`ApiService: Registro de HH ID ${id} encontrado:`, registro);
+            return registro;
+        } catch (error) {
+            console.error(`ApiService: Erro ao buscar registro de HH ID ${id}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Cria um novo registro de HH
+     * @param {Object} dadosRegistro - Dados do registro a ser criado
+     * @returns {Promise<Object>} - Dados do registro criado
+     */
+    static async criarRegistroHH(dadosRegistro) {
+        try {
+            console.log('ApiService: Criando novo registro de HH:', dadosRegistro);
+            
+            const response = await fetch(`${API_URL}/api/hh-registros`, {
+                method: 'POST',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosRegistro)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao criar registro de HH: ${response.statusText}`);
+            }
+
+            const registro = await response.json();
+            console.log('ApiService: Registro de HH criado com sucesso:', registro);
+            return registro;
+        } catch (error) {
+            console.error('ApiService: Erro ao criar registro de HH:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Atualiza um registro de HH existente
+     * @param {number} id - ID do registro
+     * @param {Object} dadosRegistro - Novos dados do registro
+     * @returns {Promise<Object>} - Dados do registro atualizado
+     */
+    static async atualizarRegistroHH(id, dadosRegistro) {
+        try {
+            console.log(`ApiService: Atualizando registro de HH ID ${id}:`, dadosRegistro);
+            
+            const response = await fetch(`${API_URL}/api/hh-registros/${id}`, {
+                method: 'PUT',
+                headers: createAuthHeaders(),
+                body: JSON.stringify(dadosRegistro)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao atualizar registro de HH: ${response.statusText}`);
+            }
+
+            const registro = await response.json();
+            console.log(`ApiService: Registro de HH ID ${id} atualizado com sucesso:`, registro);
+            return registro;
+        } catch (error) {
+            console.error(`ApiService: Erro ao atualizar registro de HH ID ${id}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Exclui um registro de HH
+     * @param {number} id - ID do registro a ser excluído
+     * @returns {Promise<Object>} - Resultado da operação
+     */
+    static async excluirRegistroHH(id) {
+        try {
+            console.log(`ApiService: Excluindo registro de HH ID ${id}`);
+            
+            const response = await fetch(`${API_URL}/api/hh-registros/${id}`, {
+                method: 'DELETE',
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao excluir registro de HH: ${response.statusText}`);
+            }
+
+            const resultado = await response.json();
+            console.log(`ApiService: Registro de HH ID ${id} excluído com sucesso:`, resultado);
+            return resultado;
+        } catch (error) {
+            console.error(`ApiService: Erro ao excluir registro de HH ID ${id}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Gera relatório de custos de HH por obra
+     * @param {number} obra_id - ID da obra
+     * @param {Object} filtros - Filtros opcionais (data_inicio, data_fim)
+     * @returns {Promise<Object>} - Relatório com detalhes e totalizadores
+     */
+    static async gerarRelatorioHHPorObra(obra_id, filtros = {}) {
+        try {
+            console.log(`ApiService: Gerando relatório de HH para obra ID ${obra_id} com filtros:`, filtros);
+            
+            // Construir query string com os filtros
+            const params = new URLSearchParams();
+            if (filtros.data_inicio) params.append('data_inicio', filtros.data_inicio);
+            if (filtros.data_fim) params.append('data_fim', filtros.data_fim);
+            
+            const url = `${API_URL}/api/hh-registros/relatorio/obra/${obra_id}${params.toString() ? `?${params.toString()}` : ''}`;
+            console.log('ApiService: URL para geração de relatório:', url);
+            
+            const response = await fetch(url, {
+                headers: createAuthHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro ao gerar relatório de HH: ${response.statusText}`);
+            }
+
+            const relatorio = await response.json();
+            console.log(`ApiService: Relatório de HH para obra ID ${obra_id} gerado com sucesso:`, relatorio);
+            return relatorio;
+        } catch (error) {
+            console.error(`ApiService: Erro ao gerar relatório de HH para obra ID ${obra_id}:`, error);
+            throw error;
+        }
+    }
 }
 
 export default ApiService; 

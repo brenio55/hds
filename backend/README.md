@@ -748,13 +748,13 @@ curl -X PUT http://localhost:3000/api/pedidos-compra/1 \
 POST /api/pedidos-locacao
 ```
 
-**Headers:**
+**Headers**:
 ```http
 Authorization: Bearer seu_token
 Content-Type: application/json
 ```
 
-**Corpo da Requisição:**
+**Corpo da Requisição**:
 ```json
 {
   "fornecedor_id": 1,
@@ -772,6 +772,7 @@ Content-Type: application/json
   "total_ipi": 100.00,
   "total_descontos": 50.00,
   "frete": 75.00,           // Valor do frete (anteriormente valor_frete)
+  "tipo_frete": "CIF",      // Tipo do frete: "CIF" (fornecedor paga) ou "FOB" (destinatário paga)
   "outras_despesas": 25.00,
   "total_final": 1150.00,
   "informacoes_importantes": "Informações importantes aqui",
@@ -780,7 +781,7 @@ Content-Type: application/json
 }
 ```
 
-**Exemplo de uso com curl:**
+**Exemplo de uso com curl**:
 ```bash
 curl -X POST \
   'http://localhost:3000/api/pedidos-locacao' \
@@ -795,6 +796,7 @@ curl -X POST \
     "total_ipi": 100.00,
     "total_descontos": 50.00,
     "frete": 75.00,
+    "tipo_frete": "CIF",
     "outras_despesas": 25.00,
     "total_final": 1150.00,
     "informacoes_importantes": "Informações importantes aqui",
@@ -803,8 +805,10 @@ curl -X POST \
   }'
 ```
 
-**Observações:**
+**Observações**:
 - O campo `valor_frete` foi substituído por `frete` para manter consistência com outros endpoints
+- O novo campo `tipo_frete` aceita dois valores: "CIF" (frete por conta do fornecedor) ou "FOB" (frete por conta do destinatário)
+- Se não for especificado, o `tipo_frete` assume o valor padrão "CIF"
 - O valor do frete deve ser enviado como número decimal
 - Internamente, o valor é armazenado na coluna `valor_frete` do banco de dados
 
@@ -1437,6 +1441,74 @@ Para pagamento via PIX ou TED:
   - Para `pix`/`ted`: armazena os dados da conta
 - Campo `recebimento_anexo`: deve ser enviado em formato base64 com o prefixo `data:application/pdf;base64,`
 - O arquivo anexo será salvo com um prefixo UUID (`anexo_{uuid}.pdf`)
+
+### Buscar Histórico de Faturamento
+
+**Endpoint**: `GET /api/faturamentos/historico`
+
+**Headers**:
+- `Authorization`: Bearer {token}
+
+**Parâmetros de Consulta**:
+- `id_number`: Número do pedido (obrigatório)
+- `id_type`: Tipo do pedido (obrigatório) - valores aceitos: 'compra', 'locacao', 'servico'
+
+**Exemplo de URL**:
+```
+/api/faturamentos/historico?id_number=81&id_type=compra
+```
+
+**Resposta de Sucesso**:
+```json
+{
+  "total": 2,
+  "historico": [
+    {
+      "id": 2,
+      "id_number": 81,
+      "id_type": "compra",
+      "valor_total_pedido": 1000.00,
+      "valor_faturado": 40,
+      "valor_a_faturar": 600.00,
+      "data_vencimento": "2023-05-20",
+      "nf": "123456789",
+      "pagamento": "boleto",
+      "created_at": "2023-05-01T10:30:00Z",
+      "detalhes_pagamento": {
+        "numero_boleto": "34191.79001 01043.510047 91020.150008 9 98310000150000",
+        "anexo_id": "anexo_abc123.pdf"
+      }
+    },
+    {
+      "id": 1,
+      "id_number": 81,
+      "id_type": "compra",
+      "valor_total_pedido": 1000.00,
+      "valor_faturado": 30,
+      "valor_a_faturar": 700.00,
+      "data_vencimento": "2023-04-15",
+      "nf": "987654321",
+      "pagamento": "boleto",
+      "created_at": "2023-04-01T09:00:00Z",
+      "detalhes_pagamento": {
+        "numero_boleto": "34191.79001 01043.510047 91020.150008 9 98310000120000",
+        "anexo_id": "anexo_def456.pdf"
+      }
+    }
+  ]
+}
+```
+
+**Exemplo de Uso com curl**:
+```bash
+curl -X GET "http://localhost:3000/api/faturamentos/historico?id_number=81&id_type=compra" \
+  -H "Authorization: Bearer seu_token_jwt"
+```
+
+**Observações**:
+- O endpoint retorna todos os registros de faturamento associados ao pedido especificado
+- Os resultados são ordenados por data de criação (do mais recente para o mais antigo)
+- Inclui detalhes completos de cada faturamento, incluindo informações de pagamento
 
 ### Obter Anexo de Faturamento
 
