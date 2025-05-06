@@ -7,6 +7,7 @@ import { TbPencilDown, TbZoomMoney, TbPencilSearch, TbUserSearch, TbUserPlus, Tb
 import { BiMoneyWithdraw } from "react-icons/bi";
 import { LuFileSearch2 } from "react-icons/lu";
 import { FaHouseFlag } from "react-icons/fa6";  
+import { RiUserSettingsFill } from "react-icons/ri";
 
 function DashboardOptimzed(){
 
@@ -51,7 +52,7 @@ function DashboardOptimzed(){
                                 <p>Consultar Fornecedores</p>
                             </div>
                         </div>
-                        <div className="btn btn-soft btn-primary py-6 px-4 w-85" onClick={() => handleNavigation('/admin/cadastrarFuncionario')}>
+                        {/* <div className="btn btn-soft btn-primary py-6 px-4 w-85" onClick={() => handleNavigation('/admin/cadastrarFuncionario')}>
                             <div className="flex items-center gap-2 justify-start flex-row w-full">
                                 <TbUserPlus size={23}/>
                                 <p>Cadastrar Funcionário</p>
@@ -61,6 +62,12 @@ function DashboardOptimzed(){
                             <div className="flex items-center gap-2 justify-start flex-row w-full">
                                 <TbUserSearch size={23}/>
                                 <p>Consultar Funcionários</p>
+                            </div>
+                        </div> */}
+                        <div className="btn btn-soft btn-primary py-6 px-4 w-85" onClick={() => handleNavigation('/admin/hh')}>
+                            <div className="flex items-center gap-2 justify-start flex-row w-full">
+                                <RiUserSettingsFill size={23}/>
+                                <p>Recursos Humanos (HH)</p>
                             </div>
                         </div>
                     </div>

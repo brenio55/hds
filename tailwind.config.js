@@ -14,6 +14,12 @@ module.exports = {
                 "--btn-transition": "all 0.1s ease-in-out",
             },
         },
+        {
+            light: {
+                ...require("daisyui/src/theming/themes")["data-theme=light"],
+                "--btn-transition": "all 0.1s ease-in-out", 
+            },
+        },
     ],
     darkTheme: "dark",
   },

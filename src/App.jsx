@@ -28,6 +28,7 @@ import CadastrarFuncionario from './admin/CadastrarFuncionario';
 import ConsultarFuncionarios from './admin/ConsultarFuncionarios';
 import CadastrarCargo from './admin/CadastrarCargo';
 import ConsultarCargos from './admin/ConsultarCargos';
+import HH from './admin/HH';
 
 function AppRoutes() {
   const { adminUser } = useAdmin();
@@ -47,10 +48,12 @@ function AppRoutes() {
     if (reactRouterLocation.pathname.includes('admin')) {
       html.setAttribute('data-theme', 'dark');
       // header.style.backgroundColor = 'unset';
-    }else{
+    }
+    if(!reactRouterLocation.pathname.includes('admin')){
       html.style.backgroundColor = '#f0f0f0';
       // header.style.backgroundColor = 'rgba(255, 255, 255, 0.92)';
       html.style.color = '#000';
+      html.setAttribute('data-theme', 'light');
 
       h2.forEach( (element) => {
         element.style.fontWeight = 'bold';
@@ -58,6 +61,12 @@ function AppRoutes() {
     }
 
     if(reactRouterLocation.pathname.includes('admin') && !reactRouterLocation.pathname.includes('dashboardoptimzed')){
+      html.setAttribute('data-theme', 'dark');
+    }
+
+    if(reactRouterLocation.pathname.includes('admin') && 
+    !reactRouterLocation.pathname.includes('hh') && 
+    !reactRouterLocation.pathname.includes('dashboardoptimzed')){
       html.setAttribute('data-theme', 'light');
     }
   }, [reactRouterLocation]);
@@ -71,6 +80,7 @@ function AppRoutes() {
         <Route path="/admin/dashboard" element={<Dashboard />} />
 
         <Route path="/admin/dashboardOptimzed" element={<DashboardOptimzed />} />
+        <Route path="/admin/hh" element={<HH />} />
 
         {/* <Route path="/pedidosDeCompra" element={<PedidosDeCompra />} /> */}
         <Route path="/admin/pedidosDeMaterial" element={<PedidosDeMaterial />} />
