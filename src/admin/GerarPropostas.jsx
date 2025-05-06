@@ -3,6 +3,7 @@ import HeaderAdmin from './HeaderAdmin';
 import './GerarPropostas.scss';
 import ApiService from '../services/ApiService';
 import { useAdmin } from '../contexts/AdminContext';
+import '../App.css';
 
 // Componente do Popup
 const SuccessPopup = ({ onClose, propostaData }) => {
@@ -225,7 +226,7 @@ function GerarPropostas() {
     return (
         <div className="proposta-page">
             <HeaderAdmin />
-            <div className="proposta-container">
+            <div className="proposta-container pt-[var(--std-topSpace-navbar)] px-8 mx-auto">
                 <div className="proposta-header">
                     <h1>Nova Proposta</h1>
                     {/* <button type="button" className="preview-button">

@@ -25,12 +25,12 @@ $header-height: 64px;
 .proposta-page {
     min-height: 100vh;
     background-color: $background-color;
-    padding: calc($header-height + 40px) 20px 20px;
+    /* padding: calc($header-height + 40px) 20px 20px; */
 }
 
 .proposta-container {
     max-width: 1600px;
-    margin: 35px auto;
+    // margin: 35px auto;
     animation: fadeIn 0.3s ease-out;
 }
 
