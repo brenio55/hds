@@ -1313,64 +1313,111 @@ curl -X DELETE http://localhost:3000/api/funcionarios/1 \
 
 - `GET /api/pedidos-consolidados`: Lista todos os pedidos consolidados
 - `GET /api/pedidos-consolidados/{proposta_id}`: Busca pedidos consolidados por ID da proposta
+- `GET /api/pedidos-agendados`: Lista todos os pedidos com faturamento agendado
 
-##### Exemplo de resposta para `/api/pedidos-consolidados/{proposta_id}`:
+##### Exemplo de resposta para `/api/pedidos-agendados`:
 
 ```json
 {
-  "proposta_id": "123",
-  "valor_proposta": 10000.00,
-  "pedidos": {
-    "locacao": [
-      {
+  "total": 2,
+  "pedidos": [
+    {
+      "tipo": "compra",
+      "id": 1,
+      "data": "2024-03-21T10:00:00Z",
+      "status": "ok",
+      "valor_total": 1000.00,
+      "valor_faturado": 300.00,
+      "valor_a_faturar": 700.00,
+      "tipo_de_pagamento": "boleto",
+      "detalhes_de_pagamento": {
+        "numero_boleto": "34191.79001 01043.510047 91020.150008 9 98310000150000"
+      },
+      "nf": "123456789",
+      "fornecedor": {
         "id": 1,
-        "total_bruto": 1000.00,
-        "total_final": 950.00
-      }
-    ],
-    "compra": [
-      {
+        "nome": "Fornecedor A"
+      },
+      "proposta": {
+        "id": 1,
+        "descricao": "Proposta de desenvolvimento web"
+      },
+      "cliente": {
+        "id": 1,
+        "nome": "Cliente A"
+      },
+      "data_vencimento": "2024-04-21"
+    },
+    {
+      "tipo": "locacao",
+      "id": 2,
+      "data": "2024-03-21T11:00:00Z",
+      "status": "ok",
+      "valor_total": 2000.00,
+      "valor_faturado": 1000.00,
+      "valor_a_faturar": 1000.00,
+      "tipo_de_pagamento": "pix",
+      "detalhes_de_pagamento": {
+        "banco": "Itaú",
+        "agencia": "1234",
+        "conta": "12345-6",
+        "nome": "Empresa LTDA",
+        "cnpj": "12.345.678/0001-00"
+      },
+      "nf": "987654321",
+      "fornecedor": {
         "id": 2,
-        "materiais": [
-          {
-            "valor_total": 500.00
-          }
-        ]
-      }
-    ],
-    "servico": [
-      {
-        "id": 3,
-        "itens": [
-          {
-            "valor_total": 750.00
-          }
-        ]
-      }
-    ]
-  },
-  "valor_pedidos": {
-    "locacao": 1000.00,
-    "compra": 500.00,
-    "servico": 750.00
-  },
-  "valor_somado": 2250.00
+        "nome": "Fornecedor B"
+      },
+      "proposta": {
+        "id": 2,
+        "descricao": "Proposta de locação de equipamentos"
+      },
+      "cliente": {
+        "id": 2,
+        "nome": "Cliente B"
+      },
+      "data_vencimento": "2024-04-22"
+    }
+  ]
 }
 ```
 
 ##### Exemplo de uso com curl:
 
 ```bash
+# Listar todos os pedidos agendados
 curl -X GET \
-  'http://localhost:3000/api/pedidos-consolidados/123' \
+  'http://localhost:3000/api/pedidos-agendados' \
+  -H 'Authorization: Bearer seu_token_jwt'
+
+# Filtrar por tipo de pedido
+curl -X GET \
+  'http://localhost:3000/api/pedidos-agendados?tipo=compra' \
+  -H 'Authorization: Bearer seu_token_jwt'
+
+# Filtrar por ID específico
+curl -X GET \
+  'http://localhost:3000/api/pedidos-agendados?tipo=compra&id=1' \
+  -H 'Authorization: Bearer seu_token_jwt'
+
+# Filtrar por centro de custo (proposta)
+curl -X GET \
+  'http://localhost:3000/api/pedidos-agendados?centroCusto=1' \
   -H 'Authorization: Bearer seu_token_jwt'
 ```
 
-O endpoint retorna:
-- `valor_proposta`: Valor final da proposta
-- `pedidos`: Lista de pedidos de cada tipo (locação, compra e serviço) associados à proposta
-- `valor_pedidos`: Soma dos valores de cada tipo de pedido
-- `valor_somado`: Soma total de todos os pedidos
+**Observações**:
+- O endpoint retorna apenas pedidos que possuem faturamento agendado (`agendamento = TRUE`)
+- Os resultados são ordenados por data de criação (do mais recente para o mais antigo)
+- Inclui detalhes completos de cada pedido, incluindo informações de faturamento
+- Suporta filtros por:
+  - `tipo`: tipo do pedido ('compra', 'locacao', 'servico')
+  - `id`: ID específico do pedido
+  - `centroCusto`: ID da proposta/centro de custo
+- O campo `tipo` aceita 'material' como sinônimo de 'compra' para compatibilidade
+- Valores monetários são retornados com 2 casas decimais
+- Datas são retornadas no formato ISO 8601
 
 ## Faturamento
 
